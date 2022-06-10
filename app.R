@@ -8,47 +8,54 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   tabPanel(title="Intro",id="00_intro"),
     ##option to skip intro-> advances to tab/menu 1
     ##preview
-  #### 1: Menu-Data Checking & Cleaning=================================================================================
-  navbarMenu(title="Check & Clean",menuName="01_check_clean",
-    tabPanel(title="Initial data check", id="01a_check",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput(inputId="01a_multi_col_check",label="Muti-column check",
-                      choices=c("dimensions"="dim",
-                                "data structure"="dat_str",
-                                "top 5 rows"="top5",
-                                "bottom 5 rows"="bott5",
-                                "missingness"="miss"),
-                      selected=character(0)),
-          h5("Single column check"),
-          selectInput(inputId="01a_sing_col_check",label="Which column?",
-                      choices="SEE BOOK",selected=character(0)),
-          selectizeInput(inputId="01a_tab_graph_check",label="What type of exploration?",
-                      choices=c("Tabular","Graphical"),selected=character(0),multiple=TRUE)
-        ),
-        mainPanel(
-          textOutput("01a_")
-          tableOutput("01a")
-          plotOutput("01a_")
-      )
-    ),
-    tabPanel(title="Data cleaning", id="01b_clean",
-      sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
+  #### 1: Menu-Data Checking=================================================================================
+  tabPanel(title="Data Check",menuName="01_check",
+    sidebarLayout(
+      sidebarPanel(
+        selectInput(inputId="01_multi_col_check",label="Multi-column check",
+                    choices=c("dimensions"="dim",
+                              "data structure"="dat_str",
+                              "top 5 rows"="top5",
+                              "bottom 5 rows"="bott5",
+                              "missingness"="miss"),
+                    selected=character(0)),
+        h5("Single column check"),
+        selectInput(inputId="01_sing_col_check",label="Which column?",
+                    choices="SEE BOOK",selected=character(0)),
+        selectizeInput(inputId="01_tab_graph_check",label="What type of exploration?",
+                    choices=c("Tabular","Graphical"),selected=character(0),multiple=TRUE)
+      ),
+      mainPanel(
+        textOutput("01_"),
+        tableOutput("01"),
+        plotOutput("01_")
       )
     )
   ),
   
   #### 2: Menu-Data Imputation==========================================================================================
   navbarMenu(title="Imputation",menuName="02_impute",
-    tabPanel(title="Missingness", id="02a_miss",
+    tabPanel(title="Missing names", id="02a_name",
+      sidebarLayout(
+        sidebarPanel(
+          h5("Some passengers did not have names"),
+          selectInput(inputId="02a_",label="Would you like to look more closely at these missing data?",
+                      choices=c("yes"),
+                      selected=character(0)),
+          br()
+          selectInput(inputId="02b_",label=)),
+        mainPanel(
+          plotOutput(),
+          
+      )
+    ),
+    tabPanel(title="Missingness", id="02b_miss",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
       )
     ),
-    tabPanel(title="Impute data",id="02b_impute",
+    tabPanel(title="Impute data",id="02c_impute",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()

@@ -1,8 +1,8 @@
 # R code to develop Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
-# Part 1 of x: data checking, simple feature engineering, data imputation, feature engineering
+# Part 1 of x: data checking, character vector imputation, missingness, data imputation, feature engineering
 
 #load packages
-pacman::p_load(here,tidyverse,janitor,visdat,finalfit)
+pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr)
 
 
 #### Read in data=================================================================================================================
@@ -58,29 +58,48 @@ train_inputDF %>%
 #use switch() based on col type and then outputs summary/tabyl and histogram/bar plot
 
 
-##### Character string imputationn=================================================================================================
-#enters train_inputDF
-#exits trainDF
+#### Simple feature engineering====================================================================================================
+#enter: train_inputDf
+#exit: trainDF
 
-#### Option? Ignore, drop col(s), remove rows, populate some using passenger group, populate with same room?
+train_inputDF %>%
+  ### passenger_id
+  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  ### cabin
+  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
+  ### name
+  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) -> trainDF
+
+
+##### Character string imputationn=================================================================================================
+#enter: trainDF
+#exit: trainDF_nI
+
+#### Assessment
+trainDF %>%
+  mutate(last_name=ifelse(!is.na(l_name),"Yes","NA")) %>%
+  ggplot() +
+  geom_bar(aes(x=last_name)) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1)),scales::pseudo_log_trans()) +
+  labs(x="Last name",
+       y="Number of individuals") +
+  theme_bw() 
+
+#### Option? Ignore, drop col(s), remove rows, populate some using passenger group, populate with same room
 ### Ignore
-train_inputDF -> trainDF
+trainDF -> trainDF_nI
 
 ### Drop col
-train_inputDF %>% 
-  select(-name) -> trainDF
+trainDF %>% 
+  select(-contains("name")) -> trainDF_nI
 
 ### Remove rows with NAs for name
-train_inputDF %>%
-  filter(!is.na(name)) -> trainDF
+trainDF %>%
+  filter(!is.na(name)) -> trainDF_nI
 
 ### Populate some name values using passenger group
 ## Test run
-train_inputDF %>%
-  ### split passenger_id into passenger_group and ticket
-  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
-  ### split (full) name into f_name and l_name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+trainDF %>%
   ## populate l_name using passenger_group 
   select(passenger_id,passenger_group,ticket,l_name) %>% 
   mutate(l_name_fill=l_name) %>% 
@@ -89,11 +108,7 @@ train_inputDF %>%
   #populates l_name if there is a non-NA l_name in same group
 
 ## Fill via passenger_group
-train_inputDF %>%
-  ## separate passenger_id
-  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
-  # separate name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+trainDF %>%
   # populate l_name by passenger_group
   group_by(passenger_group) %>%
   fill(l_name) %>%
@@ -103,17 +118,12 @@ train_inputDF %>%
     !is.na(name)                   ~ name,
     is.na(f_name) & !is.na(l_name) ~ paste(f_name,l_name),
     is.na(f_name) & is.na(l_name)  ~ "",
-    TRUE                           ~ "CHECK"),
-    .keep="unused") -> trainDF_nI #trainDF_nameImputed
+    TRUE                           ~ "CHECK")) -> trainDF_nI #trainDF_nameImputed
 
 
 ### Populate some name values using cabin components
 ## Test run
-train_inputDF %>%
-  ### split cabin into deck, num, and side
-  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
-  ### split (full) name into f_name and l_name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+trainDF %>%
   ## populate l_name_fill using deck, num, and side
   select(deck,num,side,l_name) %>% 
   mutate(l_name_fill=l_name) %>% 
@@ -121,11 +131,7 @@ train_inputDF %>%
   fill(l_name_fill) %>% View()
 
 ## Fill via passenger_group
-train_inputDF %>%
-  ### split cabin into deck, num, and side
-  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
-  ### split (full) name into f_name and l_name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+trainDF %>%
   ## populate l_name using deck, num, and side
   group_by(deck,num,side) %>% 
   fill(l_name) %>% 
@@ -135,32 +141,34 @@ train_inputDF %>%
     !is.na(name)                   ~ name,
     is.na(f_name) & !is.na(l_name) ~ paste(f_name,l_name),
     is.na(f_name) & is.na(l_name)  ~ "",
-    TRUE                           ~ "CHECK"),
-    .keep="unused") -> trainDF_nI
+    TRUE                           ~ "CHECK")) -> trainDF_nI
 
 ### Remove NA names after filling
 trainDF_nI %>%
-  filter(!is.na(name)) -> trainDF
+  filter(!is.na(name)) -> trainDF_nI
 
 ### Don't remove NA names after filling
-trainDF_nI -> trainDF
+trainDF_nI
 
 
 #### Data imputation (numerical and categorical)==================================================================================
-#enters trainDF
-#exits 
+#enters trainDF_nI
+#exits i_trainDF
 
 ### Assess missingness
 ## graphical
-vis_dat(trainDF)
-vis_miss(trainDF)
-trainDF %>%
+vis_dat(trainDF_nI)
+vis_miss(trainDF_nI)
+trainDF_nI %>%
   missing_plot()
 
 
 ## tabular
-trainDF %>%
+trainDF_nI %>%
   ff_glimpse()
+
+trainDF_nI %>%
+  skim()
 
 
 ## understand pattern--MCAR, MAR, etc.
@@ -194,9 +202,18 @@ l_name
 #use vis_compare()
 
 #### Feature engineering==========================================================================================================
-## family size
-# l_name
-train %>%
+### Name
+i_trainDF %>%
+  separate(name,into=c("f_name","l_name",sep=" "),remove=FALSE) -> fi_trainDF
+
+
+### Cabin
+
+
+
+### Family size
+## l_name
+trainDF %>%
   group_by(l_name) %>%
   mutate(fam_size=n()) -> train
 
@@ -216,16 +233,19 @@ train %>%
   mutate(fam_size=n()) -> train
 
 
-## traveling party size
-# number of different tickets in a group
+### Traveling party size
+## Number of different tickets in a group
 train %>%
   group_by(passenger_group) %>%
   mutate(party_size=n_distinct(ticket)) -> train
 
-# by cabin
+## Number of people in same cabin (room)
 train %>%
   group_by(cabin) %>%
   mutate(party_size=n())
+
+
+### Age groups
 
 
 ### Visualize new cols
