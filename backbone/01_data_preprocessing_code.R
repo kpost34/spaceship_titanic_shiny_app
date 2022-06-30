@@ -3,17 +3,25 @@
 #feature engineering
 
 #load packages
-pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr)
+pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,conflicted)
+
+#address conflicts
+conflict_prefer("filter","dplyr")
+conflict_prefer("chisq.test","stats")
 
 
-#### Read in data=================================================================================================================
+#### Read in data & initially clean data==========================================================================================
 #exit: trainDF
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
   ### passenger_id
   separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  ### cabin
+  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
   ### name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) -> trainDF
+  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+  ### reclassify vars
+  mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
 
 
 #### Data checking================================================================================================================
@@ -26,42 +34,238 @@ glimpse(trainDF)
 apply(trainDF,2,class)
 
 ### Preview data
-head(trainDF)
-sample(trainDF)
-tail(trainDF)
+head(trainDF,n=5)
+tail(trainDF,n=5)
+slice_sample(trainDF,n=5) #put in DT::datatable
 
 
 ### Missingness
 apply(trainDF,2,function(x) sum(is.na(x))) 
+apply(trainDF,2,function(x) sum(is.na(x))) %>%
+  as.data.frame() %>%
+  rownames_to_column() %>%
+  setNames(c("col","n_missing")) %>%
+  as_tibble() %>%
+  arrange(desc(n_missing))
 
 
-### Descriptive stats
+### Data summaries
+skim(trainDF)
+skim(trainDF,where(is.character)) %>% as_tibble() %>% select(-skim_type)
+skim(trainDF,where(is.factor)) %>% as_tibble() %>% select(-skim_type)
+skim(trainDF,where(is.logical)) %>% as_tibble() %>% select(-skim_type)
+skim(trainDF,where(is.numeric)) %>% as_tibble() %>% select(-skim_type)
+
+
+##### Exploratory Data Analysis====================================================================================================
+#### Set colors for variables
+
+
+#### Univariate--------------------------------------------------------------------------------------------------------------------
+### Text/Tabular
 ## Numerical data
 summary(trainDF["age"])
 summary(trainDF["food_court"])
 
-## Categorical data
+## Categorical or logical data
 tabyl(trainDF,home_planet)
 tabyl(trainDF,cryo_sleep)
 tabyl(trainDF,destination)
+tabyl(trainDF,transported)
 
 
-### Graphically
-## Histogram
+#### Graphical
+### Histogram
 trainDF %>%
   ggplot() +
-  geom_histogram(aes(spa),fill="steelblue") +
+  geom_histogram(aes(spa),fill="steelblue",color="black") +
   theme_bw()
 
-## Barplot
+### Barplot
 trainDF %>%
   ggplot() +
-  geom_bar(aes(home_planet),fill="steelblue") +
+  geom_bar(aes(home_planet),fill="steelblue",color="black") +
   theme_bw()
 
 
 ##IDEAS##
 #use switch() based on col type and then outputs summary/tabyl and histogram/bar plot
+
+
+#### Bivariate---------------------------------------------------------------------------------------------------------------------
+### Tabular
+## Cat-cat
+tabyl(trainDF,home_planet,destination)
+tabyl(trainDF,home_planet,transported)
+
+## Cat-num
+trainDF %>%
+  group_by(transported) %>%
+  summarize(across(age,list(min=~min(.,na.rm=TRUE),
+                            Q1=~quantile(.,probs=0.25,na.rm=TRUE),
+                            median=~median(.,na.rm=TRUE),
+                            mean=~mean(.,na.rm=TRUE),
+                            Q3=~quantile(.,probs=0.75,na.rm=TRUE),
+                            max=~max(.,na.rm=TRUE),
+                            NAs=~sum(is.na(.))))) 
+
+
+#### Graphical
+### Cat-cat
+## Bubble plot
+# With NAs
+trainDF %>%
+  ggplot(aes(x=side,y=vip)) +
+  geom_count() +
+  theme_bw()
+
+# Without NAs
+trainDF %>%
+  filter(!is.na(side),
+         !is.na(vip)) %>%
+  ggplot(aes(x=side,y=vip)) +
+  geom_count() +
+  theme_bw()
+
+
+## Stacked bar plot
+# With NAs
+#count data
+trainDF %>%
+  ggplot(aes(x=side,fill=transported)) +
+  geom_bar() +
+  theme_bw()
+
+#proportion data
+trainDF %>%
+  ggplot(aes(x=side,fill=transported)) +
+  geom_bar(position="fill") +
+  theme_bw()
+
+# Without NAs
+#count data
+trainDF %>%
+  filter(!is.na(side),
+         !is.na(transported)) %>%
+  ggplot(aes(x=side,fill=transported)) +
+  geom_bar() +
+  theme_bw()
+
+#proportion data
+trainDF %>%
+  filter(!is.na(side),
+         !is.na(transported)) %>%
+  ggplot(aes(x=side,fill=transported)) +
+  geom_bar(position="fill") +
+  theme_bw()
+
+
+### Cat-num
+## Bar plot
+# With NAs (for Deck)
+trainDF %>% 
+  #remove NA values for spa
+  filter(!is.na(spa)) %>%
+  mutate(deck=fct_reorder(deck,spa,.fun=mean,.desc=TRUE)) %>% 
+  ggplot(aes(x=deck,y=spa)) +
+  stat_summary(geom="col",fun="mean",fill="steelblue",color="black") +
+  scale_y_continuous(expand=expansion(mult=c(0,.1))) +
+  theme_bw()
+
+# Without NAs
+trainDF %>%
+  filter(!is.na(spa),
+         !is.na(deck)) %>%
+  mutate(deck=fct_reorder(deck,spa,.fun=mean,.desc=TRUE)) %>%
+  ggplot(aes(x=deck,y=spa)) +
+  stat_summary(geom="col",fun="mean",fill="steelblue",color="black") +
+  scale_y_continuous(expand=expansion(mult=c(0,.1))) +
+  theme_bw()
+
+
+## Boxplots
+# With NAs
+trainDF %>%
+  ggplot(aes(destination,shopping_mall,color=destination)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_bw()
+
+
+# Without NAs
+trainDF %>%
+  filter(!is.na(destination)) %>%
+  ggplot(aes(destination,shopping_mall,color=destination)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_bw()
+
+
+### Num-num (scatterplots)
+## room_service-vr_deck
+trainDF %>%
+  ggplot(aes(room_service,vr_deck)) +
+  geom_point(alpha=0.5) +
+  scale_x_continuous(trans="log10") +
+  scale_y_continuous(trans="pseudo_log",expand=expansion(mult=c(0,.05))) +
+  theme_bw()
+
+## shopping_mall-spa
+trainDF %>%
+  ggplot(aes(shopping_mall,spa)) +
+  geom_point(alpha=0.5) +
+  scale_x_continuous(trans="log10") +
+  scale_y_continuous(trans="pseudo_log",expand=expansion(mult=c(0,.05))) +
+  theme_bw()
+
+
+#### Statistical (num-num only)
+trainDF %>%
+  cor_test(room_service,food_court,method="spearman")
+
+trainDF %>%
+  cor_test(room_service,food_court,method="spearman")
+
+
+#### Multivariate (graphically only)----------------------------------------------------------------------------------------------
+### Num-num-cat
+trainDF %>%
+  ggplot(aes(x=room_service,y=food_court,color=side)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  theme_bw()
+
+
+### Cat-cat-num
+## Bar plot
+# With NAs
+trainDF %>%
+  ggplot(aes(x=cryo_sleep,y=age,fill=transported)) +
+  stat_summary(geom="col",fun="mean",position="dodge") +
+  stat_summary(geom="errorbar",fun.data=mean_se,position=position_dodge(0.95),width=0.5) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  theme_bw()
+
+# Without NAs
+trainDF %>%
+  filter(!is.na(cryo_sleep),
+         !is.na(transported)) %>%
+  ggplot(aes(x=cryo_sleep,y=age,fill=transported)) +
+  stat_summary(geom="col",fun="mean",position="dodge") +
+  stat_summary(geom="errorbar",fun.data=mean_se,position=position_dodge(0.95),width=0.5) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  theme_bw()
+
+
+## Boxplot (without NAs)
+trainDF %>%
+  filter(!is.na(side)) %>%
+  ggplot(aes(x=transported,color=side,y=food_court)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_bw()
+
 
 
 #### Character string imputation==================================================================================================
@@ -74,7 +278,7 @@ trainDF %>%
   mutate(last_name=ifelse(!is.na(l_name),"Yes","NA")) %>%
   ggplot() +
   geom_bar(aes(x=last_name),fill="steelblue",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1)),scales::pseudo_log_trans()) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1)),trans="pseudo_log") +
   labs(x="Last name") +
   theme_bw()
 
@@ -210,7 +414,7 @@ trainDF_nI
 #### Missingness------------------------------------------------------------------------------------------------------------------
 ### Code variables
 explanatory<-trainDF_nI %>%
-  select(passenger_id:l_name) %>%
+  select(-c(passenger_id:ticket,cabin,name:last_col())) %>%
   names()
 dependent<-"transported"
 
@@ -229,44 +433,85 @@ vis_miss(trainDF_nI)
 
 trainDF_nI %>%
   missing_plot(dependent,explanatory)
-#cols without missing data (depends on how previous section is handled): transported, passenger_id, passenger_group, ticket,
-  #name, f_name, l_name
+#cols with missing data: home_planet, cryo_sleep, deck, num, side, destination, age, vip, room_service, food_court, 
+  #shopping_mall, spa, vr_deck (aside from character vars...all but transported)
 
 
 ### Look for patterns of missingness
 trainDF_nI %>%
   missing_pattern(dependent,explanatory) #%>% dim()
-#there are 88 patterns of missingness
+#there are 77 patterns of missingness
 
 
 
 ### Include missing data in demographics tables
 ## Redefine variables (explanatory and confounders)
-explanatory_focus<-c("cabin")
+explanatory_focus<-c("side")
 confounders<-c("home_planet","destination","age","vip","cryo_sleep","room_service","food_court","shopping_mall","spa","vr_deck")
 
-#trainDF_nI %>%
- # summary_factorlist(explanatory_focus,confounders,na_include=TRUE,na_include_dependent=TRUE,
-   #                  total_col=TRUE,add_col_totals=TRUE,p=TRUE)
+trainDF_nI %>%
+  summary_factorlist(explanatory_focus,confounders,na_include=TRUE,na_include_dependent=TRUE,
+                 total_col=TRUE,add_col_totals=TRUE,p=TRUE)
+
                      
 
-             
+### Check for associations between missing and observed data
+## Visually
+trainDF_nI %>%
+  missing_pairs(dependent,explanatory)
 
 
-## understand pattern--MCAR, MAR, etc.
-#notes: 
-#Missing completely at random (MCAR)
-#Missing at random (MAR)
-#missing not at random (MNAR)
-trainDF %>%
-  missing_pattern()
+## Statistically
+# Test vr_deck
+#redefine variables (note that dependent is simply the variable being tested for missingness)
+exp_vr_deck<-c(explanatory,dependent) %>%
+  setdiff("vr_deck")
+dep_vr_deck<-"vr_deck"
 
-train_inputDF %>%
-  missing_pattern()
+#run test
+trainDF_nI %>%
+  missing_compare(dep_vr_deck,exp_vr_deck) %>%
+  filter(p!="")
+#nothing significant
 
 
+# Test deck
+#redefine variables (note that dependent is simply the variable being tested for missingness)
+exp_deck<-c(explanatory,dependent) %>%
+  setdiff(c("deck","num","side")) #remove deck ("dep" var) + num and side (because missingness is the same)
+dep_deck<-"deck"
 
-### Imputate data
+#run test
+trainDF_nI %>%
+  missing_compare(dep_deck,exp_deck) %>%
+  filter(p!="")
+  #cryo_sleep, room_service, and spa
+
+
+# Test home_planet
+#redefine variables (note that dependent is simply the variable being tested for missingness)
+exp_home_planet<-c(explanatory,dependent) %>%
+  setdiff("home_planet")
+dep_home_planet<-"home_planet"
+
+#run test
+trainDF_nI %>%
+  missing_compare(dep_home_planet,exp_home_planet) %>% 
+  filter(p!="")
+#nothing significant
+
+
+#### Handling missing data--------------------------------------------------------------------------------------------------------
+### MCAR
+#list-wise deletion
+#imputation
+
+### MAR
+#imputation 
+#omit the variable
+
+
+### Impute data
 ## individually
 l_name
 

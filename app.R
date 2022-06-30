@@ -1,61 +1,137 @@
-#load libraries
-pacman::p_load(shiny,tidyverse)
+pacman::p_load(shiny,here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,conflicted)
 
+#address conflicts
+conflict_prefer("filter","dplyr")
+conflict_prefer("chisq.test","stats")
+
+#exit: trainDF
+read_csv(here("data","train.csv")) %>%
+  clean_names() %>%
+  ### passenger_id
+  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  ### cabin
+  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
+  ### name
+  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+  ### reclassify vars
+  mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
+
+#load functions
+source(here("functions","spaceship_titanic_app_func_01.R"))
 
 
 ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="static-top",
-  #### 0: Title page and intro==========================================================================================
+  #### 0: Title page and intro====================================================================================================
   tabPanel(title="Intro",id="00_intro"),
     ##option to skip intro-> advances to tab/menu 1
     ##preview
-  #### 1: Menu-Data Checking=================================================================================
-  tabPanel(title="Data Check",menuName="01_check",
+  #### 1: Menu-Data Checking======================================================================================================
+  tabPanel(title="Data Check",menuName="01_chk",
     sidebarLayout(
       sidebarPanel(
-        selectInput(inputId="01_multi_col_check",label="Multi-column check",
+        selectizeInput(inputId="sel_dat_quick_01",label="Quick data check",
                     choices=c("dimensions"="dim",
-                              "data structure"="dat_str",
-                              "top 5 rows"="top5",
-                              "bottom 5 rows"="bott5",
+                              "data sample"="dat_samp",
                               "missingness"="miss"),
+                    multiple=TRUE,
                     selected=character(0)),
-        h5("Single column check"),
-        selectInput(inputId="01_sing_col_check",label="Which column?",
-                    choices="SEE BOOK",selected=character(0)),
-        selectizeInput(inputId="01_tab_graph_check",label="What type of exploration?",
-                    choices=c("Tabular","Graphical"),selected=character(0),multiple=TRUE)
+        br(),
+        selectInput(inputId="chk_dat_summ_sel",label="Data summaries",
+                    choices=c("character"="chr",
+                              "factor"="fct",
+                              "logical"="lgl",
+                              "numeric"="num"),
+                    selected=character(0))
       ),
       mainPanel(
-        textOutput("01_"),
-        tableOutput("01"),
-        plotOutput("01_")
+        tableOutput("sel_quick_tab_01"),
+        tableOutput("summ_tab_sel_01")
       )
     )
   ),
   
-  #### 2: Menu-Data Imputation==========================================================================================
-  navbarMenu(title="Imputation",menuName="02_impute",
-    tabPanel(title="Missing names", id="02a_name",
+  #### 2: Menu-EDA================================================================================================================
+  navbarMenu(title="EDA",menuName="02_eda",
+    tabPanel(title="Univariate",id="02a_eda_uni",    
       sidebarLayout(
         sidebarPanel(
-          h5("Some passengers did not have names"),
-          selectInput(inputId="02a_",label="Would you like to look more closely at these missing data?",
+          selectizeInput(inputId="02a_var_sel",label="Select one or two variables to explore.",
+                      choices="x",
+                      selected=character(0)),
+                      options=list(maxItems=2)
+          ),
+          #insert update selectizeInput #table, graph
+        mainPanel(
+          tableOutput("02_uni_eda1_tab_sel"),
+          plotOutput("02_uni_eda1_plot_sel"),
+          tableOutput("02_uni_eda2_tab_sel"),
+          plotOutput("02_uni_eda2_plot_sel")
+        ),
+      ),
+    ),
+    tabPanel(title="Multivariate",id="02b_eda_mult",
+      sidebarLayout(
+        sidebarPanel(
+          selectizeInput(inputId="02b_var_sel",label="Select two or three variables",
+                         choices="x",
+                         selected=character(0),
+                         options=list(maxItems=3)
+          )
+        ),
+          #switch based on two or three vars & their type
+          #correlation plots--together/individually
+          #statistical comparisons--correlations,
+        mainPanel(
+          plotOutput("02_bi_eda_sel"),
+          plotOutput("02_tri_eda_sel")
+        )
+      )
+    )
+  ),
+
+  #### 3: Menu-Missing Data====================================================================================================
+  navbarMenu(title="Missing Data",menuName="03_miss",
+    tabPanel(title="Missing names", id="03a_miss_nam",
+      sidebarLayout(
+        sidebarPanel(
+          h5("Notice that some passengers did not have names?"),
+          selectInput(inputId="03a_miss_name",label="Would you like to look more closely at these missing data?",
                       choices=c("yes"),
                       selected=character(0)),
-          br()
-          selectInput(inputId="02b_",label=)),
+          br(),
+          #uiOutput(""), #dynamic UI to provide options for exploring missing names
+          selectInput(inputId="03a_",label="How would you like to handle missing names?",
+                      choices=c("drop column"="drop_col",
+                                "remove rows"="remove_row",
+                                "populate using ticket info"="imp_pass_group",
+                                "populate using room info"="imp_room"))),
+          #uiOutput(""), #dynamic UI to remove rows with NA names afterward
         mainPanel(
-          plotOutput(),
-          
+          plotOutput("03a_"),
+          plotOutput("03a_"),
+        )
       )
     ),
-    tabPanel(title="Missingness", id="02b_miss",
+    tabPanel(title="Overall missingness", id="03b_miss_miss",
       sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
+        sidebarPanel(
+          selectInput(inputId="03b_viz_miss_sel",
+                      label="How would you like to visualize missingness?",
+                      choices=c("overall"="overall",
+                                "missing patterns"="patt")),
+          selectInput(inputId="03b_stats_miss_sel",
+                      label="Which variable would you like to test for MAR?",
+                      choices="x" #SEE BOOK#)
+          )
+        ),
+        mainPanel(
+          plotOutput("03b_"),
+          plotOutput("03b_"),
+          tableOutput("03b_")
+        )
       )
     ),
-    tabPanel(title="Impute data",id="02c_impute",
+    tabPanel(title="Handle missingness",id="03c_miss_imp",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
@@ -63,15 +139,22 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     )
   ),
   
-  #### 3: Menu-Features=================================================================================================
-  navbarMenu(title="Features",menuName="03_feature",
-    tabPanel(title="Feature assessment", id="03a_feat_assess",
+  #### 4: Menu-Features=================================================================================================
+  navbarMenu(title="Features",menuName="04_feat",
+    tabPanel(title="Feature assessment", id="04a_feat_assess",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
       )
     ),
-    tabPanel(title="Feature engineering",id="03b_feat_eng",
+    tabPanel(title="Feature engineering",id="04_feat_eng",
+             sidebarLayout(
+               sidebarPanel(),
+               mainPanel()
+             )
+    ),
+    
+    tabPanel(title="Feature engineering",id="04_eng",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
@@ -79,27 +162,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     )
   ),
   
-  #### 4: Menu-EDA======================================================================================================
-  navbarMenu(title="EDA",menuName="04_eda",
-    tabPanel(title="Summary stats",id="04a_summ",
-      sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
-      )
-    ),
-    tabPanel(title="Predictors only",id="04b_pred",
-      sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
-      )
-    ),
-    tabPanel(title="Predictors & response",id="04c_pred_resp",
-      sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
-      )
-    )
-  ),
+
   
   #### 5: Tab-Data Partitioning=========================================================================================
   tabPanel(title="Data Partitioning",id="05_part",
@@ -132,26 +195,26 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   ),
   
   #### 7: Menu-Validation & Tuning===========================================================================================
-  navbarMenu(title="Validation & Tuning", menuName="07_val_tune",
-    tabPanel(title="Cross-validate",id="07a_cross_val",
+  navbarMenu(title="Validation & Tuning", menuName="07_valTune",
+    tabPanel(title="Cross-validate",id="07a_valTune",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
       )
     ),
-    tabPanel(title="Model tuning", id="07b_mod_tune",
+    tabPanel(title="Model tuning", id="07b_valTune_mod",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
       )
     ),  
-    tabPanel(title="Model selection", id="07c_mod_sel",
+    tabPanel(title="Model selection", id="07c_valTune_sel",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
       )
     ),
-    tabPanel(title="Model assessment", id="07d_mod_assess",
+    tabPanel(title="Model assessment", id="07d_valTune_assess",
       sidebarLayout(
         sidebarPanel(),
         mainPanel()
@@ -170,16 +233,47 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
 
 server<-function(input,output,session){
   
-  #Server 1: Data Checking & Cleaning===================================================================================
+  
+  
+  
+  #Server 0: Intro================================================================================================================
+  
+  
+  #Server 1: Data Checking========================================================================================================
+  dat_check<-reactive({
+    switch(input$sel_dat_quick_01,
+           dim=dim_tbl(),
+           dat_samp=slice_sample(n=5),
+           miss=n_miss_tbl(0)
+    )
+  })
+    
+  output$sel_quick_tab_01<-renderTable({
+    req(!is.na(input$sel_dat_quick_01))
+    trainDF %>% dat_check()
+  })
+
+  dat_sum<-reactive({
+    switch(input$chk_dat_summ_sel,
+      chr=skim_tbl(type="character"),
+      fct=skim_tbl(type="factor"),
+      log=skim_tbl(type="logical"),
+      num=skim_tbl(type="numeric"))
+  })
+  
+  output$summ_tab_sel_01<-renderTable({
+    trainDF %>%
+      dat_sum()
+  })
 
   
-  #Server 2: Data Imputation============================================================================================
+  #Server 2: EDA============================================================================================
 
   
-  #Server 3: Features===================================================================================================
+  #Server 3: Missing Data===================================================================================================
 
   
-  #Server 4: EDA========================================================================================================
+  #Server 4: Features========================================================================================================
   
   #Server 5: Data Partitioning==========================================================================================
 
@@ -200,11 +294,18 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-#finished rough outline of app
+#backbone: developed better framework for missingness; worked through eda for univariate and bivariate tables/plots & started
+#multivariate eda
+#app. re-arranged menu again to make more logical sense; changed naming schemes
+#began building out server code
+#started creating functions
 
 
-
-
+## TO DO
+#1. Get github working again
+#2. Push code to github
+#3. Start making functions
+#4. Continue building out server
 
 
 #------------------------------------------------
