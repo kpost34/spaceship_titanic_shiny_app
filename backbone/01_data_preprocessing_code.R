@@ -51,10 +51,10 @@ apply(trainDF,2,function(x) sum(is.na(x))) %>%
 
 ### Data summaries
 skim(trainDF)
-skim(trainDF,where(is.character)) %>% as_tibble() %>% select(-skim_type)
-skim(trainDF,where(is.factor)) %>% as_tibble() %>% select(-skim_type)
-skim(trainDF,where(is.logical)) %>% as_tibble() %>% select(-skim_type)
-skim(trainDF,where(is.numeric)) %>% as_tibble() %>% select(-skim_type)
+skim(trainDF,where(is.character)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
+skim(trainDF,where(is.factor)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
+skim(trainDF,where(is.logical)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
+skim(trainDF,where(is.numeric)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
 
 
 ##### Exploratory Data Analysis====================================================================================================
