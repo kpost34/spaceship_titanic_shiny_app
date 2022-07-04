@@ -1,3 +1,4 @@
+#### Load packages
 pacman::p_load(shiny,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,conflicted)
 
 #address conflicts
@@ -5,6 +6,12 @@ conflict_prefer("filter","dplyr")
 conflict_prefer("chisq.test","stats")
 
 
+#### Load functions
+source(here("functions","spaceship_titanic_app_func_ui.R"))
+source(here("functions","spaceship_titanic_app_func_01.R"))
+
+
+#### Read in and clean data
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
   ### passenger_id
@@ -16,10 +23,25 @@ read_csv(here("data","train.csv")) %>%
   ### reclassify vars
   mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
 
-#load functions
-source(here("functions","spaceship_titanic_app_func_ui"))
-source(here("functions","spaceship_titanic_app_func_01.R"))
 
+#### Create vectors
+### Col names
+## All cols but character
+trainDF %>%
+  select(!where(is.character)) %>%
+  names()-> trainDF_nonchr_vars
+
+## selectInput
+chk01_quick_vec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
+chk01_summ_vec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
+
+
+#NAMING FORMULAS
+#inputs: [abbrvInput]_[abbrvTask]_[tabName]
+#e.g., sel_quick_chk01 (from chk011 tab): sel = selectInput, quick = "Quick data check", chk01
+#outputs: [abbrOutput]_[abbrvInput]_[# if 2+]_[tabName]
+#e.g., tab_sel_chk01 (from chk01 tab): tab = table, sel = selectInput, chk01 (if 2 tables then append 1, 2, etc to before tabName)
+#i.e., tab_[inputNameFormula]
 
 ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="static-top",
   #### 0: Title page and intro====================================================================================================
@@ -30,78 +52,83 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     ##option to skip intro-> advances to tab/menu 1
     ##preview
   #### 1: Menu-Data Checking======================================================================================================
-  tabPanel(title="Data Check",id="chk_01",
+  tabPanel(title="Data Check",id="chk01",
     sidebarLayout(
       sidebarPanel(width=3,
-        selectizeInput(inputId="sel_dat_quick_01",label="Quick data check",
-                       choices=c("dimensions"="dim",
-                              "data sample"="dat_samp",
-                              "missingness"="miss"),
-                       options=list(
-                        placeholder="Please select an option below",
-                        onInitialize = I('function() { this.setValue(""); }'))
+        selectInput01(id="sel_quick_chk01",label="Quick data check",choices=chk01_quick_vec
         ),
         linebreaks(2),
-        selectizeInput(inputId="chk_dat_summ_sel",label="Data summaries",
-                       choices=c("character"="chr",
-                                 "factor"="fct",
-                                 "logical"="lgl",
-                                 "numeric"="num"),
-                       options=list(
-                         placeholder="Please select an option below",
-                         onInitialize = I('function() { this.setValue(""); }'))
+        selectInput01(id="sel_summ_chk01",label="Data summaries",choices=chk01_summ_vec
         )
       ),
       mainPanel(width=9,
-        DTOutput("sel_quick_tab_01"),
-        linebreaks(2),
-        DTOutput("summ_tab_sel_01")
+        DTOutput("tab_sel_quick_chk01"),
+        br(),
+        DTOutput("tab_sel_summ_chk01")
       )
     )
   ),
-  tabPanel("test")
-)
-   
+
   #### 2: Menu-EDA================================================================================================================
-#   #navbarMenu(title="EDA",menuName="eda_02")
-# 
-#     tabPanel(title="Univariate",id="eda_uni_02a",
-#       sidebarLayout(
-#         sidebarPanel(
-#           # selectizeInput(inputId="var_sel_02a",label="Univariate eda \nChoose one or two variable(s).",
-#           #             choices=c("x","y"),
-#           #             options=list(maxItems=2)
-#           # )
-#         ),
-#           #insert update selectizeInput #table, graph
-#         mainPanel(
-#           # tableOutput("uni_eda_tab_02a_1"),
-#           # plotOutput("uni_eda_plot_02a_1"),
-#           # tableOutput("uni_eda_tab_02a_2"),
-#           # plotOutput("uni_eda_plot_02a_2")
-#         )
-#       )
-#     )
-# )
-  #   tabPanel(title="Multivariate",id="eda_mult_02b",
-  #     sidebarLayout(
-  #       sidebarPanel(
-  #         selectizeInput(inputId="var_sel_02b",label="Select two or three variables",
-  #                        choices=c("x","y"),
-  #                        multiple=TRUE,
-  #                        options=list(maxItems=3)
-  #         )
-  #       ),
-  #         #switch based on two or three vars & their type
-  #         #correlation plots--together/individually
-  #         #statistical comparisons--correlations,
-  #       mainPanel(
-  #         plotOutput("bi_eda_sel_02b"),
-  #         plotOutput("tri_eda_sel_02b")
-  #       )
-  #     )
-  #   )
-  # )
+  navbarMenu(title="EDA",menuName="eda02",
+
+    tabPanel(title="Univariate",id="uni_eda02",
+      titlePanel(title="Univariate Exploratory Data Analysis"),
+          wellPanel(
+            fluidRow(
+            column(6,
+            selectInput01(id="sel_var1_uni_eda02a",label="",choices=trainDF_nonchr_vars
+            )
+            ),
+            column(6,
+            selectInput01(id="sel_var2_uni_eda02a",label="",choices=trainDF_nonchr_vars
+            )
+            )
+          )
+        ),
+          #insert update selectizeInput #table, graph
+        fluidRow(
+          column(6,
+          htmlOutput("text_sel_var1_uni_eda02"),
+          DTOutput("tab_sel_var1_uni_eda02")
+          ),
+          column(6,
+          plotOutput("plot_sel_var1_uni_eda02")
+          )
+        ),
+        fluidRow(
+          column(6,
+          htmlOutput("text_sel_var2_uni_eda02"),
+          DTOutput("tab_sel_var2_uni_eda02")
+          ),
+          column(6,
+          plotOutput("plot_sel_var2_uni_eda02")
+          )
+        )
+    )
+    # tabPanel(title="Multivariate",id="eda_mult_02b",
+    #   fluidRow(
+    #     column(4,
+    #       wellPanel(
+    #         selectizeInput(inputId="var_sel_02b",label="Multivariate exploratory data analysis",
+    #                       choices=trainDF_nonchr_vars,
+    #                       multiple=TRUE,
+    #                       options=list(maxItems=3,
+    #                                    placeholder="Please select two or three variables",
+    #                                    onInitialize = I('function() { this.setValue(""); }'))
+    #         )
+    #       )
+    #     )
+    #   ),
+        #switch based on two or three vars & their type
+        #correlation plots--together/individually
+        #statistical comparisons--correlations,
+    #   fluidRow(
+    #     plotOutput("bi_eda_sel_02b"),
+    #     plotOutput("tri_eda_sel_02b")
+    #   )
+    # )
+  )
 
   # #### 3: Menu-Missing Data====================================================================================================
   # navbarMenu(title="Missing Data",menuName="miss_03",
@@ -236,43 +263,93 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   #     mainPanel()
   #   )
   # )
-#)
+)
 
 
 
 server<-function(input,output,session){
   
-  #Server 0: Intro================================================================================================================
+  #### Server 0: Intro================================================================================================================
   
-  #Server 1: Data Checking========================================================================================================
+  #### Server 1: Data Checking========================================================================================================
+  ### Display dims, data sample, or missingness
   dat_check<-reactive({
-    switch(input$sel_dat_quick_01,
+    switch(input$sel_quick_chk01,
            dim=dim_tbl(trainDF),
            dat_samp=slice_sample(trainDF,n=5),
            miss=n_miss_tbl(trainDF)
     )
   })
 
-  output$sel_quick_tab_01<-renderDT(
+  output$tab_sel_quick_chk01<-renderDT(
     dat_check(),options=list(scrollX="400px",
                              pageLength=5)
   )
 
+  ### Display data summary by col type
   dat_sum<-reactive({
-    switch(input$chk_dat_summ_sel,
+    switch(input$sel_summ_chk01,
       chr=skim_tbl(trainDF,type="character"),
       fct=skim_tbl(trainDF,type="factor"),
       lgl=skim_tbl(trainDF,type="logical"),
       num=skim_tbl(trainDF,type="numeric"))
   })
 
-  output$summ_tab_sel_01<-renderDT(
+  output$tab_sel_summ_chk01<-renderDT(
     dat_sum(),options=list(scrollX="400px")
   )
 
   
-  #Server 2: EDA============================================================================================
+  ##### Server 2: EDA============================================================================================
+  ### Univariate
+  ## reactives of output tables
+  dat1_uni_eda<-reactive({
+    if(class(trainDF[[input$sel_var1_uni_eda02a]])=="numeric"){
+      summaryize(trainDF,input$sel_var1_uni_eda02a)
+    }
+    else if(class(trainDF[[input$sel_var1_uni_eda02a]]) %in% c("logical","factor")){
+      tabylize(trainDF,input$sel_var1_uni_eda02a)
+    }
+  })
 
+  dat2_uni_eda<-reactive({
+    if(class(trainDF[[input$sel_var2_uni_eda02a]])=="numeric"){
+      summaryize(trainDF,input$sel_var2_uni_eda02a)
+    }
+    else if(class(trainDF[[input$sel_var2_uni_eda02a]]) %in% c("logical","factor")){
+      tabylize(trainDF,input$sel_var2_uni_eda02a)
+    }
+  })
+  
+  ## Text outputs
+  output$text_sel_var1_uni_eda02<-renderUI({
+    h3(paste(input$sel_var1_uni_eda02a))
+  })
+    
+  output$text_sel_var2_uni_eda02<-renderUI({
+    h3(paste(input$sel_var2_uni_eda02a))
+  })
+
+  ## Table outputs
+  output$tab_sel_var1_uni_eda02<-renderDT(
+    dat1_uni_eda(),options=list(scrollX="400px")
+  )
+
+  output$tab_sel_var2_uni_eda02<-renderDT(
+    dat2_uni_eda(),options=list(scrollX="400px")
+  )
+  
+  ## Plot outputs
+  output$plot_sel_var1_uni_eda02<-renderPlot(
+    dat1_uni_eda(),options=list(scrollX="400px")
+  )
+  
+  output$plot_sel_var2_uni_eda02<-renderPlot(
+    dat2_uni_eda(),options=list(scrollX="400px")
+  )
+  
+  
+  
   
   #Server 3: Missing Data===================================================================================================
 
@@ -298,14 +375,13 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-#debugged app code so that first page would display
-#added horizontal scroll bar & adjusted page lengths
-#began creating UI functions
+# updated naming formulas
+# wrote ui functions and implemented them in tab 1
+# started adding EDA backbone, function, and app code
 
 
 ## TO DO
-#Continue building out server
-#DT tables: 1) remove row numbers, 2) copy & excel & csv buttons
+
 
 
 #------------------------------------------------

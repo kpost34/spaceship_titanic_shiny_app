@@ -9,10 +9,8 @@ dim_tbl<-function(x){
   dim(x) %>%
     t() %>%
     as_tibble(.name_repair="minimal") %>%
-    setNames(c("rows","cols"))
+    setNames(c("rows","cols")) 
 }
-
-dim_tbl(trainDF)
 
 
 ## Function to return number of missing values per col as tibble
@@ -25,8 +23,6 @@ n_miss_tbl<-function(x){
     as_tibble(.name_repair="minimal") %>%
     arrange(desc(n_missing))
 }
-
-n_miss_tbl(trainDF)
 
 
 ### Look at variable types more closely
@@ -41,6 +37,34 @@ skim_tbl<-function(x,type="character"){
     mutate(across(where(is.numeric),~signif(.x,3)))
 }
 
-skim_tbl(trainDF,type="factor")
+
+#### EDA===============================================================================
+### Univariate
+## Function to create tabyl with numerical values signifed
+tabylize<-function(dat,col){
+  require(janitor,dplyr)
+  dat %>%
+    tabyl(!!col) %>%
+    mutate(across(where(is.numeric),~signif(.x,3)))
+}
+
+
+## Function to create tidyverse equiavlent of summary()
+summaryize<-function(dat,col){
+  require(dplyr)
+  dat %>%
+    select(!!col) %>%
+    summarize(across(!!col,list(minimum=~min(.x,na.rm=TRUE),
+                              q1=~quantile(.x,probs=0.25,na.rm=TRUE),
+                              median=~median(.x,na.rm=TRUE),
+                              mean=~mean(.x,na.rm=TRUE),
+                              q3=~quantile(.x,probs=0.75,na.rm=TRUE),
+                              maximum=~max(.x,na.rm=TRUE),
+                              na=~sum(is.na(.x))))) %>%
+    mutate(across(where(is.numeric),~signif(.x,3)))
+}
+
+
+
 
 

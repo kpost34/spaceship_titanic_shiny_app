@@ -64,8 +64,20 @@ skim(trainDF,where(is.numeric)) %>% as_tibble() %>% select(-skim_type) %>% mutat
 #### Univariate--------------------------------------------------------------------------------------------------------------------
 ### Text/Tabular
 ## Numerical data
-summary(trainDF["age"])
+summary(trainDF["age"]) 
 summary(trainDF["food_court"])
+
+#tidyverse equivalent
+trainDF %>%
+  select(age) %>%
+  summarize(across(age,list(minimum=~min(.x,na.rm=TRUE),
+                   q1=~quantile(.x,probs=0.25,na.rm=TRUE),
+                   median=~median(.x,na.rm=TRUE),
+                   mean=~mean(.x,na.rm=TRUE),
+                   q3=~quantile(.x,probs=0.75,na.rm=TRUE),
+                   maximum=~max(.x,na.rm=TRUE),
+                   na=~sum(is.na(.x)))))
+  
 
 ## Categorical or logical data
 tabyl(trainDF,home_planet)
