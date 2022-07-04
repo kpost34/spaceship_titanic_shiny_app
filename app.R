@@ -27,9 +27,13 @@ read_csv(here("data","train.csv")) %>%
 #### Create vectors
 ### Col names
 ## All cols but character
-trainDF %>%
-  select(!where(is.character)) %>%
-  names()-> trainDF_nonchr_vars
+trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nonchr_vars
+
+## All logical and factor cols
+trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_lgl_fct_vars
+
+## All numeric cols
+trainDF %>% select(where(is.numeric)) %>% names() -> trainDF_num_vars
 
 ## selectInput
 chk01_quick_vec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
@@ -55,11 +59,9 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   tabPanel(title="Data Check",id="chk01",
     sidebarLayout(
       sidebarPanel(width=3,
-        selectInput01(id="sel_quick_chk01",label="Quick data check",choices=chk01_quick_vec
-        ),
+        selectInput01(id="sel_quick_chk01",label="Quick data check",choices=chk01_quick_vec),
         linebreaks(2),
-        selectInput01(id="sel_summ_chk01",label="Data summaries",choices=chk01_summ_vec
-        )
+        selectInput01(id="sel_summ_chk01",label="Data summaries",choices=chk01_summ_vec)
       ),
       mainPanel(width=9,
         DTOutput("tab_sel_quick_chk01"),
@@ -71,63 +73,63 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
 
   #### 2: Menu-EDA================================================================================================================
   navbarMenu(title="EDA",menuName="eda02",
-
+    #tab 1: univariate EDA
     tabPanel(title="Univariate",id="uni_eda02",
       titlePanel(title="Univariate Exploratory Data Analysis"),
-          wellPanel(
-            fluidRow(
-            column(6,
-            selectInput01(id="sel_var1_uni_eda02a",label="",choices=trainDF_nonchr_vars
-            )
-            ),
-            column(6,
-            selectInput01(id="sel_var2_uni_eda02a",label="",choices=trainDF_nonchr_vars
-            )
-            )
-          )
-        ),
-          #insert update selectizeInput #table, graph
+      wellPanel(
         fluidRow(
           column(6,
-          htmlOutput("text_sel_var1_uni_eda02"),
-          DTOutput("tab_sel_var1_uni_eda02")
+            selectInput01(id="sel_var1_uni_eda02",label="",choices=trainDF_nonchr_vars)
           ),
           column(6,
-          plotOutput("plot_sel_var1_uni_eda02")
-          )
-        ),
-        fluidRow(
-          column(6,
-          htmlOutput("text_sel_var2_uni_eda02"),
-          DTOutput("tab_sel_var2_uni_eda02")
-          ),
-          column(6,
-          plotOutput("plot_sel_var2_uni_eda02")
+            selectInput01(id="sel_var2_uni_eda02",label="",choices=trainDF_nonchr_vars)
           )
         )
+      ),
+      fluidRow(
+        column(6,
+          htmlOutput("text_sel_var1_uni_eda02"),
+          DTOutput("tab_sel_var1_uni_eda02")
+        ),
+        column(6,
+          htmlOutput("text_sel_var2_uni_eda02"),
+          DTOutput("tab_sel_var2_uni_eda02")
+        )
+      ),
+      fluidRow(
+        column(6,
+          plotOutput("plot_sel_var1_uni_eda02")
+        ),
+        column(6,
+          plotOutput("plot_sel_var2_uni_eda02")
+        )
+      )
+    ),
+    #tab 2: multivariate EDA
+    tabPanel(title="Multivariate",id="eda_mult_02b",
+      titlePanel(title="Multivariate Exploratory Data Analysis"),
+      wellPanel(
+      fluidRow(
+        column(4,
+          wellPanel(
+            selectizeInput(inputId="var_sel_02b",label="Multivariate exploratory data analysis",
+                          choices=trainDF_nonchr_vars,
+                          multiple=TRUE,
+                          options=list(maxItems=3,
+                                       placeholder="Please select two or three variables",
+                                       onInitialize = I('function() { this.setValue(""); }'))
+            )
+          )
+        )
+      ),
+    switch based on two or three vars & their type
+    correlation plots--together/individually
+    statistical comparisons--correlations,
+      fluidRow(
+        plotOutput("bi_eda_sel_02b"),
+        plotOutput("tri_eda_sel_02b")
+      )
     )
-    # tabPanel(title="Multivariate",id="eda_mult_02b",
-    #   fluidRow(
-    #     column(4,
-    #       wellPanel(
-    #         selectizeInput(inputId="var_sel_02b",label="Multivariate exploratory data analysis",
-    #                       choices=trainDF_nonchr_vars,
-    #                       multiple=TRUE,
-    #                       options=list(maxItems=3,
-    #                                    placeholder="Please select two or three variables",
-    #                                    onInitialize = I('function() { this.setValue(""); }'))
-    #         )
-    #       )
-    #     )
-    #   ),
-        #switch based on two or three vars & their type
-        #correlation plots--together/individually
-        #statistical comparisons--correlations,
-    #   fluidRow(
-    #     plotOutput("bi_eda_sel_02b"),
-    #     plotOutput("tri_eda_sel_02b")
-    #   )
-    # )
   )
 
   # #### 3: Menu-Missing Data====================================================================================================
@@ -302,54 +304,69 @@ server<-function(input,output,session){
   
   ##### Server 2: EDA============================================================================================
   ### Univariate
-  ## reactives of output tables
-  dat1_uni_eda<-reactive({
-    if(class(trainDF[[input$sel_var1_uni_eda02a]])=="numeric"){
-      summaryize(trainDF,input$sel_var1_uni_eda02a)
+  ## Text outputs
+  output$text_sel_var1_uni_eda02<-renderUI({
+    h3(paste(input$sel_var1_uni_eda02))
+  })
+  
+  output$text_sel_var2_uni_eda02<-renderUI({
+    h3(paste(input$sel_var2_uni_eda02))
+  })
+  
+  ## Table outputs
+  # reactives of output tables
+  dat1_uni_eda02<-reactive({
+    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
+      summaryize(trainDF,input$sel_var1_uni_eda02)
     }
-    else if(class(trainDF[[input$sel_var1_uni_eda02a]]) %in% c("logical","factor")){
-      tabylize(trainDF,input$sel_var1_uni_eda02a)
+    else if(input$sel_var1_uni_eda02 %in% trainDF_lgl_fct_vars){
+      tabylize(trainDF,input$sel_var1_uni_eda02)
     }
   })
 
-  dat2_uni_eda<-reactive({
-    if(class(trainDF[[input$sel_var2_uni_eda02a]])=="numeric"){
-      summaryize(trainDF,input$sel_var2_uni_eda02a)
+  dat2_uni_eda02<-reactive({
+    if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
+      summaryize(trainDF,input$sel_var2_uni_eda02)
     }
-    else if(class(trainDF[[input$sel_var2_uni_eda02a]]) %in% c("logical","factor")){
-      tabylize(trainDF,input$sel_var2_uni_eda02a)
+    else if(input$sel_var2_uni_eda02 %in% trainDF_lgl_fct_vars){
+      tabylize(trainDF,input$sel_var2_uni_eda02)
     }
   })
   
-  ## Text outputs
-  output$text_sel_var1_uni_eda02<-renderUI({
-    h3(paste(input$sel_var1_uni_eda02a))
-  })
-    
-  output$text_sel_var2_uni_eda02<-renderUI({
-    h3(paste(input$sel_var2_uni_eda02a))
-  })
-
-  ## Table outputs
+  # Output tables
   output$tab_sel_var1_uni_eda02<-renderDT(
-    dat1_uni_eda(),options=list(scrollX="400px")
+    dat1_uni_eda02(),options=list(scrollX="400px",
+                                pageLength=5)
   )
 
   output$tab_sel_var2_uni_eda02<-renderDT(
-    dat2_uni_eda(),options=list(scrollX="400px")
+    dat2_uni_eda02(),options=list(scrollX="400px",
+                                pageLength=5)
   )
+  
   
   ## Plot outputs
-  output$plot_sel_var1_uni_eda02<-renderPlot(
-    dat1_uni_eda(),options=list(scrollX="400px")
-  )
+  output$plot_sel_var1_uni_eda02<-renderPlot({
+    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
+      histogramer(trainDF,input$sel_var1_uni_eda02)
+    }
+    else if(input$sel_var1_uni_eda02 %in% trainDF_lgl_fct_vars){
+      barplotter(trainDF,input$sel_var1_uni_eda02)
+    }
+  })
+
+  output$plot_sel_var2_uni_eda02<-renderPlot({
+    if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
+      histogramer(trainDF,input$sel_var2_uni_eda02)
+    }
+    else if(input$sel_var2_uni_eda02 %in% trainDF_lgl_fct_vars){
+      barplotter(trainDF,input$sel_var2_uni_eda02)
+    }
+  })
   
-  output$plot_sel_var2_uni_eda02<-renderPlot(
-    dat2_uni_eda(),options=list(scrollX="400px")
-  )
   
-  
-  
+
+
   
   #Server 3: Missing Data===================================================================================================
 
@@ -375,9 +392,10 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-# updated naming formulas
-# wrote ui functions and implemented them in tab 1
-# started adding EDA backbone, function, and app code
+# 1. finished code for EDA-univariate, including server functions
+
+## IN PROGRESS
+# started UI of multivariate EDA tab
 
 
 ## TO DO

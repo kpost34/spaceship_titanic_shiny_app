@@ -40,7 +40,9 @@ skim_tbl<-function(x,type="character"){
 
 #### EDA===============================================================================
 ### Univariate
-## Function to create tabyl with numerical values signifed
+## Tables
+# Function to create tabyl with numerical values signifed
+#for use with col in quotes
 tabylize<-function(dat,col){
   require(janitor,dplyr)
   dat %>%
@@ -49,7 +51,8 @@ tabylize<-function(dat,col){
 }
 
 
-## Function to create tidyverse equiavlent of summary()
+## Function to create tidyverse equivalent of summary()
+#for use with col in quotes
 summaryize<-function(dat,col){
   require(dplyr)
   dat %>%
@@ -63,6 +66,35 @@ summaryize<-function(dat,col){
                               na=~sum(is.na(.x))))) %>%
     mutate(across(where(is.numeric),~signif(.x,3)))
 }
+
+
+## Figures
+# Function to create histogram of numeric variable
+#for use with col name in quotes
+histogramer<-function(dat,col){
+  require(dplyr, ggplot2)
+  dat %>%
+    ggplot() +
+    geom_histogram(aes_string(col),fill="darkred",color="black") +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13))
+}
+
+# Function to create bar plot of numeric variable
+#for use with col name in quotes
+barplotter<-function(dat,col){
+  require(dplyr, ggplot2)
+  dat %>%
+    ggplot() +
+    geom_bar(aes_string(col),fill="steelblue",color="black") +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13))
+}
+
 
 
 

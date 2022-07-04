@@ -86,22 +86,28 @@ tabyl(trainDF,destination)
 tabyl(trainDF,transported)
 
 
-#### Graphical
-### Histogram
+### Graphical
+## Histogram
 trainDF %>%
   ggplot() +
-  geom_histogram(aes(spa),fill="steelblue",color="black") +
-  theme_bw()
+  geom_histogram(aes(spa),fill="darkred",color="black") +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=13))
 
-### Barplot
+  
+
+
+## Barplot
 trainDF %>%
   ggplot() +
   geom_bar(aes(home_planet),fill="steelblue",color="black") +
-  theme_bw()
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=13))
 
-
-##IDEAS##
-#use switch() based on col type and then outputs summary/tabyl and histogram/bar plot
 
 
 #### Bivariate---------------------------------------------------------------------------------------------------------------------
