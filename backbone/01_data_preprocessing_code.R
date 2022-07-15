@@ -70,7 +70,8 @@ summary(trainDF["food_court"])
 #tidyverse equivalent
 trainDF %>%
   select(age) %>%
-  summarize(across(age,list(minimum=~min(.x,na.rm=TRUE),
+  summarize(across(age,list(n=length,
+                   minimum=~min(.x,na.rm=TRUE),
                    q1=~quantile(.x,probs=0.25,na.rm=TRUE),
                    median=~median(.x,na.rm=TRUE),
                    mean=~mean(.x,na.rm=TRUE),
@@ -96,9 +97,6 @@ trainDF %>%
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=13))
 
-  
-
-
 ## Barplot
 trainDF %>%
   ggplot() +
@@ -119,13 +117,21 @@ tabyl(trainDF,home_planet,transported)
 ## Cat-num
 trainDF %>%
   group_by(transported) %>%
-  summarize(across(age,list(min=~min(.,na.rm=TRUE),
+  summarize(across(age,list(n=length,
+                            min=~min(.,na.rm=TRUE),
                             Q1=~quantile(.,probs=0.25,na.rm=TRUE),
                             median=~median(.,na.rm=TRUE),
                             mean=~mean(.,na.rm=TRUE),
                             Q3=~quantile(.,probs=0.75,na.rm=TRUE),
                             max=~max(.,na.rm=TRUE),
                             NAs=~sum(is.na(.))))) 
+
+### Num-num
+trainDF %>%
+  cor_test(room_service,food_court,method="spearman")
+
+trainDF %>%
+  cor_test(room_service,food_court,method="spearman")
 
 
 #### Graphical
@@ -236,13 +242,6 @@ trainDF %>%
   scale_y_continuous(trans="pseudo_log",expand=expansion(mult=c(0,.05))) +
   theme_bw()
 
-
-#### Statistical (num-num only)
-trainDF %>%
-  cor_test(room_service,food_court,method="spearman")
-
-trainDF %>%
-  cor_test(room_service,food_court,method="spearman")
 
 
 #### Multivariate (graphically only)----------------------------------------------------------------------------------------------

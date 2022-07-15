@@ -30,10 +30,10 @@ read_csv(here("data","train.csv")) %>%
 trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nonchr_vars
 
 ## All logical and factor cols
-trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_lgl_fct_vars
+trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_cat_vars
 
 ## All numeric cols
-trainDF %>% select(where(is.numeric)) %>% names() -> trainDF_num_vars
+trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_num_vars
 
 ## selectInput
 chk01_quick_vec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
@@ -73,9 +73,10 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
 
   #### 2: Menu-EDA================================================================================================================
   navbarMenu(title="EDA",menuName="eda02",
-    #tab 1: univariate EDA
+    #tab 1: univariate EDA--------------------------------------------------------------------------------------------------------
     tabPanel(title="Univariate",id="uni_eda02",
       titlePanel(title="Univariate Exploratory Data Analysis"),
+      #inputs
       wellPanel(
         fluidRow(
           column(6,
@@ -86,6 +87,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           )
         )
       ),
+      #outputs
       fluidRow(
         column(6,
           htmlOutput("text_sel_var1_uni_eda02"),
@@ -105,32 +107,47 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
         )
       )
     ),
-    #tab 2: multivariate EDA
-    tabPanel(title="Multivariate",id="eda_mult_02b",
-      titlePanel(title="Multivariate Exploratory Data Analysis"),
+    #tab 2: bivariate EDA---------------------------------------------------------------------------------------------------------
+    tabPanel(title="Bivariate",id="bi_eda02",
+      titlePanel(title="Bivariate Exploratory Data Analysis"),
+      #inputs
       wellPanel(
-      fluidRow(
-        column(4,
-          wellPanel(
-            selectizeInput(inputId="var_sel_02b",label="Multivariate exploratory data analysis",
-                          choices=trainDF_nonchr_vars,
-                          multiple=TRUE,
-                          options=list(maxItems=3,
-                                       placeholder="Please select two or three variables",
-                                       onInitialize = I('function() { this.setValue(""); }'))
-            )
+        fluidRow(
+          column(6,
+            selectizeInput01(id="sel_var12_bi_eda02",label="", choices=trainDF_nonchr_vars)
+          ),
+          column(6,
+            selectizeInput01(id="sel_var34_bi_eda02",label="",choices=trainDF_nonchr_vars)
           )
         )
       ),
-    switch based on two or three vars & their type
-    correlation plots--together/individually
-    statistical comparisons--correlations,
+      #outputs
       fluidRow(
-        plotOutput("bi_eda_sel_02b"),
-        plotOutput("tri_eda_sel_02b")
+        column(6,
+          htmlOutput("text_sel_var12_bi_eda02"),
+          DTOutput("tab_sel_var12_bi_eda02")
+        ),
+        column(6,
+          htmlOutput("text_sel_var34_bi_eda02"),
+          DTOutput("tab_sel_var34_bi_eda02")
+        )
+      ),
+      fluidRow(
+        column(6,
+          plotOutput("plot_sel_var12_bi_eda02")
+        ),
+        column(6,
+          plotOutput("plot_sel_var34_bi_eda02")
+        )
       )
     )
   )
+    #switch based on two or three vars & their type
+    #correlation plots--together/individually
+    #statistical comparisons--correlations,
+      # fluidRow(
+      #   plotOutput("bi_eda_sel_02b"),
+      #   plotOutput("tri_eda_sel_02b")
 
   # #### 3: Menu-Missing Data====================================================================================================
   # navbarMenu(title="Missing Data",menuName="miss_03",
@@ -182,7 +199,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   #   )
   # ),
   # 
-  # #### 4: Menu-Features=================================================================================================
+  # #### 4: Menu-Features=========================================================================================================
   # navbarMenu(title="Features",menuName="feat_04",
   #   tabPanel(title="Feature assessment", id="feat_assess_04a",
   #     sidebarLayout(
@@ -200,7 +217,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   # 
   # 
   # 
-  # #### 5: Tab-Data Partitioning=========================================================================================
+  # #### 5: Tab-Data Partitioning=================================================================================================
   # tabPanel(title="Data Partitioning",id="part_05",
   #   sidebarLayout(
   #     sidebarPanel(),
@@ -303,7 +320,7 @@ server<-function(input,output,session){
 
   
   ##### Server 2: EDA============================================================================================
-  ### Univariate
+  ### Univariate-------------------------------------------------------------------------------------------------
   ## Text outputs
   output$text_sel_var1_uni_eda02<-renderUI({
     h3(paste(input$sel_var1_uni_eda02))
@@ -319,7 +336,7 @@ server<-function(input,output,session){
     if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
       summaryize(trainDF,input$sel_var1_uni_eda02)
     }
-    else if(input$sel_var1_uni_eda02 %in% trainDF_lgl_fct_vars){
+    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
       tabylize(trainDF,input$sel_var1_uni_eda02)
     }
   })
@@ -328,7 +345,7 @@ server<-function(input,output,session){
     if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
       summaryize(trainDF,input$sel_var2_uni_eda02)
     }
-    else if(input$sel_var2_uni_eda02 %in% trainDF_lgl_fct_vars){
+    else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
       tabylize(trainDF,input$sel_var2_uni_eda02)
     }
   })
@@ -350,7 +367,7 @@ server<-function(input,output,session){
     if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
       histogramer(trainDF,input$sel_var1_uni_eda02)
     }
-    else if(input$sel_var1_uni_eda02 %in% trainDF_lgl_fct_vars){
+    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
       barplotter(trainDF,input$sel_var1_uni_eda02)
     }
   })
@@ -359,11 +376,78 @@ server<-function(input,output,session){
     if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
       histogramer(trainDF,input$sel_var2_uni_eda02)
     }
-    else if(input$sel_var2_uni_eda02 %in% trainDF_lgl_fct_vars){
+    else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
       barplotter(trainDF,input$sel_var2_uni_eda02)
     }
   })
   
+  
+  ### Bivariate-------------------------------------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_var12_bi_eda02<-renderUI({
+    h3(paste(input$sel_var12_bi_eda02,collapse="-"))
+  })
+  
+  output$text_sel_var34_bi_eda02<-renderUI({
+    h3(paste(input$sel_var34_bi_eda02,collapse="-"))
+  })
+  
+  ## Table outputs
+  # Create reactives of output tables
+  dat1_bi_eda02<-reactive({
+    req(length(input$sel_var12_bi_eda02)==2)
+    #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
+    if(sum(input$sel_var12_bi_eda02 %in% trainDF_cat_vars)==2) {
+      tabylize(trainDF,input$sel_var12_bi_eda02)
+    }
+    else if(sum(input$sel_var12_bi_eda02 %in% trainDF_cat_vars)==1) {
+      summaryize(trainDF,input$sel_var12_bi_eda02,input$sel_var12_bi_eda02[input$sel_var12_bi_eda02 %in% trainDF_cat_vars])
+    }
+    else if(sum(input$sel_var12_bi_eda02 %in% trainDF_num_vars)==2) {
+      corrtester(trainDF,input$sel_var12_bi_eda02)
+    }
+  })
+  
+  # 
+  # dat2_bi_eda02<-reactive({
+  #   if(input$sel_var12_uni_eda02 %in% trainDF_num_vars){
+  #     summaryize(trainDF,input$sel_var2_uni_eda02)
+  #   }
+  #   else if(input$sel_var34_uni_eda02 %in% trainDF_cat_vars){
+  #     tabylize(trainDF,input$sel_var2_uni_eda02)
+  #   }
+  # })
+  # 
+  # # Output tables
+  output$tab_sel_var12_bi_eda02<-renderDT(
+    dat1_bi_eda02(),options=list(scrollX="400px",
+                                  pageLength=5)
+  )
+  # 
+  # output$tab_sel_var34_uni_eda02<-renderDT(
+  #   dat2_uni_eda02(),options=list(scrollX="400px",
+  #                                 pageLength=5)
+  # =
+  # 
+  # 
+  # ## Plot outputs
+  output$plot_sel_var1_uni_eda02<-renderPlot({
+    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
+      histogramer(trainDF,input$sel_var1_uni_eda02)
+    }
+    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
+      barplotter(trainDF,input$sel_var1_uni_eda02)
+    }
+  })
+  # 
+  # output$plot_sel_var2_uni_eda02<-renderPlot({
+  #   if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
+  #     histogramer(trainDF,input$sel_var2_uni_eda02)
+  #   }
+  #   else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
+  #     barplotter(trainDF,input$sel_var2_uni_eda02)
+  #   }
+  # })
   
 
 
@@ -392,11 +476,13 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-# 1. finished code for EDA-univariate, including server functions
+# fixed tabylize function to make it take flexible inputs
+# updated summaryize function so that it can take 1-2 vars
+# created function corrtester to output spearman correlation results if bivariate vars are numeric
+
 
 ## IN PROGRESS
-# started UI of multivariate EDA tab
-
+# started coding of bivariate EDA tab 
 
 ## TO DO
 
