@@ -26,7 +26,7 @@ n_miss_tbl<-function(dat){
 
 
 ### Look at variable types more closely
-### Function to provide summary by variable type
+## Function to provide summary by variable type
 skim_tbl<-function(dat,type="character"){
   require(skimr,tibble)
   col_type<-paste0("is.",type)
@@ -38,10 +38,10 @@ skim_tbl<-function(dat,type="character"){
 }
 
 
-#### EDA===============================================================================
-### Univariate-------------------------------------------------------------------------
-## Tables
-# Function to create tabyl with numerical values signifed
+##### EDA===============================================================================
+#### Univariate-------------------------------------------------------------------------
+### Tables
+## Function to create tabyl with numerical values signifed
 #for use with col in quotes
 tabylize<-function(dat,vec){
   require(janitor,dplyr)
@@ -73,7 +73,7 @@ tabylize<-function(dat,vec){
 }
 
 
-## Function to create tidyverse equivalent of summary() (for use with 1-2 vars)
+### Function to create tidyverse equivalent of summary() (for use with 1-2 vars)
 #for use with character string or vector; 2nd var could be grouping variable (in quotes)
 summaryize<-function(dat,vec,group=NA){
   require(dplyr,purrr)
@@ -110,18 +110,8 @@ summaryize<-function(dat,vec,group=NA){
     mutate(across(where(is.numeric),~signif(.x,3)))
 }
 
-
-### Function to run spearman correlation test and signif results using character vector
-corrtester<-function(dat,vec) {
-  require(dplyr,rstatix)
-  dat %>%
-    cor_test(all_of(vec),method="spearman") %>%
-    mutate(across(where(is.numeric),~signif(.x,3)),
-           statistic=formatC(statistic,digits=3))
-}
-
-## Figures
-# Function to create histogram of numeric variable
+### Figures
+## Function to create histogram of numeric variable
 #for use with col name in quotes
 histogramer<-function(dat,col){
   require(dplyr, ggplot2)
@@ -134,28 +124,139 @@ histogramer<-function(dat,col){
           axis.title=element_text(size=13))
 }
 
-# Function to create bar plot of numeric variable
-#for use with col name in quotes
-barplotter<-function(dat,col){
-  require(dplyr, ggplot2)
+## Function to create bar plot of numeric variable
+#for use with col name(s) in quotes stored as an object
+barplotter<-function(dat,vec,na.rm=FALSE){
+  require(dplyr, ggplot2, purrr)
+    
+  #pull number of vars
+  n<-length(vec)
+    
+  #end if 4+ vars
+  if(n>3){
+    return("Use 1-3 columns only")
+  }
+  
+  #end if numerical vars
+  if(sum(map_chr(dat[vec],class) %in% c("logical","factor")==0)) {
+    return("Use categorical variables only")
+  }
+    
+  #allow re-sorting of vector (if n=2 or 3) based on # of cats
+  if(n %in% 2:3) {
+    dat[vec] %>%
+      map_int(n_distinct) %>%
+      sort(decreasing=TRUE) %>%
+      names() -> vec
+  }
+    
+  #make plot
   dat %>%
+    #conditional filter on na.rm arg
+    {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
     ggplot() +
-    geom_bar(aes_string(col),fill="steelblue",color="black") +
+    geom_bar(aes_string(x=vec[1],fill=ifelse(n %in% 2:3,vec[2],vec[1])),
+             color="black") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     theme_bw() +
     theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13))
-}
+          axis.title=element_text(size=13)) -> p
+    
+    
+    if(n==1) {
+      p + theme(legend.position="none") +
+          scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec1])))
+    }
+    else if(n==2) (p + scale_fill_viridis_d())
+    else if(n==3) {p + facet_wrap(vec[3]) +
+                     scale_fill_viridis_d(na.value="grey50")
+    }
+  }
 
-### Bivariate-------------------------------------------------------------------------
-## Tabular
-# Cat-cat
+#### Bivariate-------------------------------------------------------------------------
+### Tabular
+## Cat-cat
 #see tabylize() above
 
-# Cat-num
+## Cat-num
+#see summaryize() above
+
+## Num-num
+# Function to run spearman correlation test and signif results using character vector
+corrtester<-function(dat,vec) {
+  require(dplyr,rstatix)
+  dat %>%
+    cor_test(all_of(vec),method="spearman") %>%
+    select(!starts_with("var")) %>%
+    mutate(across(where(is.numeric),~signif(.x,3)),
+           statistic=formatC(statistic,digits=3))
+}
 
 
+### Figures
+## Cat-cat
+#see barplotter()
 
+
+## Cat-num
+# Function to create boxplots for 2-3 variables (only one numeric)
+boxplotter<-function(dat, vec, na.rm=FALSE) {
+  require(dplyr, ggplot2)
+  
+  n<-length(vec)
+  #errors...too many columns/variables
+  if(!n %in% 2:3) {
+    return("Use only 2-3 columns")
+  }
+  
+  #wrong categories
+  if(sum(map_chr(dat[vec],class) %in% c("integer","numeric"))!=1|
+     sum(map_chr(dat[vec],class) %in% c("logical","factor"))==0){
+       return("Need one numeric and one to two categorical variables")
+  }
+  
+  #re-order variables
+  dat[vec] %>%
+    map_int(n_distinct) %>%
+      #col with most categories is in first position
+      sort(decreasing=TRUE) %>%
+      names() -> vec
+
+  #make plot
+  dat %>%
+    #conditional filter on na.rm arg
+    {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+    ggplot() +
+      geom_boxplot(aes_string(x=vec[2],y=vec[1],color=ifelse(n==3,vec[3],vec[2]))) +
+      coord_flip() +
+      theme_bw() -> p
+  
+  if(n==2) {
+ p + theme(legend.position="none") +
+     scale_color_manual(values=rep("darkred",n_distinct(dat[vec[2]])))
+  }
+  else if(n==3) {
+    p + theme(legend.position="bottom") +
+        scale_color_viridis_d(end=.7,na.value="grey50")
+  }
+}
+
+
+## Num-num
+# Function to build scatterplots (and color points if third varible is chosen)
+
+
+#### Multivariate (figures only)-------------------------------------------------------------------------
+### Cat-cat-cat
+## see barplotter() above
+
+
+### Cat-num-cat
+## see boxplotter() above
+
+
+### Num-num-cat/num
+## see scatterplotter() above)
 
 
 

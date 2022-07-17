@@ -27,24 +27,24 @@ read_csv(here("data","train.csv")) %>%
 #### Create vectors
 ### Col names
 ## All cols but character
-trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nonchr_vars
+trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nchrVars
 
 ## All logical and factor cols
-trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_cat_vars
+trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_catVars
 
 ## All numeric cols
-trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_num_vars
+trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
 
 ## selectInput
-chk01_quick_vec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
-chk01_summ_vec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
+Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
+Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
 
 
 #NAMING FORMULAS
-#inputs: [abbrvInput]_[abbrvTask]_[tabName]
-#e.g., sel_quick_chk01 (from chk011 tab): sel = selectInput, quick = "Quick data check", chk01
+#inputs: [abbrvInput]_[abbrvTask]_[Tabname]
+#e.g., sel_quick_Chk01 (from Chk011 tab): sel = selectInput, quick = "Quick data check", chk01
 #outputs: [abbrOutput]_[abbrvInput]_[# if 2+]_[tabName]
-#e.g., tab_sel_chk01 (from chk01 tab): tab = table, sel = selectInput, chk01 (if 2 tables then append 1, 2, etc to before tabName)
+#e.g., tab_sel_Chk01 (from Chk01 tab): tab = table, sel = selectInput, chk01 (if 2 tables then append 1, 2, etc to before tabName)
 #i.e., tab_[inputNameFormula]
 
 ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="static-top",
@@ -56,88 +56,88 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     ##option to skip intro-> advances to tab/menu 1
     ##preview
   #### 1: Menu-Data Checking======================================================================================================
-  tabPanel(title="Data Check",id="chk01",
+  tabPanel(title="Data Check",id="Chk01",
     sidebarLayout(
       sidebarPanel(width=3,
-        selectInput01(id="sel_quick_chk01",label="Quick data check",choices=chk01_quick_vec),
+        selectInput01(id="sel_quick_Chk01",label="Quick data check",choices=Chk01_quickVec),
         linebreaks(2),
-        selectInput01(id="sel_summ_chk01",label="Data summaries",choices=chk01_summ_vec)
+        selectInput01(id="sel_summ_Chk01",label="Data summaries",choices=Chk01_summVec)
       ),
       mainPanel(width=9,
-        DTOutput("tab_sel_quick_chk01"),
+        DTOutput("tab_sel_quick_Chk01"),
         br(),
-        DTOutput("tab_sel_summ_chk01")
+        DTOutput("tab_sel_summ_Chk01")
       )
     )
   ),
 
   #### 2: Menu-EDA================================================================================================================
-  navbarMenu(title="EDA",menuName="eda02",
+  navbarMenu(title="EDA",menuName="EDA02",
     #tab 1: univariate EDA--------------------------------------------------------------------------------------------------------
-    tabPanel(title="Univariate",id="uni_eda02",
+    tabPanel(title="Univariate",id="uniEDA02",
       titlePanel(title="Univariate Exploratory Data Analysis"),
       #inputs
       wellPanel(
         fluidRow(
           column(6,
-            selectInput01(id="sel_var1_uni_eda02",label="",choices=trainDF_nonchr_vars)
+            selectInput01(id="sel_var1_uniEDA02",label="",choices=trainDF_nchrVars)
           ),
           column(6,
-            selectInput01(id="sel_var2_uni_eda02",label="",choices=trainDF_nonchr_vars)
+            selectInput01(id="sel_var2_uniEDA02",label="",choices=trainDF_nchrVars)
           )
         )
       ),
       #outputs
       fluidRow(
         column(6,
-          htmlOutput("text_sel_var1_uni_eda02"),
-          DTOutput("tab_sel_var1_uni_eda02")
+          htmlOutput("text_sel_var1_uniEDA02"),
+          DTOutput("tab_sel_var1_uniEDA02")
         ),
         column(6,
-          htmlOutput("text_sel_var2_uni_eda02"),
-          DTOutput("tab_sel_var2_uni_eda02")
+          htmlOutput("text_sel_var2_uniEDA02"),
+          DTOutput("tab_sel_var2_uniEDA02")
         )
       ),
       fluidRow(
         column(6,
-          plotOutput("plot_sel_var1_uni_eda02")
+          plotOutput("plot_sel_var1_uniEDA02")
         ),
         column(6,
-          plotOutput("plot_sel_var2_uni_eda02")
+          plotOutput("plot_sel_var2_uniEDA02")
         )
       )
     ),
     #tab 2: bivariate EDA---------------------------------------------------------------------------------------------------------
-    tabPanel(title="Bivariate",id="bi_eda02",
+    tabPanel(title="Bivariate",id="biEDA02",
       titlePanel(title="Bivariate Exploratory Data Analysis"),
       #inputs
       wellPanel(
         fluidRow(
           column(6,
-            selectizeInput01(id="sel_var12_bi_eda02",label="", choices=trainDF_nonchr_vars)
+            selectizeInput01(id="sel_var12_biEDA02",label="", choices=trainDF_nchrVars)
           ),
           column(6,
-            selectizeInput01(id="sel_var34_bi_eda02",label="",choices=trainDF_nonchr_vars)
+            selectizeInput01(id="sel_var34_biEDA02",label="",choices=trainDF_nchrVars)
           )
         )
       ),
       #outputs
       fluidRow(
         column(6,
-          htmlOutput("text_sel_var12_bi_eda02"),
-          DTOutput("tab_sel_var12_bi_eda02")
+          htmlOutput("text_sel_var12_biEDA02"),
+          DTOutput("tab_sel_var12_biEDA02")
         ),
         column(6,
-          htmlOutput("text_sel_var34_bi_eda02"),
-          DTOutput("tab_sel_var34_bi_eda02")
+          htmlOutput("text_sel_var34_biEDA02"),
+          DTOutput("tab_sel_var34_biEDA02")
         )
       ),
       fluidRow(
         column(6,
-          plotOutput("plot_sel_var12_bi_eda02")
+          plotOutput("plot_sel_var12_biEDA02")
         ),
         column(6,
-          plotOutput("plot_sel_var34_bi_eda02")
+          plotOutput("plot_sel_var34_biEDA02")
         )
       )
     )
@@ -293,28 +293,28 @@ server<-function(input,output,session){
   #### Server 1: Data Checking========================================================================================================
   ### Display dims, data sample, or missingness
   dat_check<-reactive({
-    switch(input$sel_quick_chk01,
+    switch(input$sel_quick_Chk01,
            dim=dim_tbl(trainDF),
            dat_samp=slice_sample(trainDF,n=5),
            miss=n_miss_tbl(trainDF)
     )
   })
 
-  output$tab_sel_quick_chk01<-renderDT(
+  output$tab_sel_quick_Chk01<-renderDT(
     dat_check(),options=list(scrollX="400px",
                              pageLength=5)
   )
 
   ### Display data summary by col type
   dat_sum<-reactive({
-    switch(input$sel_summ_chk01,
+    switch(input$sel_summ_Chk01,
       chr=skim_tbl(trainDF,type="character"),
       fct=skim_tbl(trainDF,type="factor"),
       lgl=skim_tbl(trainDF,type="logical"),
       num=skim_tbl(trainDF,type="numeric"))
   })
 
-  output$tab_sel_summ_chk01<-renderDT(
+  output$tab_sel_summ_Chk01<-renderDT(
     dat_sum(),options=list(scrollX="400px")
   )
 
@@ -322,124 +322,130 @@ server<-function(input,output,session){
   ##### Server 2: EDA============================================================================================
   ### Univariate-------------------------------------------------------------------------------------------------
   ## Text outputs
-  output$text_sel_var1_uni_eda02<-renderUI({
-    h3(paste(input$sel_var1_uni_eda02))
+  output$text_sel_var1_uniEDA02<-renderUI({
+    h3(paste(input$sel_var1_uniEDA02))
   })
   
-  output$text_sel_var2_uni_eda02<-renderUI({
-    h3(paste(input$sel_var2_uni_eda02))
+  output$text_sel_var2_uniEDA02<-renderUI({
+    h3(paste(input$sel_var2_uniEDA02))
   })
   
   ## Table outputs
   # reactives of output tables
-  dat1_uni_eda02<-reactive({
-    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
-      summaryize(trainDF,input$sel_var1_uni_eda02)
+  dat1_uniEDA02<-reactive({
+    if(input$sel_var1_uniEDA02 %in% trainDF_numVars){
+      summaryize(trainDF,input$sel_var1_uniEDA02)
     }
-    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
-      tabylize(trainDF,input$sel_var1_uni_eda02)
+    else if(input$sel_var1_uniEDA02 %in% trainDF_catVars){
+      tabylize(trainDF,input$sel_var1_uniEDA02)
     }
   })
 
-  dat2_uni_eda02<-reactive({
-    if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
-      summaryize(trainDF,input$sel_var2_uni_eda02)
+  dat2_uniEDA02<-reactive({
+    if(input$sel_var2_uniEDA02 %in% trainDF_numVars){
+      summaryize(trainDF,input$sel_var2_uniEDA02)
     }
-    else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
-      tabylize(trainDF,input$sel_var2_uni_eda02)
+    else if(input$sel_var2_uniEDA02 %in% trainDF_catVars){
+      tabylize(trainDF,input$sel_var2_uniEDA02)
     }
   })
   
   # Output tables
-  output$tab_sel_var1_uni_eda02<-renderDT(
-    dat1_uni_eda02(),options=list(scrollX="400px",
+  output$tab_sel_var1_uniEDA02<-renderDT(
+    dat1_uniEDA02(),options=list(scrollX="400px",
                                 pageLength=5)
   )
 
-  output$tab_sel_var2_uni_eda02<-renderDT(
-    dat2_uni_eda02(),options=list(scrollX="400px",
+  output$tab_sel_var2_uniEDA02<-renderDT(
+    dat2_uniEDA02(),options=list(scrollX="400px",
                                 pageLength=5)
   )
   
   
   ## Plot outputs
-  output$plot_sel_var1_uni_eda02<-renderPlot({
-    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
-      histogramer(trainDF,input$sel_var1_uni_eda02)
+  output$plot_sel_var1_uniEDA02<-renderPlot({
+    if(input$sel_var1_uniEDA02 %in% trainDF_numVars){
+      histogramer(trainDF,input$sel_var1_uniEDA02)
     }
-    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
-      barplotter(trainDF,input$sel_var1_uni_eda02)
+    else if(input$sel_var1_uniEDA02 %in% trainDF_catVars){
+      barplotter(trainDF,input$sel_var1_uniEDA02)
     }
   })
 
-  output$plot_sel_var2_uni_eda02<-renderPlot({
-    if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
-      histogramer(trainDF,input$sel_var2_uni_eda02)
+  output$plot_sel_var2_uniEDA02<-renderPlot({
+    if(input$sel_var2_uniEDA02 %in% trainDF_numVars){
+      histogramer(trainDF,input$sel_var2_uniEDA02)
     }
-    else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
-      barplotter(trainDF,input$sel_var2_uni_eda02)
+    else if(input$sel_var2_uniEDA02 %in% trainDF_catVars){
+      barplotter(trainDF,input$sel_var2_uniEDA02)
     }
   })
   
   
   ### Bivariate-------------------------------------------------------------------------------------------------------------------
   ## Text outputs
-  output$text_sel_var12_bi_eda02<-renderUI({
-    h3(paste(input$sel_var12_bi_eda02,collapse="-"))
+  output$text_sel_var12_biEDA02<-renderUI({
+    h3(paste(input$sel_var12_biEDA02,collapse="-"))
   })
   
-  output$text_sel_var34_bi_eda02<-renderUI({
-    h3(paste(input$sel_var34_bi_eda02,collapse="-"))
+  output$text_sel_var34_biEDA02<-renderUI({
+    h3(paste(input$sel_var34_biEDA02,collapse="-"))
   })
   
   ## Table outputs
   # Create reactives of output tables
-  dat1_bi_eda02<-reactive({
-    req(length(input$sel_var12_bi_eda02)==2)
+  dat1_biEDA02<-reactive({
+    req(length(input$sel_var12_biEDA02)==2)
     #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
-    if(sum(input$sel_var12_bi_eda02 %in% trainDF_cat_vars)==2) {
-      tabylize(trainDF,input$sel_var12_bi_eda02)
+    if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
+      tabylize(trainDF,input$sel_var12_biEDA02)
     }
-    else if(sum(input$sel_var12_bi_eda02 %in% trainDF_cat_vars)==1) {
-      summaryize(trainDF,input$sel_var12_bi_eda02,input$sel_var12_bi_eda02[input$sel_var12_bi_eda02 %in% trainDF_cat_vars])
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+      summaryize(trainDF,input$sel_var12_biEDA02,input$sel_var12_biEDA02[input$sel_var12_biEDA02 %in% trainDF_catVars])
     }
-    else if(sum(input$sel_var12_bi_eda02 %in% trainDF_num_vars)==2) {
-      corrtester(trainDF,input$sel_var12_bi_eda02)
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_numVars)==2) {
+      corrtester(trainDF,input$sel_var12_biEDA02)
     }
   })
   
-  # 
-  # dat2_bi_eda02<-reactive({
-  #   if(input$sel_var12_uni_eda02 %in% trainDF_num_vars){
-  #     summaryize(trainDF,input$sel_var2_uni_eda02)
-  #   }
-  #   else if(input$sel_var34_uni_eda02 %in% trainDF_cat_vars){
-  #     tabylize(trainDF,input$sel_var2_uni_eda02)
-  #   }
-  # })
-  # 
-  # # Output tables
-  output$tab_sel_var12_bi_eda02<-renderDT(
-    dat1_bi_eda02(),options=list(scrollX="400px",
-                                  pageLength=5)
-  )
-  # 
-  # output$tab_sel_var34_uni_eda02<-renderDT(
-  #   dat2_uni_eda02(),options=list(scrollX="400px",
-  #                                 pageLength=5)
-  # =
-  # 
-  # 
-  # ## Plot outputs
-  output$plot_sel_var1_uni_eda02<-renderPlot({
-    if(input$sel_var1_uni_eda02 %in% trainDF_num_vars){
-      histogramer(trainDF,input$sel_var1_uni_eda02)
+  
+  dat2_biEDA02<-reactive({
+    req(length(input$sel_var34_biEDA02)==2)
+    #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
+    if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==2) {
+      tabylize(trainDF,input$sel_var34_biEDA02)
     }
-    else if(input$sel_var1_uni_eda02 %in% trainDF_cat_vars){
-      barplotter(trainDF,input$sel_var1_uni_eda02)
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+      summaryize(trainDF,input$sel_var34_biEDA02,input$sel_var34_biEDA02[input$sel_var34_biEDA02 %in% trainDF_catVars])
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_numVars)==2) {
+      corrtester(trainDF,input$sel_var34_biEDA02)
     }
   })
-  # 
+  
+  
+  # Output tables
+  output$tab_sel_var12_biEDA02<-renderDT(
+    dat1_biEDA02(),options=list(scrollX="400px",
+                                  pageLength=5)
+  )
+  
+  output$tab_sel_var34_biEDA02<-renderDT(
+    dat2_biEDA02(),options=list(scrollX="400px",
+                                  pageLength=5)
+  )
+
+  ## Plot outputs
+  output$plot_sel_var12_biEDA02<-renderPlot({
+    req(length(input$sel_var12_biEDA02)==2)
+    if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
+      barplotter(trainDF,input$sel_var12_biEDA02)
+    }
+    else if(input$sel_var34_uniEDA02 %in% trainDF_catVars){
+      barplotter(trainDF,input$sel_var12_biEDA02)
+    }
+  })
+  
   # output$plot_sel_var2_uni_eda02<-renderPlot({
   #   if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
   #     histogramer(trainDF,input$sel_var2_uni_eda02)
@@ -448,7 +454,7 @@ server<-function(input,output,session){
   #     barplotter(trainDF,input$sel_var2_uni_eda02)
   #   }
   # })
-  
+  # 
 
 
   
@@ -476,16 +482,16 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-# fixed tabylize function to make it take flexible inputs
-# updated summaryize function so that it can take 1-2 vars
-# created function corrtester to output spearman correlation results if bivariate vars are numeric
-
+# made barplotter function more flexible by 1) moving cat var with more levels to x (not fill), 2) using more colors, 3) including
+  #na.rm arg, and 4) to take on 3 categorical variables
+# updated naming formulas again
+# boxplotter function
 
 ## IN PROGRESS
-# started coding of bivariate EDA tab 
+# dynamic UI on whether to include NAs in plots
 
 ## TO DO
-
+#finish bivariate EDA tab
 
 
 #------------------------------------------------

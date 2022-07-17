@@ -158,6 +158,8 @@ trainDF %>%
 trainDF %>%
   ggplot(aes(x=side,fill=transported)) +
   geom_bar() +
+  scale_fill_manual(values=c("steelblue","coral4")) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
   theme_bw()
 
 #proportion data
@@ -245,6 +247,16 @@ trainDF %>%
 
 
 #### Multivariate (graphically only)----------------------------------------------------------------------------------------------
+### Cat-cat-cat
+trainDF %>%
+  ggplot(aes(x=side,fill=transported)) +
+  geom_bar() +
+  scale_fill_manual(values=c("steelblue","coral4")) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  facet_wrap(~side) +
+  theme_bw()
+
+
 ### Num-num-cat
 trainDF %>%
   ggplot(aes(x=room_service,y=food_court,color=side)) +
@@ -255,7 +267,7 @@ trainDF %>%
 
 
 ### Cat-cat-num
-## Bar plot
+## Column plot
 # With NAs
 trainDF %>%
   ggplot(aes(x=cryo_sleep,y=age,fill=transported)) +
@@ -277,10 +289,12 @@ trainDF %>%
 
 ## Boxplot (without NAs)
 trainDF %>%
-  filter(!is.na(side)) %>%
-  ggplot(aes(x=transported,color=side,y=food_court)) +
+  #filter(!is.na(side)) %>%
+  ggplot(aes(x=transported,y=food_court,color=side)) +
   geom_boxplot() +
   scale_y_log10() +
+  coord_flip() +
+  theme(legend.position="bottom") +
   theme_bw()
 
 
