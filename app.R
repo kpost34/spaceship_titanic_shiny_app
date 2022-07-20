@@ -74,80 +74,15 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   #### 2: Menu-EDA================================================================================================================
   navbarMenu(title="EDA",menuName="EDA02",
     #tab 1: univariate EDA--------------------------------------------------------------------------------------------------------
-    tabPanel(title="Univariate",id="uniEDA02",
-      titlePanel(title="Univariate Exploratory Data Analysis"),
-      #inputs
-      wellPanel(
-        fluidRow(
-          column(6,
-            selectInput01(id="sel_var1_uniEDA02",label="",choices=trainDF_nchrVars)
-          ),
-          column(6,
-            selectInput01(id="sel_var2_uniEDA02",label="",choices=trainDF_nchrVars)
-          )
-        )
-      ),
-      #outputs
-      fluidRow(
-        column(6,
-          htmlOutput("text_sel_var1_uniEDA02"),
-          DTOutput("tab_sel_var1_uniEDA02")
-        ),
-        column(6,
-          htmlOutput("text_sel_var2_uniEDA02"),
-          DTOutput("tab_sel_var2_uniEDA02")
-        )
-      ),
-      fluidRow(
-        column(6,
-          plotOutput("plot_sel_var1_uniEDA02")
-        ),
-        column(6,
-          plotOutput("plot_sel_var2_uniEDA02")
-        )
-      )
-    ),
+    edaTabBuilder(name="Univariate",tabID="uniEDA02",varID=c("var1","var2"),options=trainDF_nchrVars,fn=selectInput01),
+    
     #tab 2: bivariate EDA---------------------------------------------------------------------------------------------------------
-    tabPanel(title="Bivariate",id="biEDA02",
-      titlePanel(title="Bivariate Exploratory Data Analysis"),
-      #inputs
-      wellPanel(
-        fluidRow(
-          column(6,
-            selectizeInput01(id="sel_var12_biEDA02",label="", choices=trainDF_nchrVars)
-          ),
-          column(6,
-            selectizeInput01(id="sel_var34_biEDA02",label="",choices=trainDF_nchrVars)
-          )
-        )
-      ),
-      #outputs
-      fluidRow(
-        column(6,
-          htmlOutput("text_sel_var12_biEDA02"),
-          DTOutput("tab_sel_var12_biEDA02")
-        ),
-        column(6,
-          htmlOutput("text_sel_var34_biEDA02"),
-          DTOutput("tab_sel_var34_biEDA02")
-        )
-      ),
-      fluidRow(
-        column(6,
-          plotOutput("plot_sel_var12_biEDA02")
-        ),
-        column(6,
-          plotOutput("plot_sel_var34_biEDA02")
-        )
-      )
-    )
+    edaTabBuilder(name="Bivariate",tabID="biEDA02",varID=c("var12","var34"),options=trainDF_nchrVars,fn=selectizeInput01),
+    
+    #tab 3: multivriate EDA-------------------------------------------------------------------------------------------------------
+    edaTabBuilder(name="Multivariate",tabID="multiEDA02",varID=c("var123","var456"),options=trainDF_nchrVars,fn=selectizeInput02)
   )
-    #switch based on two or three vars & their type
-    #correlation plots--together/individually
-    #statistical comparisons--correlations,
-      # fluidRow(
-      #   plotOutput("bi_eda_sel_02b"),
-      #   plotOutput("tri_eda_sel_02b")
+
 
   # #### 3: Menu-Missing Data====================================================================================================
   # navbarMenu(title="Missing Data",menuName="miss_03",
@@ -437,25 +372,40 @@ server<-function(input,output,session){
 
   ## Plot outputs
   output$plot_sel_var12_biEDA02<-renderPlot({
+    #must selet two inputs first
     req(length(input$sel_var12_biEDA02)==2)
+    #if both categorical, then bar plot
     if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
       barplotter(trainDF,input$sel_var12_biEDA02)
     }
-    else if(input$sel_var34_uniEDA02 %in% trainDF_catVars){
-      barplotter(trainDF,input$sel_var12_biEDA02)
+    #if 1 cat & 1 num then boxplot
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+      boxplotter(trainDF,input$sel_var12_biEDA02)
+    }
+    #if two num then scatterplot
+    else if(num(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+      scatterplotter(trainDF,input$sel_var12_biEDA02)
     }
   })
   
-  # output$plot_sel_var2_uni_eda02<-renderPlot({
-  #   if(input$sel_var2_uni_eda02 %in% trainDF_num_vars){
-  #     histogramer(trainDF,input$sel_var2_uni_eda02)
-  #   }
-  #   else if(input$sel_var2_uni_eda02 %in% trainDF_cat_vars){
-  #     barplotter(trainDF,input$sel_var2_uni_eda02)
-  #   }
-  # })
-  # 
+  output$plot_sel_var34_biEDA02<-renderPlot({
+    req(length(input$sel_var34_biEDA02)==2)
+    if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==2) {
+      barplotter(trainDF,input$sel_var34_biEDA02)
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+      boxplotter(trainDF,input$sel_var34_biEDA02)
+    }
+    else if(num(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+      scatterplotter(trainDF,input$sel_var34_biEDA02)
+    }
+  })
 
+  
+  ### Multivariate-------------------------------------------------------------------------------------------------------------------
+
+  
+  
 
   
   #Server 3: Missing Data===================================================================================================
@@ -482,16 +432,20 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## DONE
-# made barplotter function more flexible by 1) moving cat var with more levels to x (not fill), 2) using more colors, 3) including
-  #na.rm arg, and 4) to take on 3 categorical variables
-# updated naming formulas again
-# boxplotter function
+# fixed issues with scatterplotter()
+# finished (a rough version) of the bivariate EDA page
+# made multivariate UI page
+# developed function to display all EDA UI tabs 
 
 ## IN PROGRESS
 # dynamic UI on whether to include NAs in plots
 
 ## TO DO
 #finish bivariate EDA tab
+#spacing between tables and plots
+#text size on plots (e.g., axes)
+#add table titles--perhaps to correlation table
+#deal with all the num cats
 
 
 #------------------------------------------------

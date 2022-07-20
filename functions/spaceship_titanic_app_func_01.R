@@ -1,11 +1,10 @@
 #Functions for part 1 of x
-
+pacman::p_load(tidyverse,skimr,janitor,purrr,rstatix)
 
 #### Data Checking===================================================================
 ### Basic checking
 ## Function to return dimensions of data frame as tibble
 dim_tbl<-function(dat){
-  require(tibble)
   dim(dat) %>%
     t() %>%
     as_tibble(.name_repair="minimal") %>%
@@ -15,7 +14,6 @@ dim_tbl<-function(dat){
 
 ## Function to return number of missing values per col as tibble
 n_miss_tbl<-function(dat){
-  require(tibble)
   apply(dat,2,function(x) sum(is.na(x))) %>%
     as.data.frame() %>%
     rownames_to_column() %>%
@@ -28,7 +26,6 @@ n_miss_tbl<-function(dat){
 ### Look at variable types more closely
 ## Function to provide summary by variable type
 skim_tbl<-function(dat,type="character"){
-  require(skimr,tibble)
   col_type<-paste0("is.",type)
   dat %>%
     skim(where(!!col_type)) %>%
@@ -44,7 +41,6 @@ skim_tbl<-function(dat,type="character"){
 ## Function to create tabyl with numerical values signifed
 #for use with col in quotes
 tabylize<-function(dat,vec){
-  require(janitor,dplyr)
   n<-length(vec)
   
   if(n==1){
@@ -76,7 +72,6 @@ tabylize<-function(dat,vec){
 ### Function to create tidyverse equivalent of summary() (for use with 1-2 vars)
 #for use with character string or vector; 2nd var could be grouping variable (in quotes)
 summaryize<-function(dat,vec,group=NA){
-  require(dplyr,purrr)
   
   #error message: size of vector
   n<-length(vec)
@@ -114,7 +109,6 @@ summaryize<-function(dat,vec,group=NA){
 ## Function to create histogram of numeric variable
 #for use with col name in quotes
 histogramer<-function(dat,col){
-  require(dplyr, ggplot2)
   dat %>%
     ggplot() +
     geom_histogram(aes_string(col),fill="darkred",color="black") +
@@ -127,7 +121,6 @@ histogramer<-function(dat,col){
 ## Function to create bar plot of numeric variable
 #for use with col name(s) in quotes stored as an object
 barplotter<-function(dat,vec,na.rm=FALSE){
-  require(dplyr, ggplot2, purrr)
     
   #pull number of vars
   n<-length(vec)
@@ -165,7 +158,7 @@ barplotter<-function(dat,vec,na.rm=FALSE){
     
     if(n==1) {
       p + theme(legend.position="none") +
-          scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec1])))
+          scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])))
     }
     else if(n==2) (p + scale_fill_viridis_d())
     else if(n==3) {p + facet_wrap(vec[3]) +
@@ -184,7 +177,6 @@ barplotter<-function(dat,vec,na.rm=FALSE){
 ## Num-num
 # Function to run spearman correlation test and signif results using character vector
 corrtester<-function(dat,vec) {
-  require(dplyr,rstatix)
   dat %>%
     cor_test(all_of(vec),method="spearman") %>%
     select(!starts_with("var")) %>%
@@ -201,7 +193,6 @@ corrtester<-function(dat,vec) {
 ## Cat-num
 # Function to create boxplots for 2-3 variables (only one numeric)
 boxplotter<-function(dat, vec, na.rm=FALSE) {
-  require(dplyr, ggplot2)
   
   n<-length(vec)
   #errors...too many columns/variables
@@ -233,7 +224,7 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
   
   if(n==2) {
  p + theme(legend.position="none") +
-     scale_color_manual(values=rep("darkred",n_distinct(dat[vec[2]])))
+     scale_color_manual(values=rep("darkblue",n_distinct(dat[vec[2]])))
   }
   else if(n==3) {
     p + theme(legend.position="bottom") +
@@ -244,6 +235,45 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
 
 ## Num-num
 # Function to build scatterplots (and color points if third varible is chosen)
+scatterplotter<-function(dat,vec,na.rm=FALSE){
+  
+  n<-length(vec)
+  #errors...too many columns/variables
+  if(!n %in% 2:3) {
+    return("Use only 2-3 variables")
+  }
+  
+  #wrong categories
+  if(!sum(map_chr(dat[vec],class) %in% c("integer","numeric")) %in% 2:3|
+     sum(map_chr(dat[vec],class) %in% c("logical","factor"))>1){
+    return("Need two numeric and max one categorical variables")
+  }
+  
+  #re-order variables
+  dat[vec] %>%
+    map_int(n_distinct) %>%
+    #col with most categories is in first position
+    sort(decreasing=TRUE) %>%
+    names() -> vec
+  
+  #make plot
+  dat %>%
+    #conditional filter on na.rm arg
+    {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+    ggplot(aes_string(x=vec[2],y=vec[1])) +
+    theme_bw() +
+    theme(legend.position="bottom") -> p
+      
+  #if/else if/else
+  if(n==2) {
+    p + geom_point(color="darkred") 
+  }
+  else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
+    p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_d(na.value="grey50")
+  }
+  else{p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_c()
+  }
+}
 
 
 #### Multivariate (figures only)-------------------------------------------------------------------------
