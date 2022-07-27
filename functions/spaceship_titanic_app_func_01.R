@@ -234,7 +234,7 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
 
 
 ## Num-num
-# Function to build scatterplots (and color points if third varible is chosen)
+# Function to build scatterplots (and color points if third variable is chosen)
 scatterplotter<-function(dat,vec,na.rm=FALSE){
   
   n<-length(vec)
@@ -245,8 +245,8 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
   
   #wrong categories
   if(!sum(map_chr(dat[vec],class) %in% c("integer","numeric")) %in% 2:3|
-     sum(map_chr(dat[vec],class) %in% c("logical","factor"))>1){
-    return("Need two numeric and max one categorical variables")
+     sum(map_chr(dat[vec],class) %in% c("logical","factor")) > 1){
+    return("Need 2-3 numeric and max 1 categorical variables")
   }
   
   #re-order variables
@@ -266,12 +266,13 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
       
   #if/else if/else
   if(n==2) {
-    p + geom_point(color="darkred") 
+    p + geom_point(color="darkred")
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
     p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_d(na.value="grey50")
   }
-  else{p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_c()
+  else if(n==3 & class(dat[[vec[3]]]) %in% c("intger","numeric")) {
+    p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_c()
   }
 }
 
@@ -287,6 +288,47 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
 
 ### Num-num-cat/num
 ## see scatterplotter() above)
+
+
+
+#### Character Data Missingness==========================================================================
+### Exploring character data missingness-----------------------------------------------------------------
+## Function to provide summary table of missingness
+chr_miss_tabler<-function(dat){
+  dat %>%
+    pivot_longer(cols=contains("name"),names_to="name_type",values_to="name") %>%
+    group_by(name_type) %>%
+    summarize(across(name,list(present=~sum(!is.na(.x)),missing=~sum(is.na(.x)),total=length)))
+}
+
+## Function to provide summary barlot of missingness
+chr_miss_boxplotter<-function(dat){
+  dat %>%
+    summarize(across(contains("name"),~ifelse(!is.na(.x),"Present","Missing"))) %>%
+    pivot_longer(cols=everything(),names_to="name_type",values_to="name") %>%
+    ggplot() +
+    geom_bar(aes(x=name_type,fill=name),color="black") +
+    scale_x_discrete(labels=c("first name","last name","full name")) +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    scale_fill_viridis_d(end=0.5) +
+    labs(x="") +
+    theme_bw() +
+    theme(legend.title=element_blank())
+}
+
+
+### Relationship between name missingness and passenger_group and room occupancy
+
+
+
+
+
+
+
+
+
+
+
 
 
 

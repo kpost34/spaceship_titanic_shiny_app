@@ -35,9 +35,15 @@ trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_ca
 ## All numeric cols
 trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
 
-## selectInput
+## choices vectors
 Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
 Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
+misNam03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
+misName03_optVec<-c("drop column"="drop_cols","remove rows"="remove_row","populate using ticket info"="imp_pass_group",
+                    "populate using room info"="imp_room","unsure"="unsure")
+
+#add modal if someone tries to select this--e.g., could be useful in feature engineering
+#add modal if someone tries to select this--e.g., could be impacting rest of vars
 
 
 #NAMING FORMULAS
@@ -54,6 +60,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   #          textOutput("textout1")
   #          )
     ##option to skip intro-> advances to tab/menu 1
+    ## input name ... Hello, x. Your mission is....
     ##preview
   #### 1: Menu-Data Checking======================================================================================================
   tabPanel(title="Data Check",id="Chk01",
@@ -79,60 +86,75 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     #tab 2: bivariate EDA---------------------------------------------------------------------------------------------------------
     edaTabBuilder(name="Bivariate",tabID="biEDA02",varID=c("var12","var34"),options=trainDF_nchrVars,fn=selectizeInput01),
     
-    #tab 3: multivriate EDA-------------------------------------------------------------------------------------------------------
-    edaTabBuilder(name="Multivariate",tabID="multiEDA02",varID=c("var123","var456"),options=trainDF_nchrVars,fn=selectizeInput02)
+    #tab 3: multivariate EDA-------------------------------------------------------------------------------------------------------
+    edaTabBuilder(name="Multivariate",tabID="mulEDA02",varID=c("var123","var456"),options=trainDF_nchrVars,fn=selectizeInput02)
+  ),
+
+
+  # #### 3: Menu-Missing Character Data===========================================================================================
+  navbarMenu(title="Missing Names",menuName="Nam03",
+    tabPanel(title="Missing names", id="misNam03",
+      sidebarLayout(
+        sidebarPanel(
+          #exploring missing names
+          h4("Did you notice that some passengers did not have names? If not, take a closer look"),
+          selectInput01(id="sel_exp_misNam03",label="",choices=misNam03_expVec),
+          #go deeper with some possibilities
+          h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
+             full names will be impossible to impute from the other variables, but last names may be populated with confidence.
+             Two possibilities include traveling as families, and thus either purchasing tickets together or staying in the
+             same room. Here's what those patterns look like."),
+          radioButtons(inputId="rad_impOpt_misNam03",label="",choices=c("passenger_group"="pass_group","room size"="room"))
+        ),
+        mainPanel(
+          htmlOutput("text_sel_exp_misNam03"),
+          DTOutput("tab_sel_exp_misNam03"),
+          plotOutput("plot_sel_exp_misNam03"),
+          br(),
+          htmlOutput("text_impOpt_misNam03")
+        )
+      )
+    )
   )
 
+  
+  # h4("Names may be populated"),
+  # #options for handling missing names
+  # selectInput01(id="sel_opt_misNam03",label="How would you like to handle missing names?",
+  #               choices=misName03_optVec),
 
-  # #### 3: Menu-Missing Data====================================================================================================
-  # navbarMenu(title="Missing Data",menuName="miss_03",
-  #   tabPanel(title="Missing names", id="03a_miss_nam",
-  #     sidebarLayout(
-  #       sidebarPanel(
-  #         h5("Notice that some passengers did not have names?"),
-  #         selectInput(inputId="03a_miss_name",label="Would you like to look more closely at these missing data?",
-  #                     choices=c("yes"),
-  #                     selected=character(0)),
-  #         br(),
-  #         #uiOutput(""), #dynamic UI to provide options for exploring missing names
-  #         selectInput(inputId="03a_",label="How would you like to handle missing names?",
-  #                     choices=c("drop column"="drop_col",
-  #                               "remove rows"="remove_row",
-  #                               "populate using ticket info"="imp_pass_group",
-  #                               "populate using room info"="imp_room"))),
-  #         #uiOutput(""), #dynamic UI to remove rows with NA names afterward
-  #       mainPanel(
-  #         plotOutput("03a_"),
-  #         plotOutput("03a_"),
-  #       )
-  #     )
-  #   ),
-  #   tabPanel(title="Overall missingness", id="03b_miss_miss",
-  #     sidebarLayout(
-  #       sidebarPanel(
-  #         selectInput(inputId="03b_viz_miss_sel",
-  #                     label="How would you like to visualize missingness?",
-  #                     choices=c("overall"="overall",
-  #                               "missing patterns"="patt")),
-  #         selectInput(inputId="03b_stats_miss_sel",
-  #                     label="Which variable would you like to test for MAR?",
-  #                     choices="x" #SEE BOOK#)
-  #         )
-  #       ),
-  #       mainPanel(
-  #         plotOutput("03b_"),
-  #         plotOutput("03b_"),
-  #         tableOutput("03b_")
-  #       )
-  #     )
-  #   ),
-  #   tabPanel(title="Handle missingness",id="03c_miss_imp",
-  #     sidebarLayout(
-  #       sidebarPanel(),
-  #       mainPanel()
-  #     )
-  #   )
-  # ),
+    
+    
+    
+    
+    
+    # tabPanel(title="Overall missingness", id="03b_miss_miss",
+    #   sidebarLayout(
+    #     sidebarPanel(
+    #       selectInput(inputId="03b_viz_miss_sel",
+    #                   label="How would you like to visualize missingness?",
+    #                   choices=c("overall"="overall",
+    #                             "missing patterns"="patt")),
+    #       selectInput(inputId="03b_stats_miss_sel",
+    #                   label="Which variable would you like to test for MAR?",
+    #                   choices="x" #SEE BOOK#)
+    #       )
+    #     ),
+    #     mainPanel(
+    #       plotOutput("03b_"),
+    #       plotOutput("03b_"),
+    #       tableOutput("03b_")
+    #     )
+    #   )
+    # ),
+    # tabPanel(title="Handle missingness",id="03c_miss_imp",
+    #   sidebarLayout(
+    #     sidebarPanel(),
+    #     mainPanel()
+    #   )
+    # )
+
+
   # 
   # #### 4: Menu-Features=========================================================================================================
   # navbarMenu(title="Features",menuName="feat_04",
@@ -254,7 +276,7 @@ server<-function(input,output,session){
   )
 
   
-  ##### Server 2: EDA============================================================================================
+  #### Server 2: EDA============================================================================================
   ### Univariate-------------------------------------------------------------------------------------------------
   ## Text outputs
   output$text_sel_var1_uniEDA02<-renderUI({
@@ -372,7 +394,7 @@ server<-function(input,output,session){
 
   ## Plot outputs
   output$plot_sel_var12_biEDA02<-renderPlot({
-    #must selet two inputs first
+    #must select two inputs first
     req(length(input$sel_var12_biEDA02)==2)
     #if both categorical, then bar plot
     if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
@@ -383,7 +405,7 @@ server<-function(input,output,session){
       boxplotter(trainDF,input$sel_var12_biEDA02)
     }
     #if two num then scatterplot
-    else if(num(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==0) {
       scatterplotter(trainDF,input$sel_var12_biEDA02)
     }
   })
@@ -396,20 +418,103 @@ server<-function(input,output,session){
     else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
       boxplotter(trainDF,input$sel_var34_biEDA02)
     }
-    else if(num(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==0) {
       scatterplotter(trainDF,input$sel_var34_biEDA02)
     }
   })
 
   
   ### Multivariate-------------------------------------------------------------------------------------------------------------------
-
+  ## Text outputs
+  output$text_sel_var123_mulEDA02<-renderUI({
+    h3(paste(input$sel_var123_mulEDA02,collapse="-"))
+  })
+  
+  output$text_sel_var456_mulEDA02<-renderUI({
+    h3(paste(input$sel_var456_mulEDA02,collapse="-"))
+  })
+  
+  
+  ## Plot outputs
+  output$plot_sel_var123_mulEDA02<-renderPlot({
+    #must select three inputs first
+    req(length(input$sel_var123_mulEDA02)==3)
+    #if all categorical, then bar plot
+    if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==3) {
+      barplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+    #if 2 cat & 1 num then boxplot
+    else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==2) {
+      boxplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+    #if 2-3 num then scatterplot
+    else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars) < 2) {
+      scatterplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+  })
+  
+  output$plot_sel_var456_mulEDA02<-renderPlot({
+    req(length(input$sel_var456_mulEDA02)==3)
+    if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==3) {
+      barplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+    else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==2) {
+      boxplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+    else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars) < 2) {
+      scatterplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+  })
   
   
 
+  #### Server 3: Missing Character Data===================================================================================================
+  ### Exploring missing character data--------------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_exp_misNam03<-renderUI({
+    #here switch() can be used with all four choices to display the appropriate name
+    switch(input$sel_exp_misNam03,
+      miss_samp=h3(paste("Sample of Passengers with Missing Names")),
+      nmiss_samp=h3(paste("Sample of Passengers with Names")),
+      sum_tab=h3(paste("Summary of Missing Names")),
+      plot=h3(paste("Plot of Missing Names"))
+    )
+  })
   
-  #Server 3: Missing Data===================================================================================================
+  ## Create reactive object (for tabular output)
+  dat_misNam03<-reactive({
+    #reactive is used to build reactive table objects
+    switch(input$sel_exp_misNam03,
+           miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
+           nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
+           sum_tab=chr_miss_tabler(trainDF)
+    )
+  })
+  
 
+  ## Output table/plot
+  # Table output
+  output$tab_sel_exp_misNam03<-renderDT(
+    dat_misNam03(),options=list(scrollX="400px")
+  )
+  
+  # Plot output
+  output$plot_sel_exp_misNam03<-renderPlot({
+    #plot outputs only when selected (note that this is always the same plot)
+    req(input$sel_exp_misNam03=="plot")
+    chr_miss_boxplotter(trainDF)
+  })
+  
+
+
+  
+  ## Output plot
+  # output$plot_rad_exp_misNam03<-renderPlot({
+  #   if(req(input$rad_exp_missNam03)=="Plot'")
+  #   chr_miss_boxplotter(trainDF)
+  # })
+  
+  
   
   #Server 4: Features========================================================================================================
   
@@ -431,32 +536,31 @@ shinyApp(ui,server)
 
 
 #------------------------------------------------
+## NEED TO...
+# split up backbone code into 01 ane 02
+
+#--------------------
+
 ## DONE
-# fixed issues with scatterplotter()
-# finished (a rough version) of the bivariate EDA page
-# made multivariate UI page
-# developed function to display all EDA UI tabs 
+# resolved issue with scatterplooter() which was a UI issue
 
 ## IN PROGRESS
-# dynamic UI on whether to include NAs in plots
+# working on main tab 3 (character string/name imputation)
+
+#---------------------
 
 ## TO DO
-#finish bivariate EDA tab
 #spacing between tables and plots
 #text size on plots (e.g., axes)
 #add table titles--perhaps to correlation table
-#deal with all the num cats
+#deal with all the variable num categories
+#update edaTabBuilder code to make dt outputs optional (to adjust for mult)
+#ability to bin choices?
+#convert larger server 'patterns' to functions
 
 
 #------------------------------------------------
 #OUTLINE
-#### Preprocessing data
-### Load packages and data
-
-### 1. Data check and cleaning
-## Preliminary data check: check numbers of rows and cols, appropriate col classes
-## Data cleaning: names and order of cols; re-order factor levels; re-coding cols
-
 
 ### 2. Data imputation
 ## Assessed data for missingness and understand pattern of missingness
@@ -469,15 +573,6 @@ shinyApp(ui,server)
 ## Feature engineering: extracting "data" from cols to generate variables (e.g., extracting alpha prefixes from ticket #s)
 ## (Feature selection: vars of interest selected for epa)
 ## Another option to re-order cols
-
-
-#### 4. EDA
-### Summary stats and correlations: summary() and skim() performed on each col
-### Predictors-only exploration
-## Univariate, bivariate, multivariate
-### Predictors & response
-## Univariate of response
-## Bivariate
 
 
 ### 5. Data Paritioning: Divide training data into four subsamples for v-fold cross-validation

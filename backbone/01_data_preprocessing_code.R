@@ -1,6 +1,6 @@
 # R code to develop Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
-# Part 1 of x: reading in data and splitting variables; data checking, character vector imputation, missingness, data imputation, 
-#feature engineering
+# Part 1 of x: reading in data and splitting variables; data checking, eda, character vector imputation, missingness, 
+# data imputation
 
 #load packages
 pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,conflicted)
@@ -299,19 +299,45 @@ trainDF %>%
 
 
 
-#### Character string imputation==================================================================================================
+##### Character string imputation==================================================================================================
 #enter: trainDF
 #exit: trainDF_nI
 
-### Assessment--------------------------------------------------------------------------------------------------------------------
-## Non-missing vs missing names
+#### Assessment--------------------------------------------------------------------------------------------------------------------
+### Non-missing vs missing names
+## Tabular
+# Sample
+#missing
 trainDF %>%
-  mutate(last_name=ifelse(!is.na(l_name),"Yes","NA")) %>%
+  filter(is.na(name)) %>%
+  slice_sample(n=2)
+
+#non-missing
+trainDF %>%
+  filter(!is.na(name)) %>%
+  slice_sample(n=2)
+
+
+# Summary table
+trainDF %>%
+  pivot_longer(cols=contains("name"),names_to="name_type",values_to="name") %>%
+  group_by(name_type) %>%
+  summarize(across(name,list(present=~sum(!is.na(.x)),missing=~sum(is.na(.x)),total=length)))
+  
+  
+# Graphical
+trainDF %>%
+  summarize(across(contains("name"),~ifelse(!is.na(.x),"Present","Missing"))) %>%
+  pivot_longer(cols=everything(),names_to="name_type",values_to="name") %>%
   ggplot() +
-  geom_bar(aes(x=last_name),fill="steelblue",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1)),trans="pseudo_log") +
-  labs(x="Last name") +
-  theme_bw()
+  geom_bar(aes(x=name_type,fill=name),color="black") +
+  scale_x_discrete(labels=c("first name","last name","full name")) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  scale_fill_viridis_d(end=0.5) +
+  labs(x="") +
+  theme_bw() +
+  theme(legend.title=element_blank())
+
 
 ## Name missingness + passenger group
 # Pull passenger groups containing one NA name
@@ -338,6 +364,12 @@ trainDF %>%
 #NA l_names--number of groups with at least one non-NA l_name and number of groups without any others
   #or by number of non-NA l_names (0, 1, 2, etc.)
 
+passGroupNAnameSizes_tab %>%
+  ggplot(aes(x=num_name,y=n)) +
+  geom_col(fill="darkgreen") +
+  labs(x="Number of named passengers",y="Number of cabins") +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  theme_bw() 
 
 ## Name missingness + same room
 # Note: two passenger ids where cabin and last name NA (so only 198 NA names where there is a cabin)
