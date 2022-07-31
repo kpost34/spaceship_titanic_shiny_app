@@ -364,12 +364,14 @@ trainDF %>%
 #NA l_names--number of groups with at least one non-NA l_name and number of groups without any others
   #or by number of non-NA l_names (0, 1, 2, etc.)
 
+# Plot results
 passGroupNAnameSizes_tab %>%
   ggplot(aes(x=num_name,y=n)) +
   geom_col(fill="darkgreen") +
-  labs(x="Number of named passengers",y="Number of cabins") +
+  labs(x="Number of named passengers",y="Number of passenger groups") +
   scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
   theme_bw() 
+
 
 ## Name missingness + same room
 # Note: two passenger ids where cabin and last name NA (so only 198 NA names where there is a cabin)
@@ -394,6 +396,13 @@ trainDF %>%
 #conclusions from both assessments: if num_name==0 then can't populate; the larger the group then logically the greater the 
 #confidence in filling name--this could be part of the method
 
+# Plot results
+roomGroupNAnameSizes_tab %>%
+  ggplot(aes(x=num_name,y=n)) +
+  geom_col(fill="tan4") +
+  labs(x="Number of named passengers",y="Number of cabins") +
+  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  theme_bw() 
 
 #### Option? Ignore, drop col(s), remove rows, populate some using passenger group, populate with same room-----------------------
 ### Ignore

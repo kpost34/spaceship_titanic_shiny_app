@@ -39,8 +39,10 @@ trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_n
 Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
 Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
 misNam03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
-misName03_optVec<-c("drop column"="drop_cols","remove rows"="remove_row","populate using ticket info"="imp_pass_group",
-                    "populate using room info"="imp_room","unsure"="unsure")
+misNam03_impOptVec<-c("drop name columns"="drop_cols",
+                      "remove with missing namesrows"="remove_rows",
+                      "populate using passenger group"="imp_pass_group",
+                      "populate using cabin info"="imp_room")
 
 #add modal if someone tries to select this--e.g., could be useful in feature engineering
 #add modal if someone tries to select this--e.g., could be impacting rest of vars
@@ -99,19 +101,27 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           #exploring missing names
           h4("Did you notice that some passengers did not have names? If not, take a closer look"),
           selectInput01(id="sel_exp_misNam03",label="",choices=misNam03_expVec),
+          br(),
           #go deeper with some possibilities
           h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
-             full names will be impossible to impute from the other variables, but last names may be populated with confidence.
-             Two possibilities include traveling as families, and thus either purchasing tickets together or staying in the
-             same room. Here's what those patterns look like."),
-          radioButtons(inputId="rad_impOpt_misNam03",label="",choices=c("passenger_group"="pass_group","room size"="room"))
+             full names will be impossible to impute from the other variables. Last names may be populated with confidence if we
+             assume passengers traveled together as families. Two ways to conclude that the traveling party is a family is
+             1) purchasing tickets together (same passenger group) or 2) saying in the same room (cabin). Here's how the patterns break down."),
+          radioButtons(inputId="rad_grpVar_misNam03",label="",choices=c("passenger_group"="passenger_group",
+                                                                        "cabin occupancy"="cabin"),
+                       selected=character(0)),
+          br(),
+          h4("Given all this information, how would you like to handle passengers with missing names?"),
+          selectInput01(id="sel_impOpt_misNam03",label="",choices=misNam03_impOptVec),
         ),
+        
         mainPanel(
           htmlOutput("text_sel_exp_misNam03"),
           DTOutput("tab_sel_exp_misNam03"),
           plotOutput("plot_sel_exp_misNam03"),
           br(),
-          htmlOutput("text_impOpt_misNam03")
+          htmlOutput("text_rad_grpVar_misNam03"),
+          plotOutput("plot_rad_grpVar_misNam03")
         )
       )
     )
@@ -482,12 +492,12 @@ server<-function(input,output,session){
   })
   
   ## Create reactive object (for tabular output)
-  dat_misNam03<-reactive({
+  dat1_misNam03<-reactive({
     #reactive is used to build reactive table objects
     switch(input$sel_exp_misNam03,
-           miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
-           nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
-           sum_tab=chr_miss_tabler(trainDF)
+      miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
+      nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
+      sum_tab=chr_miss_tabler(trainDF)
     )
   })
   
@@ -495,7 +505,7 @@ server<-function(input,output,session){
   ## Output table/plot
   # Table output
   output$tab_sel_exp_misNam03<-renderDT(
-    dat_misNam03(),options=list(scrollX="400px")
+    dat1_misNam03(),options=list(scrollX="400px")
   )
   
   # Plot output
@@ -505,7 +515,53 @@ server<-function(input,output,session){
     chr_miss_boxplotter(trainDF)
   })
   
+  
+  ### Understanding name missingness conditioned on other variables---------------------------------------------------------------
+  ## Text outputs
+  output$text_rad_grpVar_misNam03<-renderUI({
+    req(input$rad_grpVar_misNam03)
+    switch(input$rad_grpVar_misNam03,
+      passenger_group=h3(paste("Summary of Missing Names by Size of Passenger Groups")),
+      cabin=h3(paste("Summary of Missing Names by Cabin Occupancy"))
+    )
+  })
+  
+  ## Create reactive object (for tabular and plot outputs)
+  dat2_misNam03<-reactive({
+    switch(input$rad_grpVar_misNam03,
+      passenger_group=mis_name_tabler(trainDF,l_name,passenger_group),
+      cabin=mis_name_tabler(trainDF,l_name,cabin)
+    )
+  })
+  
+  
+  ## Output plots
+  output$plot_rad_grpVar_misNam03<-renderPlot({
+    req(input$rad_grpVar_misNam03)
+    col_plotter(dat2_misNam03(),num_name,n)
+  })
+  
+  
+  
+  ## New data frame object after imputation selection
+  n_trainDF<-reactive({
+    req(input$sel_impOpt_misNam03)
+    switch(input$sel_impOpt_misNam03,
+      drop_cols=
+      remove_rows=
+      imp_pass_group=
+      imp_cabin=
+    
+  })
+  input$sel_impOpt_misNam03
 
+
+  misNam03_impOptVec<-c("drop name columns"="drop_cols",
+                        "remove with missing namesrows"="remove_rows",
+                        "populate using passenger group"="imp_pass_group",
+                        "populate using cabin info"="imp_room")
+  
+  
 
   
   ## Output plot
@@ -537,15 +593,19 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## NEED TO...
-# split up backbone code into 01 ane 02
+# split up backbone code into 01 and 02
 
 #--------------------
 
 ## DONE
-# resolved issue with scatterplooter() which was a UI issue
+# developed functions for exploring name missingness
+# developed functions for summarizing patterns of name missingness associated with passenger_groups and cabin
+# created new script of modals and placed in renamed directory "functions and modals"
 
 ## IN PROGRESS
-# working on main tab 3 (character string/name imputation)
+# working on main tab 3 (character string/name imputation)--next step is to present options on what to do, add modals, and
+  #include a switch statement with output to a new DF
+
 
 #---------------------
 
@@ -557,6 +617,7 @@ shinyApp(ui,server)
 #update edaTabBuilder code to make dt outputs optional (to adjust for mult)
 #ability to bin choices?
 #convert larger server 'patterns' to functions
+#output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
 
 
 #------------------------------------------------

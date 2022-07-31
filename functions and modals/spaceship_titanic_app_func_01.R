@@ -317,8 +317,39 @@ chr_miss_boxplotter<-function(dat){
 }
 
 
-### Relationship between name missingness and passenger_group and room occupancy
-
+### Relationship between name missingness and passenger_group or room occupancy
+## Function that provides of counts of named passengers grouped by another variable
+mis_name_tabler<-function(dat,name,group){
+  dat %>%
+    #filter for missing names
+    filter(is.na({{name}}) & !is.na({{group}})) %>%
+    #pull out grouping variable
+    pull({{group}}) -> filter_var
+  
+  dat %>%
+    #select only groups containing at least one NA name
+    filter({{group}} %in% filter_var) %>%
+    #count number of named passengers and group size in each group
+    group_by({{group}}) %>%
+    summarize(num_name=sum(!is.na({{name}})),
+              group_size=length({{name}})) %>%
+    #summarize by calculated metrics
+    group_by(num_name,group_size) %>%
+    summarize(n=n(),
+              group_comp=list({{group}})) 
+}
+  
+  
+## Function that provides column graphs using above table output
+col_plotter<-function(dat,group,count){
+  dat %>%
+    ggplot(aes(x={{group}},y={{count}})) +
+      geom_col(fill="darkgreen") +
+      labs(x="Number of named passengers",
+           y=paste("Number of groups",sep=" ")) +
+      scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    theme_bw()
+}
 
 
 
