@@ -408,7 +408,7 @@ roomGroupNAnameSizes_tab %>%
 ### Ignore
 trainDF -> trainDF_nI
 
-### Drop col
+### Drop cols
 trainDF %>% 
   select(-contains("name")) -> trainDF_nI
 

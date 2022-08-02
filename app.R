@@ -7,8 +7,8 @@ conflict_prefer("chisq.test","stats")
 
 
 #### Load functions
-source(here("functions","spaceship_titanic_app_func_ui.R"))
-source(here("functions","spaceship_titanic_app_func_01.R"))
+source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
+source(here("functions and modals","spaceship_titanic_app_func_01.R"))
 
 
 #### Read in and clean data
@@ -40,9 +40,9 @@ Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="mis
 Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
 misNam03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
 misNam03_impOptVec<-c("drop name columns"="drop_cols",
-                      "remove with missing namesrows"="remove_rows",
+                      "remove with rows with missing names"="remove_rows",
                       "populate using passenger group"="imp_pass_group",
-                      "populate using cabin info"="imp_room")
+                      "populate using cabin info"="imp_cabin")
 
 #add modal if someone tries to select this--e.g., could be useful in feature engineering
 #add modal if someone tries to select this--e.g., could be impacting rest of vars
@@ -110,23 +110,28 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           radioButtons(inputId="rad_grpVar_misNam03",label="",choices=c("passenger_group"="passenger_group",
                                                                         "cabin occupancy"="cabin"),
                        selected=character(0)),
+          h4("Note that each group, regardless of group size or grouping variable, has one unnamed passenger."),
           br(),
           h4("Given all this information, how would you like to handle passengers with missing names?"),
           selectInput01(id="sel_impOpt_misNam03",label="",choices=misNam03_impOptVec),
+          br(),
+          uiOutput("ui_slid_impOpt_misNam03")
         ),
-        
         mainPanel(
           htmlOutput("text_sel_exp_misNam03"),
           DTOutput("tab_sel_exp_misNam03"),
           plotOutput("plot_sel_exp_misNam03"),
           br(),
           htmlOutput("text_rad_grpVar_misNam03"),
-          plotOutput("plot_rad_grpVar_misNam03")
+          plotOutput("plot_rad_grpVar_misNam03"),
+          tableOutput("test_table")
         )
       )
     )
   )
 
+  
+  #see sec 10.1.2 in Mastering Shiny to generate hierarchical select boxes
   
   # h4("Names may be populated"),
   # #options for handling missing names
@@ -542,33 +547,53 @@ server<-function(input,output,session){
   })
   
   
-  
-  ## New data frame object after imputation selection
-  n_trainDF<-reactive({
-    req(input$sel_impOpt_misNam03)
+  ## Create dynamic UI to display sliders
+  output$ui_slid_impOpt_misNam03<-renderUI({
+    req(input$sel_impOpt_misNam03 %in% c("imp_pass_group","imp_cabin"))
     switch(input$sel_impOpt_misNam03,
-      drop_cols=
-      remove_rows=
-      imp_pass_group=
-      imp_cabin=
-    
+      imp_pass_group=sliderInput("slid1_impOpt_misNam03",
+                      "Select a range of named passengers per passenger_group to use for name imputation",
+                      value=c(3,3),min=1,max=7),
+      imp_cabin=sliderInput("slid2_impOpt_misNam03","Select a range of named passengers per cabin to use for name imputation",
+                  value=c(3,3),min=1,max=6)
+    )
   })
-  input$sel_impOpt_misNam03
-
-
-  misNam03_impOptVec<-c("drop name columns"="drop_cols",
-                        "remove with missing namesrows"="remove_rows",
-                        "populate using passenger group"="imp_pass_group",
-                        "populate using cabin info"="imp_room")
   
   
-
+  ## Create reactive object (for creating a new DF)
+  dat3_misNam03<-reactive({
+    req(input$sel_impOpt_misNam03 %in% c("imp_pass_group","imp_cabin"))
+    switch(input$sel_impOpt_misNam03,
+      imp_pass_group=mis_name_tabler(trainDF,l_name,passenger_group),
+      imp_cabin=mis_name_tabler(trainDF,l_name,cabin)
+    )
+  })
   
-  ## Output plot
-  # output$plot_rad_exp_misNam03<-renderPlot({
-  #   if(req(input$rad_exp_missNam03)=="Plot'")
-  #   chr_miss_boxplotter(trainDF)
-  # })
+  ## Create new data frame object after name imputation or col/row removal
+  trainDF_nI<-reactive({
+    #requires selection from drop-down menu
+    req(input$sel_impOpt_misNam03)
+    #dplyr code if drop_cols selected
+    if(input$sel_impOpt_misNam03=="drop_cols"){
+      trainDF %>% select(-contains("name"))
+    }
+    #same for remove_rows
+    else if(input$sel_impOpt_misNam03=="remove_rows"){
+      trainDF %>% filter(!is.na("name"))
+    }
+    #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
+    else if(input$sel_impOpt_misNam03=="imp_pass_group" & length(input$slid1_impOpt_misNam03)>0){
+      name_imputer(dat3_misNam03(),num_name,input$slid1_impOpt_misNam03,trainDF,passenger_group)
+    }
+    else if(input$sel_impOpt_misNam03=="imp_cabin" & length(input$slid2_impOpt_misNam03)>0){
+      name_imputer(dat3_misNam03(),num_name,input$slid2_impOpt_misNam03,trainDF,cabin)
+    }
+  })
+  
+  ## Test whether code above is working
+  output$test_table<-renderTable({
+    head(trainDF_nI()) 
+  })
   
   
   
@@ -598,13 +623,13 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-# developed functions for exploring name missingness
-# developed functions for summarizing patterns of name missingness associated with passenger_groups and cabin
-# created new script of modals and placed in renamed directory "functions and modals"
+# created function to impute last names using range of named passengers in passenger_groups or cabins
+
 
 ## IN PROGRESS
-# working on main tab 3 (character string/name imputation)--next step is to present options on what to do, add modals, and
-  #include a switch statement with output to a new DF
+# working on imputation options for missing names--eventually want to include modals--need better software engineering so that
+  #reactive is created after going through tiers of selector/slider--should add button, otherwise reactive will constant be
+  #added--this could help if user chooses to drop cols or rows
 
 
 #---------------------
@@ -618,6 +643,7 @@ shinyApp(ui,server)
 #ability to bin choices?
 #convert larger server 'patterns' to functions
 #output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
+#for missing name tab--need to have the first output (plot or DT) output in the same area
 
 
 #------------------------------------------------
