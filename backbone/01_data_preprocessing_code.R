@@ -518,8 +518,8 @@ trainDF_nI %>%
 
 ### Include missing data in demographics tables
 ## Redefine variables (explanatory and confounders)
-explanatory_focus<-c("side")
-confounders<-c("home_planet","destination","age","vip","cryo_sleep","room_service","food_court","shopping_mall","spa","vr_deck")
+explanatory_focus<-c("destination")
+confounders<-c("home_planet","vip","cryo_sleep","room_service","food_court","shopping_mall","spa","vr_deck")
 
 trainDF_nI %>%
   summary_factorlist(explanatory_focus,confounders,na_include=TRUE,na_include_dependent=TRUE,

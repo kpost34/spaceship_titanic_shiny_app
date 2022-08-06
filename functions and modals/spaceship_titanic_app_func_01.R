@@ -317,7 +317,7 @@ chr_miss_boxplotter<-function(dat){
 }
 
 
-### Relationship between name missingness and passenger_group or room occupancy
+### Relationship between name missingness and passenger_group or room (cabin) occupancy & imputation
 ## Function that provides of counts of named passengers grouped by another variable
 mis_name_tabler<-function(dat,name,group){
   dat %>%
@@ -336,7 +336,8 @@ mis_name_tabler<-function(dat,name,group){
     #summarize by calculated metrics
     group_by(num_name,group_size) %>%
     summarize(n=n(),
-              group_comp=list({{group}})) 
+              group_comp=list({{group}})) %>%
+    ungroup()
 }
   
   
@@ -352,6 +353,32 @@ col_plotter<-function(dat,group,count){
 }
 
 
+### Function to impute last names using passenger group size or cabin occupancy
+name_imputer<-function(tab,col,range,dat,var) {
+  tab %>%
+    #filter summary table of missing names by range of number named
+    filter(between({{col}},range[1],range[2])) %>%
+    #extract the group composition (e.g., list of passenger_groups)
+    pull(group_comp) %>%
+    unlist() -> filter_var
+  
+  dat %>%
+    #use subset of groups for filtering DF
+    filter({{var}} %in% filter_var) %>%
+    group_by({{var}}) %>%
+    #assumes that dat contains cols f_name, l_name, and name (for full name)
+    #populate l_name using grouping var
+    fill(l_name) %>%
+    ungroup() %>%
+    #mutate (full) name after imputing l_name
+    mutate(name=case_when(
+      !is.na(name)                   ~ name,
+      is.na(f_name) & !is.na(l_name) ~ paste(f_name,l_name),
+      is.na(f_name) & is.na(l_name)  ~ "",
+      TRUE                           ~ "CHECK")) %>% 
+    bind_rows(dat %>% 
+                filter(!{{var}} %in% filter_var)) 
+}
 
 
 

@@ -35,14 +35,19 @@ trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_ca
 ## All numeric cols
 trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
 
+## Dependent variable
+depVar<-"transported"
+
 ## choices vectors
 Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
 Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
-misNam03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
-misNam03_impOptVec<-c("drop name columns"="drop_cols",
+namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
+namMis03_impOptVec<-c("drop name columns"="drop_cols",
                       "remove with rows with missing names"="remove_rows",
                       "populate using passenger group"="imp_pass_group",
                       "populate using cabin info"="imp_cabin")
+expMis03_expVec<-c("missing values occurence plot"="miss_occur",
+                   "missing data pattern plot"="miss_patt")
 
 #add modal if someone tries to select this--e.g., could be useful in feature engineering
 #add modal if someone tries to select this--e.g., could be impacting rest of vars
@@ -93,38 +98,54 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   ),
 
 
-  # #### 3: Menu-Missing Character Data===========================================================================================
-  navbarMenu(title="Missing Names",menuName="Nam03",
-    tabPanel(title="Missing names", id="misNam03",
+  #### 3: Menu-Missing Data=======================================================================================================
+  navbarMenu(title="Missingness",menuName="Mis03",
+    #tab 1: names-----------------------------------------------------------------------------------------------------------------
+    tabPanel(title="Names", id="namMis03",
+      titlePanel("Names and Missingness"),
       sidebarLayout(
         sidebarPanel(
           #exploring missing names
           h4("Did you notice that some passengers did not have names? If not, take a closer look"),
-          selectInput01(id="sel_exp_misNam03",label="",choices=misNam03_expVec),
+          selectInput01(id="sel_exp_namMis03",label="",choices=namMis03_expVec),
           br(),
           #go deeper with some possibilities
           h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
              full names will be impossible to impute from the other variables. Last names may be populated with confidence if we
              assume passengers traveled together as families. Two ways to conclude that the traveling party is a family is
              1) purchasing tickets together (same passenger group) or 2) saying in the same room (cabin). Here's how the patterns break down."),
-          radioButtons(inputId="rad_grpVar_misNam03",label="",choices=c("passenger_group"="passenger_group",
+          radioButtons(inputId="rad_grpVar_namMis03",label="",choices=c("passenger_group"="passenger_group",
                                                                         "cabin occupancy"="cabin"),
                        selected=character(0)),
           h4("Note that each group, regardless of group size or grouping variable, has one unnamed passenger."),
           br(),
           h4("Given all this information, how would you like to handle passengers with missing names?"),
-          selectInput01(id="sel_impOpt_misNam03",label="",choices=misNam03_impOptVec),
+          selectInput01(id="sel_impOpt_namMis03",label="",choices=namMis03_impOptVec),
           br(),
-          uiOutput("ui_slid_impOpt_misNam03")
+          uiOutput("ui_slid_impOpt_namMis03")
         ),
         mainPanel(
-          htmlOutput("text_sel_exp_misNam03"),
-          DTOutput("tab_sel_exp_misNam03"),
-          plotOutput("plot_sel_exp_misNam03"),
+          htmlOutput("text_sel_exp_namMis03"),
+          DTOutput("tab_sel_exp_namMis03"),
+          plotOutput("plot_sel_exp_namMis03"),
           br(),
-          htmlOutput("text_rad_grpVar_misNam03"),
-          plotOutput("plot_rad_grpVar_misNam03"),
+          htmlOutput("text_rad_grpVar_namMis03"),
+          plotOutput("plot_rad_grpVar_namMis03"),
           tableOutput("test_table")
+        )
+      )
+    ),
+    #tab 2: exploring non-character missingness-----------------------------------------------------------------------------------
+    tabPanel(title="Explore Missingness",id="expMis03",
+      titlePanel("Exploring Other Missing Data"),
+      sidebarLayout(
+        sidebarPanel(
+          h4("Let's visualize missingness in all non-character variables"),
+          selectInput01(id="sel_exp_expMis03",label="",choices=expMis03_expVec)
+        ),
+        mainPanel(
+          htmlOutput("text_sel_exp_expMis03"),
+          plotOutput("plot_sel_exp_expMis03")
         )
       )
     )
@@ -135,7 +156,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   
   # h4("Names may be populated"),
   # #options for handling missing names
-  # selectInput01(id="sel_opt_misNam03",label="How would you like to handle missing names?",
+  # selectInput01(id="sel_opt_namMis03",label="How would you like to handle missing names?",
   #               choices=misName03_optVec),
 
     
@@ -483,12 +504,13 @@ server<-function(input,output,session){
   
   
 
-  #### Server 3: Missing Character Data===================================================================================================
-  ### Exploring missing character data--------------------------------------------------------------------------------------------
+  ##### Server 3: Missing Data====================================================================================================
+  #### Names----------------------------------------------------------------------------------------------------------------------
+  ### Exploring missing names
   ## Text outputs
-  output$text_sel_exp_misNam03<-renderUI({
+  output$text_sel_exp_namMis03<-renderUI({
     #here switch() can be used with all four choices to display the appropriate name
-    switch(input$sel_exp_misNam03,
+    switch(input$sel_exp_namMis03,
       miss_samp=h3(paste("Sample of Passengers with Missing Names")),
       nmiss_samp=h3(paste("Sample of Passengers with Names")),
       sum_tab=h3(paste("Summary of Missing Names")),
@@ -497,9 +519,9 @@ server<-function(input,output,session){
   })
   
   ## Create reactive object (for tabular output)
-  dat1_misNam03<-reactive({
+  dat1_namMis03<-reactive({
     #reactive is used to build reactive table objects
-    switch(input$sel_exp_misNam03,
+    switch(input$sel_exp_namMis03,
       miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
       nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
       sum_tab=chr_miss_tabler(trainDF)
@@ -509,31 +531,31 @@ server<-function(input,output,session){
 
   ## Output table/plot
   # Table output
-  output$tab_sel_exp_misNam03<-renderDT(
-    dat1_misNam03(),options=list(scrollX="400px")
+  output$tab_sel_exp_namMis03<-renderDT(
+    dat1_namMis03(),options=list(scrollX="400px")
   )
   
   # Plot output
-  output$plot_sel_exp_misNam03<-renderPlot({
+  output$plot_sel_exp_namMis03<-renderPlot({
     #plot outputs only when selected (note that this is always the same plot)
-    req(input$sel_exp_misNam03=="plot")
+    req(input$sel_exp_namMis03=="plot")
     chr_miss_boxplotter(trainDF)
   })
   
   
-  ### Understanding name missingness conditioned on other variables---------------------------------------------------------------
+  ### Understanding name missingness conditioned on other variables
   ## Text outputs
-  output$text_rad_grpVar_misNam03<-renderUI({
-    req(input$rad_grpVar_misNam03)
-    switch(input$rad_grpVar_misNam03,
+  output$text_rad_grpVar_namMis03<-renderUI({
+    req(input$rad_grpVar_namMis03)
+    switch(input$rad_grpVar_namMis03,
       passenger_group=h3(paste("Summary of Missing Names by Size of Passenger Groups")),
       cabin=h3(paste("Summary of Missing Names by Cabin Occupancy"))
     )
   })
   
   ## Create reactive object (for tabular and plot outputs)
-  dat2_misNam03<-reactive({
-    switch(input$rad_grpVar_misNam03,
+  dat2_namMis03<-reactive({
+    switch(input$rad_grpVar_namMis03,
       passenger_group=mis_name_tabler(trainDF,l_name,passenger_group),
       cabin=mis_name_tabler(trainDF,l_name,cabin)
     )
@@ -541,29 +563,29 @@ server<-function(input,output,session){
   
   
   ## Output plots
-  output$plot_rad_grpVar_misNam03<-renderPlot({
-    req(input$rad_grpVar_misNam03)
-    col_plotter(dat2_misNam03(),num_name,n)
+  output$plot_rad_grpVar_namMis03<-renderPlot({
+    req(input$rad_grpVar_namMis03)
+    col_plotter(dat2_namMis03(),num_name,n)
   })
   
   
   ## Create dynamic UI to display sliders
-  output$ui_slid_impOpt_misNam03<-renderUI({
-    req(input$sel_impOpt_misNam03 %in% c("imp_pass_group","imp_cabin"))
-    switch(input$sel_impOpt_misNam03,
-      imp_pass_group=sliderInput("slid1_impOpt_misNam03",
+  output$ui_slid_impOpt_namMis03<-renderUI({
+    req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
+    switch(input$sel_impOpt_namMis03,
+      imp_pass_group=sliderInput("slid1_impOpt_namMis03",
                       "Select a range of named passengers per passenger_group to use for name imputation",
                       value=c(3,3),min=1,max=7),
-      imp_cabin=sliderInput("slid2_impOpt_misNam03","Select a range of named passengers per cabin to use for name imputation",
+      imp_cabin=sliderInput("slid2_impOpt_namMis03","Select a range of named passengers per cabin to use for name imputation",
                   value=c(3,3),min=1,max=6)
     )
   })
   
   
   ## Create reactive object (for creating a new DF)
-  dat3_misNam03<-reactive({
-    req(input$sel_impOpt_misNam03 %in% c("imp_pass_group","imp_cabin"))
-    switch(input$sel_impOpt_misNam03,
+  dat3_namMis03<-reactive({
+    req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
+    switch(input$sel_impOpt_namMis03,
       imp_pass_group=mis_name_tabler(trainDF,l_name,passenger_group),
       imp_cabin=mis_name_tabler(trainDF,l_name,cabin)
     )
@@ -572,21 +594,21 @@ server<-function(input,output,session){
   ## Create new data frame object after name imputation or col/row removal
   trainDF_nI<-reactive({
     #requires selection from drop-down menu
-    req(input$sel_impOpt_misNam03)
+    req(input$sel_impOpt_namMis03)
     #dplyr code if drop_cols selected
-    if(input$sel_impOpt_misNam03=="drop_cols"){
+    if(input$sel_impOpt_namMis03=="drop_cols"){
       trainDF %>% select(-contains("name"))
     }
     #same for remove_rows
-    else if(input$sel_impOpt_misNam03=="remove_rows"){
+    else if(input$sel_impOpt_namMis03=="remove_rows"){
       trainDF %>% filter(!is.na("name"))
     }
     #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
-    else if(input$sel_impOpt_misNam03=="imp_pass_group" & length(input$slid1_impOpt_misNam03)>0){
-      name_imputer(dat3_misNam03(),num_name,input$slid1_impOpt_misNam03,trainDF,passenger_group)
+    else if(input$sel_impOpt_namMis03=="imp_pass_group" & length(input$slid1_impOpt_namMis03)>0){
+      name_imputer(dat3_namMis03(),num_name,input$slid1_impOpt_namMis03,trainDF,passenger_group)
     }
-    else if(input$sel_impOpt_misNam03=="imp_cabin" & length(input$slid2_impOpt_misNam03)>0){
-      name_imputer(dat3_misNam03(),num_name,input$slid2_impOpt_misNam03,trainDF,cabin)
+    else if(input$sel_impOpt_namMis03=="imp_cabin" & length(input$slid2_impOpt_namMis03)>0){
+      name_imputer(dat3_namMis03(),num_name,input$slid2_impOpt_namMis03,trainDF,cabin)
     }
   })
   
@@ -595,6 +617,29 @@ server<-function(input,output,session){
     head(trainDF_nI()) 
   })
   
+  
+  #### Exploring Non-Character Missingness----------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_exp_expMis03<-renderUI({
+    switch(input$sel_exp_expMis03,
+           miss_occur=
+           miss_patt=
+             
+           miss_samp=h3(paste("Sample of Passengers with Missing Names")),
+           nmiss_samp=h3(paste("Sample of Passengers with Names")),
+           sum_tab=h3(paste("Summary of Missing Names")),
+           plot=h3(paste("Plot of Missing Names"))
+    )
+  })
+  
+  
+  sidebarPanel(
+    h4("Let's visualize missingness in all non-character variables"),
+    selectInput01(id="sel_exp_expMis03",label="",choices=expMis03_expVec)
+  ),
+  mainPanel(
+    htmlOutput("text_sel_exp_expMis03"),
+    plotOutput("plot_sel_exp_expMis03")
   
   
   #Server 4: Features========================================================================================================
@@ -619,17 +664,15 @@ shinyApp(ui,server)
 #------------------------------------------------
 ## NEED TO...
 # split up backbone code into 01 and 02
+# create another function script with a server suffix (for more 'structural' functions) & create functions
 
 #--------------------
 
 ## DONE
-# created function to impute last names using range of named passengers in passenger_groups or cabins
-
+# re-organized the third main tab into a missing data tab and have name as the first 'subtab'
 
 ## IN PROGRESS
-# working on imputation options for missing names--eventually want to include modals--need better software engineering so that
-  #reactive is created after going through tiers of selector/slider--should add button, otherwise reactive will constant be
-  #added--this could help if user chooses to drop cols or rows
+# working on missingness of non-chr var exploration
 
 
 #---------------------
@@ -640,7 +683,7 @@ shinyApp(ui,server)
 #add table titles--perhaps to correlation table
 #deal with all the variable num categories
 #update edaTabBuilder code to make dt outputs optional (to adjust for mult)
-#ability to bin choices?
+#ability to bin choices? (vars into factor, logical, etc)
 #convert larger server 'patterns' to functions
 #output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
 #for missing name tab--need to have the first output (plot or DT) output in the same area
@@ -661,6 +704,7 @@ shinyApp(ui,server)
 ## (Feature selection: vars of interest selected for epa)
 ## Another option to re-order cols
 
+### 4. Data normalization/standardization
 
 ### 5. Data Paritioning: Divide training data into four subsamples for v-fold cross-validation
 
