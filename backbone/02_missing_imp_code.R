@@ -1,6 +1,7 @@
-# R code to develop Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
-# Part 1 of x: reading in data and splitting variables; data checking, eda, character vector imputation, missingness, 
-# data imputation
+#Created by Keith Post on 8/6/22
+
+# R code to build Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
+# Part 2 of x:  exploring missing data, imputing names, and imputing non-character variables
 
 #load packages
 pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,conflicted)
@@ -22,281 +23,6 @@ read_csv(here("data","train.csv")) %>%
   separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
   ### reclassify vars
   mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
-
-
-#### Data checking================================================================================================================
-### Check numbers of rows and cols
-dim(trainDF)
-
-### Check appropriate rows and cols
-str(trainDF)
-glimpse(trainDF)
-apply(trainDF,2,class)
-
-### Preview data
-head(trainDF,n=5)
-tail(trainDF,n=5)
-slice_sample(trainDF,n=5) #put in DT::datatable
-
-
-### Missingness
-apply(trainDF,2,function(x) sum(is.na(x))) 
-apply(trainDF,2,function(x) sum(is.na(x))) %>%
-  as.data.frame() %>%
-  rownames_to_column() %>%
-  setNames(c("col","n_missing")) %>%
-  as_tibble() %>%
-  arrange(desc(n_missing))
-
-
-### Data summaries
-skim(trainDF)
-skim(trainDF,where(is.character)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
-skim(trainDF,where(is.factor)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
-skim(trainDF,where(is.logical)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
-skim(trainDF,where(is.numeric)) %>% as_tibble() %>% select(-skim_type) %>% mutate(across(where(is.numeric),~signif(.x,3)))
-
-
-##### Exploratory Data Analysis====================================================================================================
-#### Set colors for variables
-
-
-#### Univariate--------------------------------------------------------------------------------------------------------------------
-### Text/Tabular
-## Numerical data
-summary(trainDF["age"]) 
-summary(trainDF["food_court"])
-
-#tidyverse equivalent
-trainDF %>%
-  select(age) %>%
-  summarize(across(age,list(n=length,
-                   minimum=~min(.x,na.rm=TRUE),
-                   q1=~quantile(.x,probs=0.25,na.rm=TRUE),
-                   median=~median(.x,na.rm=TRUE),
-                   mean=~mean(.x,na.rm=TRUE),
-                   q3=~quantile(.x,probs=0.75,na.rm=TRUE),
-                   maximum=~max(.x,na.rm=TRUE),
-                   na=~sum(is.na(.x)))))
-  
-
-## Categorical or logical data
-tabyl(trainDF,home_planet)
-tabyl(trainDF,cryo_sleep)
-tabyl(trainDF,destination)
-tabyl(trainDF,transported)
-
-
-### Graphical
-## Histogram
-trainDF %>%
-  ggplot() +
-  geom_histogram(aes(spa),fill="darkred",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-  theme_bw() +
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=13))
-
-## Barplot
-trainDF %>%
-  ggplot() +
-  geom_bar(aes(home_planet),fill="steelblue",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-  theme_bw() +
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=13))
-
-
-
-#### Bivariate---------------------------------------------------------------------------------------------------------------------
-### Tabular
-## Cat-cat
-tabyl(trainDF,home_planet,destination)
-tabyl(trainDF,home_planet,transported)
-
-## Cat-num
-trainDF %>%
-  group_by(transported) %>%
-  summarize(across(age,list(n=length,
-                            min=~min(.,na.rm=TRUE),
-                            Q1=~quantile(.,probs=0.25,na.rm=TRUE),
-                            median=~median(.,na.rm=TRUE),
-                            mean=~mean(.,na.rm=TRUE),
-                            Q3=~quantile(.,probs=0.75,na.rm=TRUE),
-                            max=~max(.,na.rm=TRUE),
-                            NAs=~sum(is.na(.))))) 
-
-### Num-num
-trainDF %>%
-  cor_test(room_service,food_court,method="spearman")
-
-trainDF %>%
-  cor_test(room_service,food_court,method="spearman")
-
-
-#### Graphical
-### Cat-cat
-## Bubble plot
-# With NAs
-trainDF %>%
-  ggplot(aes(x=side,y=vip)) +
-  geom_count() +
-  theme_bw()
-
-# Without NAs
-trainDF %>%
-  filter(!is.na(side),
-         !is.na(vip)) %>%
-  ggplot(aes(x=side,y=vip)) +
-  geom_count() +
-  theme_bw()
-
-
-## Stacked bar plot
-# With NAs
-#count data
-trainDF %>%
-  ggplot(aes(x=side,fill=transported)) +
-  geom_bar() +
-  scale_fill_manual(values=c("steelblue","coral4")) +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-  theme_bw()
-
-#proportion data
-trainDF %>%
-  ggplot(aes(x=side,fill=transported)) +
-  geom_bar(position="fill") +
-  theme_bw()
-
-# Without NAs
-#count data
-trainDF %>%
-  filter(!is.na(side),
-         !is.na(transported)) %>%
-  ggplot(aes(x=side,fill=transported)) +
-  geom_bar() +
-  theme_bw()
-
-#proportion data
-trainDF %>%
-  filter(!is.na(side),
-         !is.na(transported)) %>%
-  ggplot(aes(x=side,fill=transported)) +
-  geom_bar(position="fill") +
-  theme_bw()
-
-
-### Cat-num
-## Bar plot
-# With NAs (for Deck)
-trainDF %>% 
-  #remove NA values for spa
-  filter(!is.na(spa)) %>%
-  mutate(deck=fct_reorder(deck,spa,.fun=mean,.desc=TRUE)) %>% 
-  ggplot(aes(x=deck,y=spa)) +
-  stat_summary(geom="col",fun="mean",fill="steelblue",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,.1))) +
-  theme_bw()
-
-# Without NAs
-trainDF %>%
-  filter(!is.na(spa),
-         !is.na(deck)) %>%
-  mutate(deck=fct_reorder(deck,spa,.fun=mean,.desc=TRUE)) %>%
-  ggplot(aes(x=deck,y=spa)) +
-  stat_summary(geom="col",fun="mean",fill="steelblue",color="black") +
-  scale_y_continuous(expand=expansion(mult=c(0,.1))) +
-  theme_bw()
-
-
-## Boxplots
-# With NAs
-trainDF %>%
-  ggplot(aes(destination,shopping_mall,color=destination)) +
-  geom_boxplot() +
-  scale_y_log10() +
-  theme_bw()
-
-
-# Without NAs
-trainDF %>%
-  filter(!is.na(destination)) %>%
-  ggplot(aes(destination,shopping_mall,color=destination)) +
-  geom_boxplot() +
-  scale_y_log10() +
-  theme_bw()
-
-
-### Num-num (scatterplots)
-## room_service-vr_deck
-trainDF %>%
-  ggplot(aes(room_service,vr_deck)) +
-  geom_point(alpha=0.5) +
-  scale_x_continuous(trans="log10") +
-  scale_y_continuous(trans="pseudo_log",expand=expansion(mult=c(0,.05))) +
-  theme_bw()
-
-## shopping_mall-spa
-trainDF %>%
-  ggplot(aes(shopping_mall,spa)) +
-  geom_point(alpha=0.5) +
-  scale_x_continuous(trans="log10") +
-  scale_y_continuous(trans="pseudo_log",expand=expansion(mult=c(0,.05))) +
-  theme_bw()
-
-
-
-#### Multivariate (graphically only)----------------------------------------------------------------------------------------------
-### Cat-cat-cat
-trainDF %>%
-  ggplot(aes(x=side,fill=transported)) +
-  geom_bar() +
-  scale_fill_manual(values=c("steelblue","coral4")) +
-  scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-  facet_wrap(~side) +
-  theme_bw()
-
-
-### Num-num-cat
-trainDF %>%
-  ggplot(aes(x=room_service,y=food_court,color=side)) +
-  geom_point() +
-  scale_x_log10() +
-  scale_y_log10() +
-  theme_bw()
-
-
-### Cat-cat-num
-## Column plot
-# With NAs
-trainDF %>%
-  ggplot(aes(x=cryo_sleep,y=age,fill=transported)) +
-  stat_summary(geom="col",fun="mean",position="dodge") +
-  stat_summary(geom="errorbar",fun.data=mean_se,position=position_dodge(0.95),width=0.5) +
-  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
-  theme_bw()
-
-# Without NAs
-trainDF %>%
-  filter(!is.na(cryo_sleep),
-         !is.na(transported)) %>%
-  ggplot(aes(x=cryo_sleep,y=age,fill=transported)) +
-  stat_summary(geom="col",fun="mean",position="dodge") +
-  stat_summary(geom="errorbar",fun.data=mean_se,position=position_dodge(0.95),width=0.5) +
-  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
-  theme_bw()
-
-
-## Boxplot (without NAs)
-trainDF %>%
-  #filter(!is.na(side)) %>%
-  ggplot(aes(x=transported,y=food_court,color=side)) +
-  geom_boxplot() +
-  scale_y_log10() +
-  coord_flip() +
-  theme(legend.position="bottom") +
-  theme_bw()
-
 
 
 ##### Character string imputation==================================================================================================
@@ -323,8 +49,8 @@ trainDF %>%
   pivot_longer(cols=contains("name"),names_to="name_type",values_to="name") %>%
   group_by(name_type) %>%
   summarize(across(name,list(present=~sum(!is.na(.x)),missing=~sum(is.na(.x)),total=length)))
-  
-  
+
+
 # Graphical
 trainDF %>%
   summarize(across(contains("name"),~ifelse(!is.na(.x),"Present","Missing"))) %>%
@@ -362,7 +88,7 @@ trainDF %>%
             pass_groups=list(passenger_group)) %>%
   ungroup() -> passGroupNAnameSizes_tab
 #NA l_names--number of groups with at least one non-NA l_name and number of groups without any others
-  #or by number of non-NA l_names (0, 1, 2, etc.)
+#or by number of non-NA l_names (0, 1, 2, etc.)
 
 # Plot results
 passGroupNAnameSizes_tab %>%
@@ -506,7 +232,7 @@ vis_miss(trainDF_nI)
 trainDF_nI %>%
   missing_plot(dependent,explanatory)
 #cols with missing data: home_planet, cryo_sleep, deck, num, side, destination, age, vip, room_service, food_court, 
-  #shopping_mall, spa, vr_deck (aside from character vars...all but transported)
+#shopping_mall, spa, vr_deck (aside from character vars...all but transported)
 
 
 ### Look for patterns of missingness
@@ -523,9 +249,9 @@ confounders<-c("home_planet","vip","cryo_sleep","room_service","food_court","sho
 
 trainDF_nI %>%
   summary_factorlist(explanatory_focus,confounders,na_include=TRUE,na_include_dependent=TRUE,
-                 total_col=TRUE,add_col_totals=TRUE,p=TRUE)
+                     total_col=TRUE,add_col_totals=TRUE,p=TRUE)
 
-                     
+
 
 ### Check for associations between missing and observed data
 ## Visually
@@ -557,7 +283,7 @@ dep_deck<-"deck"
 trainDF_nI %>%
   missing_compare(dep_deck,exp_deck) %>%
   filter(p!="")
-  #cryo_sleep, room_service, and spa
+#cryo_sleep, room_service, and spa
 
 
 # Test home_planet
@@ -571,7 +297,6 @@ trainDF_nI %>%
   missing_compare(dep_home_planet,exp_home_planet) %>% 
   filter(p!="")
 #nothing significant
-
 
 #### Handling missing data--------------------------------------------------------------------------------------------------------
 ### MCAR
@@ -599,6 +324,9 @@ l_name
 ## graphically
 
 #use vis_compare()
+
+
+
 
 #### Feature engineering==========================================================================================================
 ### Name
@@ -656,6 +384,3 @@ tabyl(train$fam_size)
 
 #### Other possibilities
 ### provide user option to type in new col
-
-
-
