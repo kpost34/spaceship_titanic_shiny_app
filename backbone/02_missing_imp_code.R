@@ -4,7 +4,7 @@
 # Part 2 of x:  exploring missing data, imputing names, and imputing non-character variables
 
 #load packages
-pacman::p_load(here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,conflicted)
+pacman::p_load(conflicted,here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,naniar)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -226,19 +226,37 @@ trainDF_nI %>%
   skim()
 
 ## Graphical visualization
+# Occurences
 vis_dat(trainDF_nI)
 vis_miss(trainDF_nI)
 
 trainDF_nI %>%
-  missing_plot(dependent,explanatory)
+  missing_plot(dependent,explanatory) 
 #cols with missing data: home_planet, cryo_sleep, deck, num, side, destination, age, vip, room_service, food_court, 
 #shopping_mall, spa, vr_deck (aside from character vars...all but transported)
+
+# Per variable or row
+trainDF_nI %>%
+  #remove chr vars
+  select(all_of(c(explanatory,dependent))) %>%
+  gg_miss_var()
+
+trainDF_nI %>%
+  #remove chr vars
+  select(all_of(c(explanatory,dependent))) %>%
+  gg_miss_case()
+  
 
 
 ### Look for patterns of missingness
 trainDF_nI %>%
-  missing_pattern(dependent,explanatory) #%>% dim()
+  missing_pattern(dependent,explanatory) 
 #there are 77 patterns of missingness
+
+trainDF_nI %>%
+  #remove chr vars
+  select(all_of(c(explanatory,dependent))) %>%
+  gg_miss_upset()
 
 
 

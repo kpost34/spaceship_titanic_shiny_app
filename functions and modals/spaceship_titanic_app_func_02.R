@@ -1,7 +1,7 @@
 #Created by Keith Post on 8/5/22
 
 #Functions for spaceship titanic R shiny project: part 2 of x
-#Codes for functions that match backbone 01 script: exploring missing data and data imputation
+#Code for functions that match backbone 01 script: exploring missing data and data imputation
 
 #Load packages
 pacman::p_load(tidyverse,skimr,janitor,purrr,rstatix)

@@ -1,5 +1,5 @@
 #### Load packages
-pacman::p_load(shiny,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,conflicted)
+pacman::p_load(shiny,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -9,6 +9,7 @@ conflict_prefer("chisq.test","stats")
 #### Load functions
 source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
 source(here("functions and modals","spaceship_titanic_app_func_01.R"))
+source(here("functions and modals","spaceship_titanic_app_func_02.R"))
 
 
 #### Read in and clean data
@@ -28,6 +29,8 @@ read_csv(here("data","train.csv")) %>%
 ### Col names
 ## All cols but character
 trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nchrVars
+#excluding dep var
+trainDF_nchrVars[trainDF_nchrVars!="transported"] -> trainDF_nchrPreds
 
 ## All logical and factor cols
 trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_catVars
@@ -46,8 +49,10 @@ namMis03_impOptVec<-c("drop name columns"="drop_cols",
                       "remove with rows with missing names"="remove_rows",
                       "populate using passenger group"="imp_pass_group",
                       "populate using cabin info"="imp_cabin")
-expMis03_expVec<-c("missing values occurence plot"="miss_occur",
-                   "missing data pattern plot"="miss_patt")
+expMis03_expVec<-c("missing values occurrences"="miss_occur",
+                   "missing values per variable" = "miss_var",
+                   "missing values per observation" = "miss_obs",
+                   "missing pattern"="miss_patt")
 
 #add modal if someone tries to select this--e.g., could be useful in feature engineering
 #add modal if someone tries to select this--e.g., could be impacting rest of vars
@@ -569,15 +574,16 @@ server<-function(input,output,session){
   })
   
   
-  ## Create dynamic UI to display sliders
+  ## Dynamic UI 
+  # Display sliders
   output$ui_slid_impOpt_namMis03<-renderUI({
     req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
     switch(input$sel_impOpt_namMis03,
       imp_pass_group=sliderInput("slid1_impOpt_namMis03",
                       "Select a range of named passengers per passenger_group to use for name imputation",
                       value=c(3,3),min=1,max=7),
-      imp_cabin=sliderInput("slid2_impOpt_namMis03","Select a range of named passengers per cabin to use for name imputation",
-                  value=c(3,3),min=1,max=6)
+      imp_cabin=sliderInput("slid2_impOpt_namMis03","Select a range of named passengers per cabin to use for name 
+                            imputation",value=c(3,3),min=1,max=6)
     )
   })
   
@@ -619,28 +625,26 @@ server<-function(input,output,session){
   
   
   #### Exploring Non-Character Missingness----------------------------------------------------------------------------------------
-  ## Text outputs
+  ### Text output
   output$text_sel_exp_expMis03<-renderUI({
     switch(input$sel_exp_expMis03,
-           miss_occur=
-           miss_patt=
-             
-           miss_samp=h3(paste("Sample of Passengers with Missing Names")),
-           nmiss_samp=h3(paste("Sample of Passengers with Names")),
-           sum_tab=h3(paste("Summary of Missing Names")),
-           plot=h3(paste("Plot of Missing Names"))
+           miss_occur=h3(paste("Missing Values Occurrences Plot")),
+           miss_var=h3(paste("Missing Values per Variable Plot")),
+           miss_obs=h3(paste("Missing Values per Observation Plot")),
+           miss_patt=h3(paste("Missing Pattern Plot"))
     )
   })
   
-  
-  sidebarPanel(
-    h4("Let's visualize missingness in all non-character variables"),
-    selectInput01(id="sel_exp_expMis03",label="",choices=expMis03_expVec)
-  ),
-  mainPanel(
-    htmlOutput("text_sel_exp_expMis03"),
-    plotOutput("plot_sel_exp_expMis03")
-  
+  ### Plot output
+  output$plot_sel_exp_expMis03<-renderPlot({
+    switch(input$sel_exp_expMis03,
+           miss_occur=trainDF_nI() %>% missing_plot(depVar,trainDF_nchrPreds),
+           miss_var=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
+           miss_obs=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
+           miss_patt=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
+    )
+  })
+
   
   #Server 4: Features========================================================================================================
   
@@ -656,6 +660,7 @@ server<-function(input,output,session){
   
   
 }
+  
 
 shinyApp(ui,server)
 
@@ -669,13 +674,14 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-# re-organized the third main tab into a missing data tab and have name as the first 'subtab'
+#split backbone code into two scripts and renamed first one
 
 ## IN PROGRESS
 # working on missingness of non-chr var exploration
 
 
 #---------------------
+
 
 ## TO DO
 #spacing between tables and plots
@@ -687,6 +693,8 @@ shinyApp(ui,server)
 #convert larger server 'patterns' to functions
 #output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
 #for missing name tab--need to have the first output (plot or DT) output in the same area
+#perhaps add an option to compare before/after datasets re imputation using vis_compare()
+#swap out my missingness function (data check tab) with the one from naniar?
 
 
 #------------------------------------------------
