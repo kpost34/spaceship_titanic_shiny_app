@@ -4,7 +4,7 @@
 # Part 2 of x:  exploring missing data, imputing names, and imputing non-character variables
 
 #load packages
-pacman::p_load(conflicted,here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,naniar)
+pacman::p_load(conflicted,here,tidyverse,janitor,visdat,finalfit,skimr,GGally,rstatix,naniar,mice)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -211,22 +211,34 @@ trainDF_nI
 
 #### Missingness------------------------------------------------------------------------------------------------------------------
 ### Code variables
+#all non-chr explanatory variables
 explanatory<-trainDF_nI %>%
   select(-c(passenger_id:ticket,cabin,name:last_col())) %>%
   names()
+#dependent variable
 dependent<-"transported"
 
 
 ### Identify missing values in each variable
 ## Tabular visualization
+# Detailed missingingness data and sjmmary stats
 trainDF_nI %>%
   ff_glimpse(dependent,explanatory)
 
+# Number missing, complete cases, and summary stats
 trainDF_nI %>%
   skim()
 
+# Row number, number of missing values, and pct missing
+trainDF_nI %>%
+  miss_case_summary()
+
+# Number and pct of cases with 0-n missing values
+trainDF_nI %>%
+  miss_case_table()
+
 ## Graphical visualization
-# Occurences
+# Occurrences
 vis_dat(trainDF_nI)
 vis_miss(trainDF_nI)
 
@@ -256,28 +268,18 @@ trainDF_nI %>%
 trainDF_nI %>%
   #remove chr vars
   select(all_of(c(explanatory,dependent))) %>%
-  gg_miss_upset()
-
-
-
-### Include missing data in demographics tables
-## Redefine variables (explanatory and confounders)
-explanatory_focus<-c("destination")
-confounders<-c("home_planet","vip","cryo_sleep","room_service","food_court","shopping_mall","spa","vr_deck")
-
-trainDF_nI %>%
-  summary_factorlist(explanatory_focus,confounders,na_include=TRUE,na_include_dependent=TRUE,
-                     total_col=TRUE,add_col_totals=TRUE,p=TRUE)
-
+  #nset specifies the number of most common patterns to return
+  gg_miss_upset(nset=3)
 
 
 ### Check for associations between missing and observed data
 ## Visually
-trainDF_nI %>%
-  missing_pairs(dependent,explanatory)
+# trainDF_nI %>%
+#   missing_pairs(dependent,explanatory)
+#NOTE: takes long time to run and output is complex because of number of variables
 
 
-## Statistically
+## Statistically (test for MAR; NS=MCAR)
 # Test vr_deck
 #redefine variables (note that dependent is simply the variable being tested for missingness)
 exp_vr_deck<-c(explanatory,dependent) %>%
@@ -301,7 +303,7 @@ dep_deck<-"deck"
 trainDF_nI %>%
   missing_compare(dep_deck,exp_deck) %>%
   filter(p!="")
-#cryo_sleep, room_service, and spa
+#cryo_sleep, room_service, and spa are significant
 
 
 # Test home_planet
@@ -324,6 +326,56 @@ trainDF_nI %>%
 ### MAR
 #imputation 
 #omit the variable
+
+## Multiple imputation
+#NOTE: best to avoid using the explanatory variable interest (not really present in these data) and the response 
+  #variable when performing multiple imputation
+
+#e.g., deck missingness is conditional on cryo_sleep, room_service, and spa (from test above)
+# Choose which variables to use in imputation and to impute
+explanatory<-c("cryo_sleep","room_service","spa")
+dependent<-"deck"
+trainDF_nI %>%
+  select(all_of(explanatory),all_of(dependent)) %>%
+  missing_predictorMatrix()-> pred_deck
+    #only want to impute deck
+    #drop_from_imputed=explanatory 
+
+# Create linear models to impute missing deck values
+fits<-trainDF_nI %>%
+  select(all_of(explanatory),all_of(dependent)) %>%
+  #m=# of data sets and maxit = # of iterations; method is *per col*
+  mice(m=4,predictorMatrix=pred_deck,method=c(rep("",3),"cart"),maxit=5)
+
+#original data
+summary(trainDF_nI$deck) 
+
+#row-by-row of imputed data
+fits$imp
+fits$imp$deck 
+summary(fits$imp$deck)
+#select imputed data set that is similar to data
+
+final_train<-mice::complete(fits,5)
+
+#Note method can be specified for each column with c(); e.g., c("pmm","pmm","lda")
+
+  #with(lda(formula(ff_formula(dependent,explanatory))))
+
+# Extract metrics from fits
+fits %>%
+  getfit() %>%
+  purrr::map(AIC)
+
+fits %>% 
+  getfit() %>% 
+  purrr::map(~ pROC::roc(.x$y, .x$fitted)$auc)
+
+fits %>%
+  pool()
+
+trainDF_nI %>%
+  or_plot(dependent,explanatory,glm)
 
 
 ### Impute data

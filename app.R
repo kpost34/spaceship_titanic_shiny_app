@@ -1,5 +1,5 @@
 #### Load packages
-pacman::p_load(shiny,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar)
+pacman::p_load(shiny,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -27,6 +27,8 @@ read_csv(here("data","train.csv")) %>%
 
 #### Create vectors
 ### Col names
+## All character cols
+trainDF %>% select(where(is.character)) %>% names() -> trainDF_chrVars
 ## All cols but character
 trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nchrVars
 #excluding dep var
@@ -37,6 +39,9 @@ trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_ca
 
 ## All numeric cols
 trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
+
+## Cabin component cols
+cabinVars<-c("deck","num","side")
 
 ## Dependent variable
 depVar<-"transported"
@@ -49,10 +54,15 @@ namMis03_impOptVec<-c("drop name columns"="drop_cols",
                       "remove with rows with missing names"="remove_rows",
                       "populate using passenger group"="imp_pass_group",
                       "populate using cabin info"="imp_cabin")
-expMis03_expVec<-c("missing values occurrences"="miss_occur",
+nchrMis03_expVec<-c("missing values occurrences"="miss_occur",
                    "missing values per variable" = "miss_var",
                    "missing values per observation" = "miss_obs",
                    "missing pattern"="miss_patt")
+nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
+                    "remove variable(s) missing data"="var_del",
+                    "mean imputation (numeric vars only) = mean_imp",
+                    
+                    )
 
 #add modal if someone tries to select this--e.g., could be useful in feature engineering
 #add modal if someone tries to select this--e.g., could be impacting rest of vars
@@ -80,7 +90,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
       sidebarPanel(width=3,
         selectInput01(id="sel_quick_Chk01",label="Quick data check",choices=Chk01_quickVec),
         linebreaks(2),
-        selectInput01(id="sel_summ_Chk01",label="Data summaries",choices=Chk01_summVec)
+        selectInput01(id="sel_summ_Chk01",label="Data summaries",choices=Chk01_summVec),
       ),
       mainPanel(width=9,
         DTOutput("tab_sel_quick_Chk01"),
@@ -141,80 +151,81 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
       )
     ),
     #tab 2: exploring non-character missingness-----------------------------------------------------------------------------------
-    tabPanel(title="Explore Missingness",id="expMis03",
+    tabPanel(title="Explore Missingness",id="nchrMis03",
       titlePanel("Exploring Other Missing Data"),
       sidebarLayout(
         sidebarPanel(
-          h4("Let's visualize missingness in all non-character variables"),
-          selectInput01(id="sel_exp_expMis03",label="",choices=expMis03_expVec)
+          h4("Let's visualize missingness in all non-character variables."),
+          selectInput01(id="sel_exp_nchrMis03",label="",choices=nchrMis03_expVec),
+          br(),
+          h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
+          remaining set of variables."),
+          selectInput01(id="sel_compare_nchrMis03",label="",choices=trainDF_nchrPreds),
+          br(),
+          #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
         ),
         mainPanel(
-          htmlOutput("text_sel_exp_expMis03"),
-          plotOutput("plot_sel_exp_expMis03")
+          htmlOutput("text_sel_exp_nchrMis03"),
+          plotOutput("plot_sel_exp_nchrMis03"),
+          br(),
+          htmlOutput("text_sel_compare_nchrMis03"),
+          DTOutput("tab_sel_compare_nchrMis03")
         )
       )
     )
-  )
+  ),
+  
+  #### 4: Menu-Feature Engineering======================================================================================
+  navbarMenu(title="Feature Engineering",menuName="Fea04",
+    #tab 1: data transformations----------------------------------------------------------------------------------------
+    tabPanel(title="Transformations",id="trnsFea04",
+      titlePanel("Data Transformations"),
+      h2("In this section, you will have the opportuntiy to transform your data, either by categorical encoding, rank 
+        transformations, or scaling. Let's start with a review of your data to this point"),
+      sidebarLayout(
+        sidebarPanel(
+          #select variable and result will be class-dependent
+          selectInput01(id="sel_viz_nchrMis03",label="Please select a variable to get more information",
+                        #remove the character variables (NOTE: will need to update data object later)
+                        choices=setdiff(names(trainDF_nI),trainDF_chrVars))
+          
+          #set up as update panel framework: given this larger choice then successive uis
+          #1) normalizing/standardizing numerical variables
+          #2) categorical encoding: converting categorical variable to ordinal variables (by rank)
+          #3) binning numerical (or even character) variables into groups
+          #4) grouping sparse categories together into a separate group (e.g., other)
+          
+          #1) age, vip, room_service, food_court, shopping_mall, spa, vr_deck
+          #2) home_planet, deck, num, side, destination
+          #3) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, l_name, passenger_group, ticket
+          #4) anything in #3 (potentially) or deck (8 categories)
+        )
+      )
+    ),
+    #tab 2: feature creation--------------------------------------------------------------------------------------------
+    tabPanel(title="Feature Creation",id="creFea04",
+      titlePanel(title="Feature Creation"),
+      h2("Now you have the opportunity to create new features for your model using the existing variables. Let's look
+         at some possible options"),
+      sidebarLayout(
+        sidebarPanel(
+          #travel party size size: passenger group
+          #family size: passenger group + shared last name
+          #cabin size: # of people in cabin
+          #luxury: sum of some combination of RoomService, FoodCourt, ShoppingMall, Spa, VRDeck
+          #luxury per travel party/family/cabin size
+        )
+      )
+      
+  
+
+
+    
+
+    
+
 
   
-  #see sec 10.1.2 in Mastering Shiny to generate hierarchical select boxes
-  
-  # h4("Names may be populated"),
-  # #options for handling missing names
-  # selectInput01(id="sel_opt_namMis03",label="How would you like to handle missing names?",
-  #               choices=misName03_optVec),
-
-    
-    
-    
-    
-    
-    # tabPanel(title="Overall missingness", id="03b_miss_miss",
-    #   sidebarLayout(
-    #     sidebarPanel(
-    #       selectInput(inputId="03b_viz_miss_sel",
-    #                   label="How would you like to visualize missingness?",
-    #                   choices=c("overall"="overall",
-    #                             "missing patterns"="patt")),
-    #       selectInput(inputId="03b_stats_miss_sel",
-    #                   label="Which variable would you like to test for MAR?",
-    #                   choices="x" #SEE BOOK#)
-    #       )
-    #     ),
-    #     mainPanel(
-    #       plotOutput("03b_"),
-    #       plotOutput("03b_"),
-    #       tableOutput("03b_")
-    #     )
-    #   )
-    # ),
-    # tabPanel(title="Handle missingness",id="03c_miss_imp",
-    #   sidebarLayout(
-    #     sidebarPanel(),
-    #     mainPanel()
-    #   )
-    # )
-
-
-  # 
-  # #### 4: Menu-Features=========================================================================================================
-  # navbarMenu(title="Features",menuName="feat_04",
-  #   tabPanel(title="Feature assessment", id="feat_assess_04a",
-  #     sidebarLayout(
-  #       sidebarPanel(),
-  #       mainPanel()
-  #     )
-  #   ),
-  #   tabPanel(title="Feature engineering",id="feat_eng_04b",
-  #            sidebarLayout(
-  #              sidebarPanel(),
-  #              mainPanel()
-  #            )
-  #   )
-  # ),
-  # 
-  # 
-  # 
   # #### 5: Tab-Data Partitioning=================================================================================================
   # tabPanel(title="Data Partitioning",id="part_05",
   #   sidebarLayout(
@@ -624,10 +635,11 @@ server<-function(input,output,session){
   })
   
   
-  #### Exploring Non-Character Missingness----------------------------------------------------------------------------------------
-  ### Text output
-  output$text_sel_exp_expMis03<-renderUI({
-    switch(input$sel_exp_expMis03,
+  #### Non-Character Missingness----------------------------------------------------------------------------------------
+  ### Exploration
+  ## Text output
+  output$text_sel_exp_nchrMis03<-renderUI({
+    switch(input$sel_exp_nchrMis03,
            miss_occur=h3(paste("Missing Values Occurrences Plot")),
            miss_var=h3(paste("Missing Values per Variable Plot")),
            miss_obs=h3(paste("Missing Values per Observation Plot")),
@@ -635,9 +647,9 @@ server<-function(input,output,session){
     )
   })
   
-  ### Plot output
-  output$plot_sel_exp_expMis03<-renderPlot({
-    switch(input$sel_exp_expMis03,
+  ## Plot output
+  output$plot_sel_exp_nchrMis03<-renderPlot({
+    switch(input$sel_exp_nchrMis03,
            miss_occur=trainDF_nI() %>% missing_plot(depVar,trainDF_nchrPreds),
            miss_var=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
            miss_obs=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
@@ -646,7 +658,35 @@ server<-function(input,output,session){
   })
 
   
-  #Server 4: Features========================================================================================================
+  ### Statistical comparisons
+  ## Text output
+  output$text_sel_compare_nchrMis03<-renderUI({
+    req(input$sel_compare_nchrMis03)
+    h3(paste("Missing Data Analysis of",input$sel_compare_nchrMis03))
+  })
+  
+  
+  ## Table output
+  # Create reactive
+  dat_nchrMis03<-reactive({
+    req(input$sel_compare_nchrMis03)
+    if(input$sel_compare_nchrMis03 %in% cabinVars){
+      sel_vars<-setdiff(trainDF_nchrVars,cabinVars)
+    }
+    else{sel_vars<-setdiff(trainDF_nchrVars,input$sel_compare_nchrMis03)}
+    missing_compare(trainDF_nI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
+    )
+  })
+
+
+  # Output reactive
+  output$tab_sel_compare_nchrMis03<-renderDT(
+    dat_nchrMis03(),options=list(scrollX="400px")
+  )
+
+  
+  #### Server 4: Features===============================================================================================
+  ### 
   
   #Server 5: Data Partitioning==========================================================================================
 
@@ -660,6 +700,7 @@ server<-function(input,output,session){
   
   
 }
+
   
 
 shinyApp(ui,server)
@@ -668,16 +709,18 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## NEED TO...
-# split up backbone code into 01 and 02
 # create another function script with a server suffix (for more 'structural' functions) & create functions
 
 #--------------------
 
 ## DONE
-#split backbone code into two scripts and renamed first one
+#finished missingness plots and the missingness analysis tables
+#finished missingness of non-chr var exploration
+
 
 ## IN PROGRESS
-# working on missingness of non-chr var exploration
+# working on data imputation
+# started working on feature engineering (concurrently with missing data)
 
 
 #---------------------
@@ -695,16 +738,14 @@ shinyApp(ui,server)
 #for missing name tab--need to have the first output (plot or DT) output in the same area
 #perhaps add an option to compare before/after datasets re imputation using vis_compare()
 #swap out my missingness function (data check tab) with the one from naniar?
+#in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
+  #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
+#add modals for imputation options that are risky
+
 
 
 #------------------------------------------------
 #OUTLINE
-
-### 2. Data imputation
-## Assessed data for missingness and understand pattern of missingness
-## imputate missing data
-## Data check: data checked (e.g., ranges) to see if data make sense following imputation--consider figures here too (differentiating given)
-
 
 ### 3. Feature engineering
 ## Assess data for possible features
