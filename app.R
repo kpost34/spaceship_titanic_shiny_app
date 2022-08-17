@@ -60,12 +60,16 @@ nchrMis03_expVec<-c("missing values occurrences"="miss_occur",
                    "missing pattern"="miss_patt")
 nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
                     "remove variable(s) missing data"="var_del",
-                    "mean imputation (numeric vars only) = mean_imp",
-                    
-                    )
+                    "mean imputation (numeric vars only)" = "mean_imp")
+trnsFea04_transVec<-c("Feature Scaling",
+                      "Categorical Encoding",
+                      "Discretization",
+                      "Rare Label Encoding")
+transFea04_transOptVec<-c("leave unchanged"="raw",
+                          "log transform"="log",
+                          "min-max scale"="mm_scale",
+                          "standardize"="standize")
 
-#add modal if someone tries to select this--e.g., could be useful in feature engineering
-#add modal if someone tries to select this--e.g., could be impacting rest of vars
 
 
 #NAMING FORMULAS
@@ -179,15 +183,49 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   navbarMenu(title="Feature Engineering",menuName="Fea04",
     #tab 1: data transformations----------------------------------------------------------------------------------------
     tabPanel(title="Transformations",id="trnsFea04",
-      titlePanel("Data Transformations"),
-      h2("In this section, you will have the opportuntiy to transform your data, either by categorical encoding, rank 
-        transformations, or scaling. Let's start with a review of your data to this point"),
+      titlePanel("Feature Scaling and Extraction"),
+      h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, perform categorical
+        encoding, bin numerical (or character or factor variables) into (smaller) groups, and group rare categories
+        together. What would you like to begin with?"),
+      #fluidRow with column helps to align radio buttons
+      fluidRow(
+        column(6,align="center",offset=3,
+          radioButtons(inputId="rad_trnsFea04",label="",choices=trnsFea04_transVec,selected=character(0),
+                       inline=TRUE,width="100%")
+        )
+      ),
       sidebarLayout(
         sidebarPanel(
-          #select variable and result will be class-dependent
-          selectInput01(id="sel_viz_nchrMis03",label="Please select a variable to get more information",
-                        #remove the character variables (NOTE: will need to update data object later)
-                        choices=setdiff(names(trainDF_nI),trainDF_chrVars))
+          #create invisible panel that can be updated
+          tabsetPanel(id="sidebar_tab_trnsFea04",type="hidden",
+            tabPanelBody("Feature Scaling",
+              uiOutput("ui_sel_scale1_trnsFea04"),
+              br(),
+              uiOutput("ui_sel_scale2_trnsFea04")
+            ),
+            tabPanelBody("Categorical Encoding",
+              uiOutput("ui_sel_catEnc_trnsFea04")
+            ),
+            tabPanelBody("Discretization",
+              uiOutput("ui_sel_dis_trnsFea04")
+            ),
+            tabPanelBody("Rare Label Encoding",
+              uiOutput("ui_sel_rareEnc_trnsFea04")
+            )
+          )
+        ),
+        mainPanel(
+          #set this to dynamically produce tabs
+          tabsetPanel(id="main_tab_trnsFea04",type="hidden",
+            tabPanelBody("Feature Scaling output"),
+            tabPanelBody("Categorical Encoding output"),
+            tabPanelBody("Discretization output"),
+            tabPanelBody("Rare Label Encoding output")
+          )
+        )
+      )
+    ),
+        
           
           #set up as update panel framework: given this larger choice then successive uis
           #1) normalizing/standardizing numerical variables
@@ -197,25 +235,27 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           
           #1) age, vip, room_service, food_court, shopping_mall, spa, vr_deck
           #2) home_planet, deck, num, side, destination
-          #3) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, l_name, passenger_group, ticket
-          #4) anything in #3 (potentially) or deck (8 categories)
-        )
-      )
-    ),
+          #3) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, ticket
+          #4) to keep things simple, ticket or num
     #tab 2: feature creation--------------------------------------------------------------------------------------------
     tabPanel(title="Feature Creation",id="creFea04",
       titlePanel(title="Feature Creation"),
-      h2("Now you have the opportunity to create new features for your model using the existing variables. Let's look
+      h4("Now you have the opportunity to create new features for your model using the existing variables. Let's look
          at some possible options"),
       sidebarLayout(
         sidebarPanel(
+          
           #travel party size size: passenger group
           #family size: passenger group + shared last name
           #cabin size: # of people in cabin
           #luxury: sum of some combination of RoomService, FoodCourt, ShoppingMall, Spa, VRDeck
           #luxury per travel party/family/cabin size
-        )
+        ),
+        mainPanel()
       )
+    )
+  )
+  
       
   
 
@@ -685,8 +725,81 @@ server<-function(input,output,session){
   )
 
   
-  #### Server 4: Features===============================================================================================
-  ### 
+  ##### Server 4: Features==============================================================================================
+  #### Feature Scaling and Extraction-----------------------------------------------------------------------------------
+  ### Conditional UI for displaying sidebar tabaset panel
+  observeEvent(input$rad_trnsFea04, {
+    updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
+  })
+  
+  ### Dynamic UI to populate choices using names of reactive data frame
+  ## Character string objects for label argument
+  varViz_feat<-"Please select a variable to visualize"
+  scaleOpt_feat<-"Please select the type of scaling for all numeric variables"
+  
+  ## Normalization/standardization
+  # Input to select var to visualize
+  output$ui_sel_scale1_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04)
+    selectInput01(id="sel_scale1_trnsFea04",label=varViz_feat,
+                  #dynamically select numeric vars (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(where(is.numeric)) %>% names())
+  })
+  
+  # Input for displaying untransformed and scaled plots
+  output$ui_sel_scale2_trnsFea04<-renderUI({
+    req(input$sel_scale1_trnsFea04)
+    selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
+                  choices=transFea04_transOptVec)
+  })
+  
+  # transFea04_transOptVec<-c("leave unchanged"="raw",
+  #                           "log transform"="log",
+  #                           "min-max scale"="mm_scale",
+  #                           "standardize"="standize")
+  
+  #1) choose numerical var -> display histogram/density plot (left) and qq-plot (right) for each type (8 plots)
+  #2) choose scaling (and maybe confirm with button)
+  
+  
+  ## Categorical Encoding
+  output$ui_sel_catEnc_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04)
+    selectInput01(id="sel_catEnc_trnsFea04",label=varViz_feat,
+                  #dynamically select factors (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(where(is.factor)) %>% names())
+  })
+  
+  ## Discretization
+  output$ui_sel_dis_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04)
+    selectInput01(id="sel_dis_trnsFea04",label=varViz_feat,
+                  #dynamically select numerical variables, num, and ticket (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(where(is.numeric),num,ticket) %>% names())
+  })
+  
+  ## Rare Label Encoding
+  output$ui_sel_rareEnc_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04)
+    selectInput01(id="sel_rareEnc_trnsFea04",label=varViz_feat,
+                  #dynamically ticket and num (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(ticket,passenger_group) %>% names())
+  })
+
+  
+  
+  # Generate initial plots
+  # output$plot_sel_norm_trnsFea04<-plotOutput({
+  # 
+  # })
+  
+  
+  #### Feature Creation-------------------------------------------------------------------------------------------------
+
+  
+  
+
+    
   
   #Server 5: Data Partitioning==========================================================================================
 
@@ -714,13 +827,14 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-#finished missingness plots and the missingness analysis tables
-#finished missingness of non-chr var exploration
+# developed code and functions for feature scaling of numerical vars
+
+# LAST PUSHED COMMENT(S)
+
 
 
 ## IN PROGRESS
-# working on data imputation
-# started working on feature engineering (concurrently with missing data)
+# fleshing out data transformations/feature extraction conditional UI
 
 
 #---------------------
@@ -741,6 +855,8 @@ shinyApp(ui,server)
 #in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
   #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
 #add modals for imputation options that are risky
+#make selectizeInput functions more flexible (and change edaTabBuilder)
+#conditionally display subset of main tabs based on where user is
 
 
 
