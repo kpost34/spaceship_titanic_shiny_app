@@ -22,7 +22,7 @@ read_csv(here("data","train.csv")) %>%
   ### name
   separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
   ### reclassify vars
-  mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
+  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
 
 
 ##### Character string imputation==================================================================================================

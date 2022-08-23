@@ -11,7 +11,7 @@ conflict_prefer("filter","dplyr")
 conflict_prefer("chisq.test","stats")
 
 
-#### Read in data & initially clean data==========================================================================================
+#### Read in data & initially clean data================================================================================
 #exit: trainDF
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
@@ -22,7 +22,7 @@ read_csv(here("data","train.csv")) %>%
   ### name
   separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
   ### reclassify vars
-  mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
+  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
 
 
 #### Data transformation and feature extraction=========================================================================
@@ -84,9 +84,79 @@ p8<-trainDF %>%
   geom_qq_line() +
   theme_bw()
   
+plot_list<-list(p1,p2,p3,p4,p5,p6,p7,p8)
 
-plot_grid(p1,p2,p3,p4,p5,p6,p7,p8,nrow=4)
-          
+plot_grid(plotlist=plot_list,nrow=4)
+
+
+### Discretization
+## Exploratory Plots
+
+
+
+### Categorical Encoding (home_planet, deck, side, destination, ticket)
+## Exploratory Plots
+trainDF %>%
+  #use barplotting function from eda
+  barplotter("home_planet")
+
+trainDF %>%
+  barplotter("deck")
+
+trainDF %>%
+  barplotter("side")
+
+trainDF %>%
+  barplotter("destination")
+
+trainDF %>% 
+  barplotter("ticket")
+  
+  
+
+
+### Rare Label Encoding       
+## Exploratory Plots
+# Barplots of counts
+#deck-raw
+trainDF %>%
+  mutate(deck=fct_infreq(deck)) %>%
+  barplotter(c("deck","transported"))
+
+#deck-combine A & T
+trainDF %>%
+  mutate(deck=fct_collapse(deck,other=c("A","T")),
+         deck=fct_infreq(deck)) %>%
+  barplotter(c("deck","transported"))
+
+#deck-combine D, A, & T
+trainDF %>%
+  mutate(deck=fct_collapse(deck,other=c("A","D","T")),
+         deck=fct_infreq(deck)) %>%
+  barplotter(c("deck","transported"))
+
+
+# Table of counts and percentages
+#deck-raw
+trainDF %>%
+  tabylize(c("deck","transported")) %>%
+  setNames(c("deck","stayed","transported")) %>%
+  rowwise() %>%
+  mutate(total=sum(stayed,transported),
+    across(c(stayed,transported),~(.x/total)*100,.names="{.col} (%)")) %>%
+  rename_with(.cols=c(stayed,transported),.fn=~paste(.x,"(n)")) %>%
+  arrange(desc(total))
+#make this a separate function or a modification to tabylize
+  
+
+
+
+
+
+
+
+
+
 
 
 

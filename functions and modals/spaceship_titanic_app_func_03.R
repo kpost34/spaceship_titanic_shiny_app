@@ -38,15 +38,21 @@ standardizer<-function(x){
 
 
 # Plotting the full grid
-cowplotter<-function(dat,var,label_vec=""){
+cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled","standardized")){
+  #convert var
+  var<-sym(var)
+  
   #create new cols and subset data
   dat %>%
-    mutate(log=log({{var}}),
-          mm=min_max_scaler({{var}}),
-          stdize=standardizer({{var}}),.keep="used") -> dat_new
+    mutate(log=log(!!var),
+          mm=min_max_scaler(!!var),
+          stdize=standardizer(!!var),.keep="used") -> dat_new
   
   #create chr vec of col names
   cols<-names(dat_new)
+  
+  #create empty list
+  list_plot<-vector(mode="list",length=8)
   
   #set up for loop
   for(i in 0:3){
@@ -54,12 +60,41 @@ cowplotter<-function(dat,var,label_vec=""){
     dens_plotter(dat_new,!!sym(cols[i+1]),label_vec[i+1]) -> plot_x
     qq_plotter(dat_new,!!sym(cols[i+1])) -> plot_y
     
-    #assign temp objects names with "p" prefix
-    assign(paste0("p",2*i+1),plot_x)
-    assign(paste0("p",2*i+2),plot_y)
+    #store plots into list_plot
+    list_plot[2*i+1]<-list(plot_x)
+    list_plot[2*i+2]<-list(plot_y)
   }
-  #use plot_grid to display all 8 plots
-  plot_grid(p1,p2,p3,p4,p5,p6,p7,p8,nrow=4)
+  #plot list of plots
+  plot_grid(plotlist=list_plot,nrow=4)
+}
+
+### Discretization
+
+
+### Categorical Encoding
+
+
+
+
+
+### Rare Label Encoding
+rare_enc_barplotter<-function(dat,var,cats){
+  #convert quoted input to symbol
+  var<-sym(var)
+  
+  dat %>%
+    #combine categories into a single 'other' category
+    mutate(var1=fct_collapse(!!var,other=cats),
+           #order by frequency
+           var1=fct_infreq(var1)) %>%
+    ggplot() +
+    geom_bar(aes(x=var1,fill=transported),color="black") +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    scale_fill_viridis_d() +
+    xlab(paste(var)) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13))
 }
       
    

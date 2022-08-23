@@ -10,6 +10,7 @@ conflict_prefer("chisq.test","stats")
 source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
 source(here("functions and modals","spaceship_titanic_app_func_01.R"))
 source(here("functions and modals","spaceship_titanic_app_func_02.R"))
+source(here("functions and modals","spaceship_titanic_app_func_03.R"))
 
 
 #### Read in and clean data
@@ -22,7 +23,7 @@ read_csv(here("data","train.csv")) %>%
   ### name
   separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
   ### reclassify vars
-  mutate(across(c(home_planet,deck:destination),~as.factor(.x))) -> trainDF
+  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
 
 
 #### Create vectors
@@ -62,8 +63,8 @@ nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
                     "remove variable(s) missing data"="var_del",
                     "mean imputation (numeric vars only)" = "mean_imp")
 trnsFea04_transVec<-c("Feature Scaling",
-                      "Categorical Encoding",
                       "Discretization",
+                      "Ordinal Encoding",
                       "Rare Label Encoding")
 transFea04_transOptVec<-c("leave unchanged"="raw",
                           "log transform"="log",
@@ -184,8 +185,8 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
     #tab 1: data transformations----------------------------------------------------------------------------------------
     tabPanel(title="Transformations",id="trnsFea04",
       titlePanel("Feature Scaling and Extraction"),
-      h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, perform categorical
-        encoding, bin numerical (or character or factor variables) into (smaller) groups, and group rare categories
+      h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, bin numerical (or 
+        character or factor variables) into (smaller) groups,perform ordinal encoding, and group rare categories
         together. What would you like to begin with?"),
       #fluidRow with column helps to align radio buttons
       fluidRow(
@@ -203,24 +204,33 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
               br(),
               uiOutput("ui_sel_scale2_trnsFea04")
             ),
-            tabPanelBody("Categorical Encoding",
-              uiOutput("ui_sel_catEnc_trnsFea04")
-            ),
             tabPanelBody("Discretization",
               uiOutput("ui_sel_dis_trnsFea04")
             ),
+            tabPanelBody("Ordinal Encoding",
+              uiOutput("ui_sel_ordEnc_trnsFea04")
+            ),
             tabPanelBody("Rare Label Encoding",
-              uiOutput("ui_sel_rareEnc_trnsFea04")
+              uiOutput("ui_sel_rareEnc1_trnsFea04"),
+              uiOutput("ui_sel_rareEnc2_trnsFea04")
             )
           )
         ),
         mainPanel(
           #set this to dynamically produce tabs
           tabsetPanel(id="main_tab_trnsFea04",type="hidden",
-            tabPanelBody("Feature Scaling output"),
-            tabPanelBody("Categorical Encoding output"),
-            tabPanelBody("Discretization output"),
-            tabPanelBody("Rare Label Encoding output")
+            tabPanelBody("Feature Scaling",
+              plotOutput("plot_sel_scale1_trnsFea04",height="1000px")
+            ),
+            tabPanelBody("Discretization"),
+            tabPanelBody("Ordinal Encoding",
+              uiOutput("text_sel_ordEnc_trnsFea04"),
+              br(),
+              plotOutput("plot_sel_ordEnc_trnsFea04")
+            ),
+            tabPanelBody("Rare Label Encoding",
+              plotOutput("plot_sel_rareEnc1_trnsFea04")
+            )
           )
         )
       )
@@ -229,14 +239,21 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           
           #set up as update panel framework: given this larger choice then successive uis
           #1) normalizing/standardizing numerical variables
-          #2) categorical encoding: converting categorical variable to ordinal variables (by rank)
-          #3) binning numerical (or even character) variables into groups
+          #2) binning numerical (or even character) variables into groups 
+          #3) ordinal encoding: converting categorical variable to ordinal variables (by rank)
           #4) grouping sparse categories together into a separate group (e.g., other)
           
           #1) age, vip, room_service, food_court, shopping_mall, spa, vr_deck
-          #2) home_planet, deck, num, side, destination
-          #3) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, ticket
-          #4) to keep things simple, ticket or num
+          #2) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, ticket
+          #3) home_planet, deck, side, destination
+          #4) to keep things simple: deck or ticket
+    
+    
+    #when to choose which method
+    #1) normalizing data will not handle outliers well, but standardization is robust to outliers
+    #2) normalization good when data are non-normal, while standardization good when data follow normal dist
+    
+    
     #tab 2: feature creation--------------------------------------------------------------------------------------------
     tabPanel(title="Feature Creation",id="creFea04",
       titlePanel(title="Feature Creation"),
@@ -258,11 +275,6 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   
       
   
-
-
-    
-
-    
 
 
   
@@ -732,13 +744,18 @@ server<-function(input,output,session){
     updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
   
+  ### Conditional UI for displaying main tabset panel
+  observeEvent(input$rad_trnsFea04, {
+    updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
+  })
+  
   ### Dynamic UI to populate choices using names of reactive data frame
   ## Character string objects for label argument
   varViz_feat<-"Please select a variable to visualize"
   scaleOpt_feat<-"Please select the type of scaling for all numeric variables"
   
   ## Normalization/standardization
-  # Input to select var to visualize
+  # Input to select var to visualize, either unscaled or scaled
   output$ui_sel_scale1_trnsFea04<-renderUI({
     req(input$rad_trnsFea04)
     selectInput01(id="sel_scale1_trnsFea04",label=varViz_feat,
@@ -746,52 +763,100 @@ server<-function(input,output,session){
                   choices=trainDF_nI() %>% select(where(is.numeric)) %>% names())
   })
   
-  # Input for displaying untransformed and scaled plots
-  output$ui_sel_scale2_trnsFea04<-renderUI({
-    req(input$sel_scale1_trnsFea04)
-    selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
-                  choices=transFea04_transOptVec)
-  })
+  # Input for choosing how to scale plots
+  # output$ui_sel_scale2_trnsFea04<-renderUI({
+  #   req(input$sel_scale1_trnsFea04)
+  #   selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
+  #                 choices=transFea04_transOptVec)
+  # })
   
-  # transFea04_transOptVec<-c("leave unchanged"="raw",
-  #                           "log transform"="log",
-  #                           "min-max scale"="mm_scale",
-  #                           "standardize"="standize")
-  
-  #1) choose numerical var -> display histogram/density plot (left) and qq-plot (right) for each type (8 plots)
-  #2) choose scaling (and maybe confirm with button)
-  
-  
-  ## Categorical Encoding
-  output$ui_sel_catEnc_trnsFea04<-renderUI({
-    req(input$rad_trnsFea04)
-    selectInput01(id="sel_catEnc_trnsFea04",label=varViz_feat,
-                  #dynamically select factors (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(where(is.factor)) %>% names())
-  })
   
   ## Discretization
   output$ui_sel_dis_trnsFea04<-renderUI({
-    req(input$rad_trnsFea04)
+    #req(input$rad_trnsFea04)
     selectInput01(id="sel_dis_trnsFea04",label=varViz_feat,
                   #dynamically select numerical variables, num, and ticket (NOTE: will need to update data object later)
                   choices=trainDF_nI() %>% select(where(is.numeric),num,ticket) %>% names())
   })
   
+  
+  ## Ordinal Encoding
+  output$ui_sel_ordEnc_trnsFea04<-renderUI({
+    #req(input$rad_trnsFea04)
+    selectInput01(id="sel_ordEnc_trnsFea04",label=varViz_feat,
+                  #dynamically select factors (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(where(is.factor),-num) %>% names())
+  })
+  
   ## Rare Label Encoding
-  output$ui_sel_rareEnc_trnsFea04<-renderUI({
-    req(input$rad_trnsFea04)
-    selectInput01(id="sel_rareEnc_trnsFea04",label=varViz_feat,
-                  #dynamically ticket and num (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(ticket,passenger_group) %>% names())
+  # Input to select var to visualize as a barplot
+  output$ui_sel_rareEnc1_trnsFea04<-renderUI({
+    #req(input$rad_trnsFea04)
+    selectInput01(id="sel_rareEnc1_trnsFea04",label=varViz_feat,
+                  #dynamically ticket and deck (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(ticket,deck) %>% names())
+  })
+  
+  # Input to select vars to combine as a category and visualize in a new barplot (NAs are off limits)
+  output$ui_sel_rareEnc2_trnsFea04<-renderUI({
+    req(input$sel_rareEnc1_trnsFea04)
+    selectizeInput(inputId="sel_rareEnc2_trnsFea04",label="",multiple=TRUE,
+                   choices=c("Choose at least two"="",
+                             trainDF_nI() %>% 
+                               pull(input$sel_rareEnc1_trnsFea04) %>% 
+                               unique() %>%
+                               sort()))
   })
 
   
+  ### Conditional output for feature extraction
+  ## Normalization/standardization
+  # Display set of plots
+  output$plot_sel_scale1_trnsFea04<-renderPlot({
+    req(input$sel_scale1_trnsFea04)
+    cowplotter(trainDF_nI(),input$sel_scale1_trnsFea04)
+  })
+
+  ## Discretization
   
-  # Generate initial plots
-  # output$plot_sel_norm_trnsFea04<-plotOutput({
-  # 
-  # })
+  
+  
+  ## Ordinal Encoding
+  # Display text
+  output$text_sel_ordEnc_trnsFea04<-renderUI({
+    req(input$sel_ordEnc_trnsFea04)
+    paste("Insert text here")
+  })
+  
+  # Display plot
+  output$plot_sel_ordEnc_trnsFea04<-renderPlot({
+    req(input$sel_ordEnc_trnsFea04)
+    barplotter(trainDF_nI(),input$sel_ordEnc_trnsFea04)
+  })
+  
+  
+  
+  
+  ## Rare Label Encoding
+  # Display plots
+  #raw
+  output$plot_sel_rareEnc1_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc1_trnsFea04)
+    barplotter(trainDF_nI(),c(input$sel_rareEnc1_trnsFea04,"transported"))
+  })
+  
+  #combined categories
+  output$plot_sel_rareEnc2_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc2_trnsFea04)
+    rare_enc_barplotter(trainDF_nI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
+  })
+  
+  
+  
+  
+  
+  
+
   
   
   #### Feature Creation-------------------------------------------------------------------------------------------------
@@ -823,18 +888,20 @@ shinyApp(ui,server)
 #------------------------------------------------
 ## NEED TO...
 # create another function script with a server suffix (for more 'structural' functions) & create functions
+# add ggtitles to rare label encoding
 
 #--------------------
 
 ## DONE
-# developed code and functions for feature scaling of numerical vars
+# added ticket to factors
 
 # LAST PUSHED COMMENT(S)
-
+# developed code and functions for feature scaling of numerical vars
 
 
 ## IN PROGRESS
 # fleshing out data transformations/feature extraction conditional UI
+# creating initial plots for categorical and rare label encodings
 
 
 #---------------------
@@ -857,19 +924,15 @@ shinyApp(ui,server)
 #add modals for imputation options that are risky
 #make selectizeInput functions more flexible (and change edaTabBuilder)
 #conditionally display subset of main tabs based on where user is
+#feature scaling plots--axis labels and plot types (e.g., density, qq)
+#update barplotter() so that it sorts categories from most to least frequent (at least for univariate case)
+#in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
+  #type of hyperlink or colored text where you hover over to get a more thorough defintion
 
 
 
 #------------------------------------------------
 #OUTLINE
-
-### 3. Feature engineering
-## Assess data for possible features
-## Feature engineering: extracting "data" from cols to generate variables (e.g., extracting alpha prefixes from ticket #s)
-## (Feature selection: vars of interest selected for epa)
-## Another option to re-order cols
-
-### 4. Data normalization/standardization
 
 ### 5. Data Paritioning: Divide training data into four subsamples for v-fold cross-validation
 
