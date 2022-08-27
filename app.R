@@ -229,7 +229,9 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
               plotOutput("plot_sel_ordEnc_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
-              plotOutput("plot_sel_rareEnc1_trnsFea04")
+              plotOutput("plot_sel_rareEnc1_trnsFea04"),
+              br(),
+              plotOutput("plot_sel_rareEnc2_trnsFea04")
             )
           )
         )
@@ -794,7 +796,7 @@ server<-function(input,output,session){
     #req(input$rad_trnsFea04)
     selectInput01(id="sel_rareEnc1_trnsFea04",label=varViz_feat,
                   #dynamically ticket and deck (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(ticket,deck) %>% names())
+                  choices=trainDF_nI() %>% select(deck,ticket) %>% names())
   })
   
   # Input to select vars to combine as a category and visualize in a new barplot (NAs are off limits)
@@ -805,7 +807,8 @@ server<-function(input,output,session){
                              trainDF_nI() %>% 
                                pull(input$sel_rareEnc1_trnsFea04) %>% 
                                unique() %>%
-                               sort()))
+                               sort() %>%
+                               as.character()))
   })
 
   
@@ -842,12 +845,12 @@ server<-function(input,output,session){
   #raw
   output$plot_sel_rareEnc1_trnsFea04<-renderPlot({
     req(input$sel_rareEnc1_trnsFea04)
-    barplotter(trainDF_nI(),c(input$sel_rareEnc1_trnsFea04,"transported"))
+    rare_enc_barplotter(trainDF_nI(),input$sel_rareEnc1_trnsFea04)
   })
   
   #combined categories
   output$plot_sel_rareEnc2_trnsFea04<-renderPlot({
-    req(input$sel_rareEnc2_trnsFea04)
+    req(length(input$sel_rareEnc2_trnsFea04)>1)
     rare_enc_barplotter(trainDF_nI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
   })
   
@@ -889,19 +892,22 @@ shinyApp(ui,server)
 ## NEED TO...
 # create another function script with a server suffix (for more 'structural' functions) & create functions
 # add ggtitles to rare label encoding
+# sort output of barplots in descending order of counts
 
 #--------------------
 
 ## DONE
-# added ticket to factors
+# updated function rare_enc_barplotter so it can handle with or without combining rare labels
+# updated UI and plots for rare label encoding
+
 
 # LAST PUSHED COMMENT(S)
-# developed code and functions for feature scaling of numerical vars
+# Classified variable ticket as a factor, began fleshing out data transformation conditional UI, and 
+  #started creating plots for categorical and rare label encodings.
 
 
 ## IN PROGRESS
-# fleshing out data transformations/feature extraction conditional UI
-# creating initial plots for categorical and rare label encodings
+
 
 
 #---------------------

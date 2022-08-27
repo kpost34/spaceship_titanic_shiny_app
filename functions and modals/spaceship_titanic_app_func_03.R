@@ -82,19 +82,28 @@ rare_enc_barplotter<-function(dat,var,cats){
   #convert quoted input to symbol
   var<-sym(var)
   
-  dat %>%
-    #combine categories into a single 'other' category
-    mutate(var1=fct_collapse(!!var,other=cats),
-           #order by frequency
-           var1=fct_infreq(var1)) %>%
+  if(!missing(cats)) { 
+    dat %>%
+      #combine categories into a single 'other' category (if it has values)
+      mutate(var1=fct_collapse(!!var,other=cats),
+        #order by frequency
+        var1=fct_infreq(var1)) -> dat1
+  }
+  else if(missing(cats)) {
+    dat %>%
+      #order by frequency
+      mutate(var1=fct_infreq(!!var)) -> dat1
+  }
+  
+  dat1 %>%
     ggplot() +
-    geom_bar(aes(x=var1,fill=transported),color="black") +
-    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    scale_fill_viridis_d() +
-    xlab(paste(var)) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13))
+      geom_bar(aes(x=var1,fill=transported),color="black") +
+      scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+      scale_fill_viridis_d() +
+      xlab(paste(var)) +
+      theme_bw() +
+      theme(axis.text=element_text(size=12),
+            axis.title=element_text(size=13))
 }
       
    
