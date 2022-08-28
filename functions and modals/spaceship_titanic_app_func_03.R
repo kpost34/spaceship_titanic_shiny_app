@@ -69,6 +69,35 @@ cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled
 }
 
 ### Discretization
+histogramer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
+  dat %>%
+    #convert any categorical vars to numeric
+    mutate(var=as.numeric(!!sym(col))) -> dat
+  
+  if(x.log.scale==TRUE){
+    dat %>%
+      #convert to log scale
+      mutate(var=if_else(var==0,.001,var,NA_real_)) -> dat
+  }
+
+  dat %>%
+    ggplot(aes(var)) +
+    geom_histogram(aes(fill=transported),bins=n.bins,color="black") +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    scale_fill_viridis_d() +
+    xlab(col) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13)) -> p
+  
+  if(x.log.scale==TRUE){
+    p + 
+      scale_x_log10() +
+      theme(plot.caption=element_text(hjust=0)) +
+      labs(caption="0s converted to 0.001 for log10 scale") -> p
+  }
+  p
+}
 
 
 ### Categorical Encoding

@@ -891,19 +891,23 @@ shinyApp(ui,server)
 #------------------------------------------------
 ## NEED TO...
 # create another function script with a server suffix (for more 'structural' functions) & create functions
-# add ggtitles to rare label encoding
-# sort output of barplots in descending order of counts
+# add ggtitles to rare label encoding(?)
+
+#update ui for discretization--allow user to choose n.bins and x.log.scale
+#implement histogramer2 code and output exploratory plot
+#create new function based on backbone code to display binned num var
+#consider whether user can manually create groups or let ggplot do it
 
 #--------------------
 
 ## DONE
-# updated function rare_enc_barplotter so it can handle with or without combining rare labels
-# updated UI and plots for rare label encoding
+# updated barplotter() so that it displays in decreasing frequency
+# created histogramer2() function to help with discretization
 
 
 # LAST PUSHED COMMENT(S)
-# Classified variable ticket as a factor, began fleshing out data transformation conditional UI, and 
-  #started creating plots for categorical and rare label encodings.
+# updated function rare_enc_barplotter so it can handle with or without combining rare labels
+# updated UI and plots for rare label encoding
 
 
 ## IN PROGRESS
@@ -934,6 +938,7 @@ shinyApp(ui,server)
 #update barplotter() so that it sorts categories from most to least frequent (at least for univariate case)
 #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
   #type of hyperlink or colored text where you hover over to get a more thorough defintion
+#make the feature extraction-discretization plot interactive so a user can pull values for breaks
 
 
 

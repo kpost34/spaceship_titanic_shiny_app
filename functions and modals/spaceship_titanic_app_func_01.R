@@ -152,8 +152,10 @@ barplotter<-function(dat,vec,na.rm=FALSE){
   dat %>%
     #conditional filter on na.rm arg
     {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+    #order first cat var by frequency
+    mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq()) %>%
     ggplot() +
-    geom_bar(aes_string(x=vec[1],fill=ifelse(n %in% 2:3,vec[2],vec[1])),
+    geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
              color="black") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     theme_bw() +

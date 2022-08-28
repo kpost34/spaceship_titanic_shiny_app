@@ -91,6 +91,42 @@ plot_grid(plotlist=plot_list,nrow=4)
 
 ### Discretization
 ## Exploratory Plots
+# Raw data with fill=transported; user could choose num of bins and log scale
+trainDF %>%
+  mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
+  ggplot(aes(room_service)) +
+  geom_histogram(aes(fill=transported),bins=40,color="black") +
+  #geom_histogram(bins=40,color="black") +
+  scale_x_log10() +
+  #scale_y_log10() +
+  scale_fill_viridis_d() +
+  theme_bw() 
+
+trainDF %>%
+  #filter(transported==TRUE) %>%
+  mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
+  ggplot(aes(room_service)) +
+  geom_histogram(aes(fill=transported),bins=40,color="black",position="dodge") +
+  scale_x_log10() +
+  #scale_y_log10() +
+  scale_fill_viridis_d() +
+  theme_bw() 
+
+
+# ggplot binning num var + filling by transported status
+trainDF %>%
+  mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
+  ggplot(aes(room_service)) +
+  scale_x_binned(n.breaks=3,nice.breaks=FALSE) +
+  scale_y_log10()+
+  geom_bar() +
+  geom_bar(aes(fill=transported)) +
+  scale_fill_viridis_d()-> p
+
+
+
+cut(trainDF$room_service,breaks=c(0,0.9,47,max(trainDF$room_service,na.rm=TRUE)))
+
 
 
 
