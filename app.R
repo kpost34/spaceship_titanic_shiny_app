@@ -205,7 +205,19 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
               uiOutput("ui_sel_scale2_trnsFea04")
             ),
             tabPanelBody("Discretization",
-              uiOutput("ui_sel_dis_trnsFea04")
+              uiOutput("ui_sel_dis1_trnsFea04"),
+              radioButtons(inputId="rad_dis1_trnsFea04",
+                           label="Choose whether to log10-scale the x-axis",
+                           choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE),
+              numericInput(inputId="num_dis1_trnsFea04",
+                           label="Select the number of bins for the histogram (2-100)",
+                           value=30,min=2,max=100),
+              br(),
+              actionButton(inputId="but_dis2_transFea04",label="Visualize binned data?"),
+              uiOutput("ui_rad_dis2a_trnsFea04"),
+              uiOutput("ui_num_dis2a_trnsFea04"),
+              uiOutput("ui_rad_dis2b_trnsFea04"),
+              uiOutput("ui_num_dis2b_trnsFea04")
             ),
             tabPanelBody("Ordinal Encoding",
               uiOutput("ui_sel_ordEnc_trnsFea04")
@@ -222,7 +234,10 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             tabPanelBody("Feature Scaling",
               plotOutput("plot_sel_scale1_trnsFea04",height="1000px")
             ),
-            tabPanelBody("Discretization"),
+            tabPanelBody("Discretization",
+              plotOutput("plot_sel_dis1_trnsFea04"),
+              plotOutput("plot_sel_dis2_trnsFea04")
+            ),
             tabPanelBody("Ordinal Encoding",
               uiOutput("text_sel_ordEnc_trnsFea04"),
               br(),
@@ -246,7 +261,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           #4) grouping sparse categories together into a separate group (e.g., other)
           
           #1) age, vip, room_service, food_court, shopping_mall, spa, vr_deck
-          #2) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num, ticket
+          #2) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num
           #3) home_planet, deck, side, destination
           #4) to keep things simple: deck or ticket
     
@@ -428,7 +443,7 @@ server<-function(input,output,session){
   ## Plot outputs
   output$plot_sel_var1_uniEDA02<-renderPlot({
     if(input$sel_var1_uniEDA02 %in% trainDF_numVars){
-      histogramer(trainDF,input$sel_var1_uniEDA02)
+      histogrammer(trainDF,input$sel_var1_uniEDA02)
     }
     else if(input$sel_var1_uniEDA02 %in% trainDF_catVars){
       barplotter(trainDF,input$sel_var1_uniEDA02)
@@ -437,7 +452,7 @@ server<-function(input,output,session){
 
   output$plot_sel_var2_uniEDA02<-renderPlot({
     if(input$sel_var2_uniEDA02 %in% trainDF_numVars){
-      histogramer(trainDF,input$sel_var2_uniEDA02)
+      histogrammer(trainDF,input$sel_var2_uniEDA02)
     }
     else if(input$sel_var2_uniEDA02 %in% trainDF_catVars){
       barplotter(trainDF,input$sel_var2_uniEDA02)
@@ -688,6 +703,7 @@ server<-function(input,output,session){
     head(trainDF_nI()) 
   })
   
+
   
   #### Non-Character Missingness----------------------------------------------------------------------------------------
   ### Exploration
@@ -746,10 +762,12 @@ server<-function(input,output,session){
     updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
   
+  
   ### Conditional UI for displaying main tabset panel
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
+  
   
   ### Dynamic UI to populate choices using names of reactive data frame
   ## Character string objects for label argument
@@ -765,23 +783,57 @@ server<-function(input,output,session){
                   choices=trainDF_nI() %>% select(where(is.numeric)) %>% names())
   })
   
-  # Input for choosing how to scale plots
-  # output$ui_sel_scale2_trnsFea04<-renderUI({
-  #   req(input$sel_scale1_trnsFea04)
-  #   selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
-  #                 choices=transFea04_transOptVec)
-  # })
-  
   
   ## Discretization
-  output$ui_sel_dis_trnsFea04<-renderUI({
+  # Input to select var to visualize as histogram
+  output$ui_sel_dis1_trnsFea04<-renderUI({
     #req(input$rad_trnsFea04)
-    selectInput01(id="sel_dis_trnsFea04",label=varViz_feat,
-                  #dynamically select numerical variables, num, and ticket (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(where(is.numeric),num,ticket) %>% names())
+    selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
+                  #dynamically select numerical variables and num (NOTE: will need to update data object later)
+                  choices=trainDF_nI() %>% select(where(is.numeric),num) %>% names())
+  })
+
+  # Create multiple UIs if action button is pressed
+  observeEvent(input$but_dis2_transFea04, {
+    #input to visualize binned plot
+    # output$ui_sel_dis2_trnsFea04<-renderUI({
+    #   selectInput01(id="sel_dis2_trnsFea04",label=varViz_feat,
+    #                 #dynamically select numerical variables and num (NOTE: will need to update data object later)
+    #                 choices=trainDF_nI() %>% select(where(is.numeric),num) %>% names())
+    # })
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_trnsFea04<-renderUI({
+      radioButtons(inputId="rad_dis2a_trnsFea04",
+                   label="Choose whether to log10-scale the y-axis",
+                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_trnsFea04<-renderUI({
+      numericInput(inputId="num_dis2a_trnsFea04",
+                   label="Select the number of breaks to create data bins (1-5)",
+                   value=2,min=1,max=5)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_trnsFea04<-renderUI({
+      radioButtons(inputId="rad_dis2b_trnsFea04",
+                   label="Choose who selects the bin boundaries",
+                   choices=c("R","me"),selected=character(0),inline=TRUE)
+    })
   })
   
-  
+  # Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
+  output$ui_num_dis2b_trnsFea04<-renderUI({
+    req(input$rad_dis2b_trnsFea04=="me")
+    tags<-tagList()
+    for(i in seq_len(input$num_dis2a_trnsFea04)){
+      tags[[i]]<-numericInput(paste0("n",i),
+                              paste("Break",i),
+                              min=0,value=NULL)
+    }
+    tags
+  })
+    
+    
   ## Ordinal Encoding
   output$ui_sel_ordEnc_trnsFea04<-renderUI({
     #req(input$rad_trnsFea04)
@@ -789,6 +841,7 @@ server<-function(input,output,session){
                   #dynamically select factors (NOTE: will need to update data object later)
                   choices=trainDF_nI() %>% select(where(is.factor),-num) %>% names())
   })
+  
   
   ## Rare Label Encoding
   # Input to select var to visualize as a barplot
@@ -820,8 +873,38 @@ server<-function(input,output,session){
     cowplotter(trainDF_nI(),input$sel_scale1_trnsFea04)
   })
 
-  ## Discretization
   
+  ## Discretization
+  # Plot raw data with fill=transported as histogram
+  output$plot_sel_dis1_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    histogrammer2(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,
+                 n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04)
+  })
+  
+  # Plot numerical var in bins filled by transported
+  # output$plot_sel_dis2_trnsFea04<-renderPlot({
+  #   req(input$rad_dis2b_trnsFea04=="R")
+  #   bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+  #               y.log.scale=input$rad_dis2a_trnsFea04)
+  # })
+  
+  # Plot numerical var in bins filled by transported either using R or user specified break values
+  #create reactive vector of cut locations
+  cuts<-reactive({
+    c(input$n1,input$n2,input$n3,input$n4,input$n5)
+  })
+  
+  #use switch to choose which type of output
+  output$plot_sel_dis2_trnsFea04<-renderPlot({
+    req(input$rad_dis2b_trnsFea04)
+    switch(input$rad_dis2b_trnsFea04,
+           R=bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+                         y.log.scale=input$rad_dis2a_trnsFea04),
+           me=user_bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,break.vals=cuts(), 
+                               y.log.scale=input$rad_dis2a_trnsFea04)
+    )
+  })
   
   
   ## Ordinal Encoding
@@ -853,11 +936,6 @@ server<-function(input,output,session){
     req(length(input$sel_rareEnc2_trnsFea04)>1)
     rare_enc_barplotter(trainDF_nI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
   })
-  
-  
-  
-  
-  
   
 
   
@@ -894,20 +972,23 @@ shinyApp(ui,server)
 # add ggtitles to rare label encoding(?)
 
 #update ui for discretization--allow user to choose n.bins and x.log.scale
-#implement histogramer2 code and output exploratory plot
+#implement histogrammer2 code and output exploratory plot
 #create new function based on backbone code to display binned num var
 #consider whether user can manually create groups or let ggplot do it
 
 #--------------------
 
 ## DONE
-# updated barplotter() so that it displays in decreasing frequency
-# created histogramer2() function to help with discretization
+# added UI & server code for initial plot of discretization
+# developed bin_plotter() for creating plots of binned numerical plots
+# fleshed out UI for discretization section
+# backbone code for manually cutting numeric variable
+# created user_bin_plotter() and implemented it in app function
 
 
 # LAST PUSHED COMMENT(S)
-# updated function rare_enc_barplotter so it can handle with or without combining rare labels
-# updated UI and plots for rare label encoding
+# updated barplotter() so that it displays in decreasing frequency
+# created histogrammer2() function to help with discretization
 
 
 ## IN PROGRESS

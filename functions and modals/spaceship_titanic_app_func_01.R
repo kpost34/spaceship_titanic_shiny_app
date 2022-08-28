@@ -113,7 +113,7 @@ summaryize<-function(dat,vec,group=NA){
 ### Figures
 ## Function to create histogram of numeric variable
 #for use with col name in quotes
-histogramer<-function(dat,col){
+histogrammer<-function(dat,col){
   dat %>%
     ggplot() +
     geom_histogram(aes_string(col),fill="darkred",color="black") +

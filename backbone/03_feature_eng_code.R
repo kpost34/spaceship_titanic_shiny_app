@@ -102,32 +102,34 @@ trainDF %>%
   scale_fill_viridis_d() +
   theme_bw() 
 
+# ggplot binning num var + filling by transported status
 trainDF %>%
-  #filter(transported==TRUE) %>%
-  mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
+  #mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
   ggplot(aes(room_service)) +
-  geom_histogram(aes(fill=transported),bins=40,color="black",position="dodge") +
-  scale_x_log10() +
-  #scale_y_log10() +
+  scale_x_binned(n.breaks=3,nice.breaks=FALSE) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  #scale_y_log10(expand=expansion(mult=c(0,0.05))) +
+  geom_bar(aes(fill=transported)) +
   scale_fill_viridis_d() +
   theme_bw() 
 
+# Specify bin boundaries (i.e., break locations) and plot as binned plot
+cuts<-c(1,10,100)
 
-# ggplot binning num var + filling by transported status
+
 trainDF %>%
-  mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
-  ggplot(aes(room_service)) +
-  scale_x_binned(n.breaks=3,nice.breaks=FALSE) +
-  scale_y_log10()+
-  geom_bar() +
+  #cutting numerical variable by min, selected value, and max, and including lowest value
+  mutate(room_service_cut=cut(room_service,
+                              breaks=c(min(room_service,na.rm=TRUE),cuts,max(room_service,na.rm=TRUE)),
+                              include.lowest=TRUE)) %>% 
+  #plot with binned num var
+  ggplot(aes(room_service_cut)) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  #scale_y_log10(expand=expansion(mult=c(0,0.05))) +
   geom_bar(aes(fill=transported)) +
-  scale_fill_viridis_d()-> p
-
-
-
-cut(trainDF$room_service,breaks=c(0,0.9,47,max(trainDF$room_service,na.rm=TRUE)))
-
-
+  scale_fill_viridis_d() +
+  theme_bw() 
+  
 
 
 ### Categorical Encoding (home_planet, deck, side, destination, ticket)

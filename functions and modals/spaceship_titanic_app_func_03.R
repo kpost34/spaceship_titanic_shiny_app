@@ -69,7 +69,8 @@ cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled
 }
 
 ### Discretization
-histogramer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
+## Function to make histograms of a numerical var filled by transported with options to adjust bins & use log x scale
+histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
     mutate(var=as.numeric(!!sym(col))) -> dat
@@ -82,6 +83,7 @@ histogramer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
 
   dat %>%
     ggplot(aes(var)) +
+    #create histogram filled by transported status; specify bin number
     geom_histogram(aes(fill=transported),bins=n.bins,color="black") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     scale_fill_viridis_d() +
@@ -92,6 +94,7 @@ histogramer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   
   if(x.log.scale==TRUE){
     p + 
+      #use log10 scale for x-axis if arg=TRUE
       scale_x_log10() +
       theme(plot.caption=element_text(hjust=0)) +
       labs(caption="0s converted to 0.001 for log10 scale") -> p
@@ -99,14 +102,60 @@ histogramer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   p
 }
 
+## Function to bin numerical var filled by transported with options to adjust break # & use log y scale
+bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
+  dat %>%
+    #convert any categorical vars to numeric
+    mutate(var=as.numeric(!!sym(col))) %>%
+    ggplot(aes(var)) +
+    geom_bar(aes(fill=transported)) +         
+    scale_x_binned(n.breaks=num.breaks,nice.breaks=FALSE) +
+    scale_fill_viridis_d() +
+    xlab(col) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13)) -> p1
+  
+  if(y.log.scale==FALSE){
+    p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
+  }
+
+  else if(y.log.scale==TRUE){
+    p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
+  }
+}
+
 
 ### Categorical Encoding
-
+user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
+  dat %>%
+    #convert any categorical vars to numeric
+    mutate(var=as.numeric(!!sym(col)),
+    #cut variable using breaks
+      var=cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
+              include.lowest=TRUE)) %>%
+    ggplot(aes(var)) +
+    geom_bar(aes(fill=transported)) +         
+    scale_fill_viridis_d() +
+    xlab(col) +
+    theme_bw() +
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=13)) -> p1
+  
+  if(y.log.scale==FALSE){
+    p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
+  }
+  
+  else if(y.log.scale==TRUE){
+    p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
+  }
+}
 
 
 
 
 ### Rare Label Encoding
+## Function to make barplots of counts filled by transported and to combine different factor levels
 rare_enc_barplotter<-function(dat,var,cats){
   #convert quoted input to symbol
   var<-sym(var)
