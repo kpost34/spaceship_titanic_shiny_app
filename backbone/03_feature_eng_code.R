@@ -26,7 +26,7 @@ read_csv(here("data","train.csv")) %>%
 
 
 #### Data transformation and feature extraction=========================================================================
-### Data transformation
+### Data transformation (feature scaling)
 ## Exploratory plots
 p1<-trainDF %>% 
   ggplot(aes(x=age)) +
@@ -89,6 +89,10 @@ plot_list<-list(p1,p2,p3,p4,p5,p6,p7,p8)
 plot_grid(plotlist=plot_list,nrow=4)
 
 
+## Scale/transform data following selection
+
+
+
 ### Discretization
 ## Exploratory Plots
 # Raw data with fill=transported; user could choose num of bins and log scale
@@ -102,6 +106,8 @@ trainDF %>%
   scale_fill_viridis_d() +
   theme_bw() 
 
+
+## Binned data plots
 # ggplot binning num var + filling by transported status
 trainDF %>%
   #mutate(room_service=if_else(room_service==0,.001,room_service,NA_real_)) %>%
@@ -113,7 +119,9 @@ trainDF %>%
   scale_fill_viridis_d() +
   theme_bw() 
 
-# Specify bin boundaries (i.e., break locations) and plot as binned plot
+
+# Manually binning boundaries and plotting 
+#specify bin boundaries (i.e., break locations) and plot as binned plot
 cuts<-c(1,10,100)
 
 

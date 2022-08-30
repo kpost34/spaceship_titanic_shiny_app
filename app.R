@@ -1,5 +1,5 @@
 #### Load packages
-pacman::p_load(shiny,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot)
+pacman::p_load(shiny,shinyjs,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -66,10 +66,16 @@ trnsFea04_transVec<-c("Feature Scaling",
                       "Discretization",
                       "Ordinal Encoding",
                       "Rare Label Encoding")
-transFea04_transOptVec<-c("leave unchanged"="raw",
+trnsFea04_transOptVec<-c("leave unchanged"="raw",
                           "log transform"="log",
                           "min-max scale"="mm_scale",
                           "standardize"="standize")
+creFea04_grpSizeVec<-c("travel party size (same passenger group)"="traevl_party",
+                       "family size (passenger group & last name)"="family",
+                       "cabin size (cabin)"="cabin")
+creFea04_luxVec<-c("room_service","food_court","shopping_mall","spa","vr_deck")
+                       
+
 
 
 
@@ -151,7 +157,8 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           br(),
           htmlOutput("text_rad_grpVar_namMis03"),
           plotOutput("plot_rad_grpVar_namMis03"),
-          tableOutput("test_table")
+          tableOutput("test_table"),
+          tableOutput("test_table2")
         )
       )
     ),
@@ -202,7 +209,8 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             tabPanelBody("Feature Scaling",
               uiOutput("ui_sel_scale1_trnsFea04"),
               br(),
-              uiOutput("ui_sel_scale2_trnsFea04")
+              uiOutput("ui_sel_scale2_trnsFea04"),
+              uiOutput("ui_btn_scale_trnsFea04")
             ),
             tabPanelBody("Discretization",
               uiOutput("ui_sel_dis1_trnsFea04"),
@@ -213,7 +221,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
                            label="Select the number of bins for the histogram (2-100)",
                            value=30,min=2,max=100),
               br(),
-              actionButton(inputId="but_dis2_transFea04",label="Visualize binned data?"),
+              actionButton(inputId="btn_dis2_trnsFea04",label="Visualize binned data?"),
               uiOutput("ui_rad_dis2a_trnsFea04"),
               uiOutput("ui_num_dis2a_trnsFea04"),
               uiOutput("ui_rad_dis2b_trnsFea04"),
@@ -232,7 +240,8 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           #set this to dynamically produce tabs
           tabsetPanel(id="main_tab_trnsFea04",type="hidden",
             tabPanelBody("Feature Scaling",
-              plotOutput("plot_sel_scale1_trnsFea04",height="1000px")
+              plotOutput("plot_sel_scale1_trnsFea04",height="1000px"),
+              tableOutput("DT1")
             ),
             tabPanelBody("Discretization",
               plotOutput("plot_sel_dis1_trnsFea04"),
@@ -278,12 +287,12 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
          at some possible options"),
       sidebarLayout(
         sidebarPanel(
-          
-          #travel party size size: passenger group
-          #family size: passenger group + shared last name
-          #cabin size: # of people in cabin
-          #luxury: sum of some combination of RoomService, FoodCourt, ShoppingMall, Spa, VRDeck
-          #luxury per travel party/family/cabin size
+          #select input for group size
+          selectInput01(id="sel_exp1_creFea04",label="Create a group size variable that uses...",
+                        choices=creFea04_grpSizeVec),
+          #select input for luxury expenses
+          selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses two or more of",
+                         multiple=TRUE,choices=c("Choose at least two"="",creFea04_luxVec))
         ),
         mainPanel()
       )
@@ -703,6 +712,18 @@ server<-function(input,output,session){
     head(trainDF_nI()) 
   })
   
+  
+  ## Temporary code--to update name of DF
+  trainDF_nvI<-reactive({
+    trainDF_nI()
+  })
+  
+  ## Test whether code directly above is working
+  output$test_table2<-renderTable({
+    head(trainDF_nvI()) 
+  })
+  
+  
 
   
   #### Non-Character Missingness----------------------------------------------------------------------------------------
@@ -720,10 +741,10 @@ server<-function(input,output,session){
   ## Plot output
   output$plot_sel_exp_nchrMis03<-renderPlot({
     switch(input$sel_exp_nchrMis03,
-           miss_occur=trainDF_nI() %>% missing_plot(depVar,trainDF_nchrPreds),
-           miss_var=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
-           miss_obs=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
-           miss_patt=trainDF_nI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
+           miss_occur=trainDF_nvI() %>% missing_plot(depVar,trainDF_nchrPreds),
+           miss_var=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
+           miss_obs=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
+           miss_patt=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
     )
   })
 
@@ -744,7 +765,7 @@ server<-function(input,output,session){
       sel_vars<-setdiff(trainDF_nchrVars,cabinVars)
     }
     else{sel_vars<-setdiff(trainDF_nchrVars,input$sel_compare_nchrMis03)}
-    missing_compare(trainDF_nI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
+    missing_compare(trainDF_nvI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
     )
   })
 
@@ -757,7 +778,7 @@ server<-function(input,output,session){
   
   ##### Server 4: Features==============================================================================================
   #### Feature Scaling and Extraction-----------------------------------------------------------------------------------
-  ### Conditional UI for displaying sidebar tabaset panel
+  ### Conditional UI for displaying sidebar tabset panel
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
@@ -772,7 +793,7 @@ server<-function(input,output,session){
   ### Dynamic UI to populate choices using names of reactive data frame
   ## Character string objects for label argument
   varViz_feat<-"Please select a variable to visualize"
-  scaleOpt_feat<-"Please select the type of scaling for all numeric variables"
+  scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
   
   ## Normalization/standardization
   # Input to select var to visualize, either unscaled or scaled
@@ -780,27 +801,61 @@ server<-function(input,output,session){
     req(input$rad_trnsFea04)
     selectInput01(id="sel_scale1_trnsFea04",label=varViz_feat,
                   #dynamically select numeric vars (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(where(is.numeric)) %>% names())
+                  choices=trainDF_nvI() %>% select(where(is.numeric)) %>% names())
   })
   
   
+  # Input to select how to transform/scale selected variables
+  output$ui_sel_scale2_trnsFea04<-renderUI({
+    req(input$sel_scale1_trnsFea04)
+    selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
+                  choices=trnsFea04_transOptVec)
+  })
+  
+  # Button to confirm selection
+  output$ui_btn_scale_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04,input$sel_scale1_trnsFea04,input$sel_scale2_trnsFea04)
+    actionButton(inputId="btn_scale_trnsFea04",label="Confirm your selection") 
+  })
+  
+  # Button to confirm scaling selections and create new columns/variables
+  trainDF_nvI_s<-eventReactive(input$btn_scale_trnsFea04, {
+    switch(input$sel_scale2_trnsFea04,
+           #raw = unchanged
+           raw=trainDF_nvI(),
+           #log = log-transform + identifier
+           log=trainDF_nvI() %>% 
+             mutate(across(where(is.numeric),~log(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")),
+           #mm_scale = min-max scale + identifier
+           mm_scale=trainDF_nvI() %>%
+             mutate(across(where(is.numeric),~min_max_scaler(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")), 
+           #standize = standardized + identifier
+           standize=trainDF_nvI() %>%
+             mutate(across(where(is.numeric),~standardizer(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")) 
+    )
+  })
+  
+  #Temporary table--proof that above code is working
+  output$DT1<-renderTable({
+    head(trainDF_nvI_s())
+  })
+  
+  
+
   ## Discretization
   # Input to select var to visualize as histogram
   output$ui_sel_dis1_trnsFea04<-renderUI({
     #req(input$rad_trnsFea04)
     selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
                   #dynamically select numerical variables and num (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(where(is.numeric),num) %>% names())
+                  choices=trainDF_nvI() %>% select(where(is.numeric),num) %>% names())
   })
 
   # Create multiple UIs if action button is pressed
-  observeEvent(input$but_dis2_transFea04, {
-    #input to visualize binned plot
-    # output$ui_sel_dis2_trnsFea04<-renderUI({
-    #   selectInput01(id="sel_dis2_trnsFea04",label=varViz_feat,
-    #                 #dynamically select numerical variables and num (NOTE: will need to update data object later)
-    #                 choices=trainDF_nI() %>% select(where(is.numeric),num) %>% names())
-    # })
+  observeEvent(input$btn_dis2_trnsFea04, {
     #input to select a log10-transformed y-axis
     output$ui_rad_dis2a_trnsFea04<-renderUI({
       radioButtons(inputId="rad_dis2a_trnsFea04",
@@ -833,13 +888,12 @@ server<-function(input,output,session){
     tags
   })
     
-    
   ## Ordinal Encoding
   output$ui_sel_ordEnc_trnsFea04<-renderUI({
     #req(input$rad_trnsFea04)
     selectInput01(id="sel_ordEnc_trnsFea04",label=varViz_feat,
                   #dynamically select factors (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(where(is.factor),-num) %>% names())
+                  choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
   })
   
   
@@ -849,7 +903,7 @@ server<-function(input,output,session){
     #req(input$rad_trnsFea04)
     selectInput01(id="sel_rareEnc1_trnsFea04",label=varViz_feat,
                   #dynamically ticket and deck (NOTE: will need to update data object later)
-                  choices=trainDF_nI() %>% select(deck,ticket) %>% names())
+                  choices=trainDF_nvI() %>% select(deck,ticket) %>% names())
   })
   
   # Input to select vars to combine as a category and visualize in a new barplot (NAs are off limits)
@@ -857,7 +911,7 @@ server<-function(input,output,session){
     req(input$sel_rareEnc1_trnsFea04)
     selectizeInput(inputId="sel_rareEnc2_trnsFea04",label="",multiple=TRUE,
                    choices=c("Choose at least two"="",
-                             trainDF_nI() %>% 
+                             trainDF_nvI() %>% 
                                pull(input$sel_rareEnc1_trnsFea04) %>% 
                                unique() %>%
                                sort() %>%
@@ -870,7 +924,7 @@ server<-function(input,output,session){
   # Display set of plots
   output$plot_sel_scale1_trnsFea04<-renderPlot({
     req(input$sel_scale1_trnsFea04)
-    cowplotter(trainDF_nI(),input$sel_scale1_trnsFea04)
+    cowplotter(trainDF_nvI(),input$sel_scale1_trnsFea04)
   })
 
   
@@ -878,16 +932,9 @@ server<-function(input,output,session){
   # Plot raw data with fill=transported as histogram
   output$plot_sel_dis1_trnsFea04<-renderPlot({
     req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
-    histogrammer2(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
                  n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04)
   })
-  
-  # Plot numerical var in bins filled by transported
-  # output$plot_sel_dis2_trnsFea04<-renderPlot({
-  #   req(input$rad_dis2b_trnsFea04=="R")
-  #   bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
-  #               y.log.scale=input$rad_dis2a_trnsFea04)
-  # })
   
   # Plot numerical var in bins filled by transported either using R or user specified break values
   #create reactive vector of cut locations
@@ -899,9 +946,9 @@ server<-function(input,output,session){
   output$plot_sel_dis2_trnsFea04<-renderPlot({
     req(input$rad_dis2b_trnsFea04)
     switch(input$rad_dis2b_trnsFea04,
-           R=bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+           R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
                          y.log.scale=input$rad_dis2a_trnsFea04),
-           me=user_bin_plotter(dat=trainDF_nI(),col=input$sel_dis1_trnsFea04,break.vals=cuts(), 
+           me=user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=cuts(), 
                                y.log.scale=input$rad_dis2a_trnsFea04)
     )
   })
@@ -917,7 +964,7 @@ server<-function(input,output,session){
   # Display plot
   output$plot_sel_ordEnc_trnsFea04<-renderPlot({
     req(input$sel_ordEnc_trnsFea04)
-    barplotter(trainDF_nI(),input$sel_ordEnc_trnsFea04)
+    barplotter(trainDF_nvI(),input$sel_ordEnc_trnsFea04)
   })
   
   
@@ -928,13 +975,13 @@ server<-function(input,output,session){
   #raw
   output$plot_sel_rareEnc1_trnsFea04<-renderPlot({
     req(input$sel_rareEnc1_trnsFea04)
-    rare_enc_barplotter(trainDF_nI(),input$sel_rareEnc1_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc1_trnsFea04)
   })
   
   #combined categories
   output$plot_sel_rareEnc2_trnsFea04<-renderPlot({
     req(length(input$sel_rareEnc2_trnsFea04)>1)
-    rare_enc_barplotter(trainDF_nI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
   })
   
 
@@ -944,7 +991,7 @@ server<-function(input,output,session){
 
   
   
-
+  #### Feature Selection------------------------------------------------------------------------------------------------
     
   
   #Server 5: Data Partitioning==========================================================================================
@@ -971,14 +1018,18 @@ shinyApp(ui,server)
 # create another function script with a server suffix (for more 'structural' functions) & create functions
 # add ggtitles to rare label encoding(?)
 
-#update ui for discretization--allow user to choose n.bins and x.log.scale
-#implement histogrammer2 code and output exploratory plot
-#create new function based on backbone code to display binned num var
-#consider whether user can manually create groups or let ggplot do it
 
 #--------------------
 
 ## DONE
+# created button to confirm feature scaling
+# updated server code for feature scaling and outputted temp table to confirm it works
+# updated reactive data frame name for feature engineering section
+# began creating UI for feature creation tab
+
+
+
+# LAST PUSHED COMMENT(S)
 # added UI & server code for initial plot of discretization
 # developed bin_plotter() for creating plots of binned numerical plots
 # fleshed out UI for discretization section
@@ -986,13 +1037,8 @@ shinyApp(ui,server)
 # created user_bin_plotter() and implemented it in app function
 
 
-# LAST PUSHED COMMENT(S)
-# updated barplotter() so that it displays in decreasing frequency
-# created histogrammer2() function to help with discretization
-
-
 ## IN PROGRESS
-
+# about to start backbone code (then function code) for scaling features (then need to figure out how to build reactive df)
 
 
 #---------------------
@@ -1020,13 +1066,15 @@ shinyApp(ui,server)
 #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
   #type of hyperlink or colored text where you hover over to get a more thorough defintion
 #make the feature extraction-discretization plot interactive so a user can pull values for breaks
+#a notebook?
+#update annotations and add annotations
 
 
 
 #------------------------------------------------
 #OUTLINE
 
-### 5. Data Paritioning: Divide training data into four subsamples for v-fold cross-validation
+### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
 
 
 ### 6. Modeling
