@@ -7,7 +7,7 @@
 pacman::p_load(tidyverse,cowplot)
 
 #### Data transformation and feature extraction=========================================================================
-### Data transformation
+### Feature Scaling
 ## Function to build cowplot of density and qqplots for various transforms
 # Individual ggplot functions
 dens_plotter<-function(dat,var,label=""){
@@ -184,7 +184,38 @@ rare_enc_barplotter<-function(dat,var,cats){
             axis.title=element_text(size=13))
 }
       
-   
+
+#### Feature Creation==================================================================================
+### Plotting functions for luxury expense variable
+## Function to mutate input variables to create luxury expense variable
+lux_builder<-function(dat,vars){
+  vars<-syms(vars)
+  
+  dat %>%
+    rowwise() %>%
+    mutate(luxury=sum(!!!vars)) %>%
+    ungroup()
+}
+
+## Function to make heat map
+heatmapper<-function(dat,vars){
+  
+dat %>%
+    select(all_of(vars)) %>%
+    ggcorr(label=TRUE,digits=3)
+}
+
+
+## Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
+boxplotter2<-function(dat){
+  dat %>%
+    ggplot() +
+    geom_boxplot(aes(x=transported,y=luxury,color=transported)) +
+    scale_y_log10() +
+    scale_color_viridis_d(end=0.8,guide=NULL) +
+    ylab("$") +
+    theme_bw()
+}
   
   
   

@@ -204,58 +204,68 @@ trainDF %>%
 
 ## Calculate feature
 trainDF %>%
-  group_by(passenger_group) %>%
-  mutate(ticket_group_n=n(),
-    ticket_group_n=as.factor(ticket_group_n)) -> ticket_grp_sum
+  group_by(!!sym("passenger_group")) %>%
+  mutate(ticket_group_size=n(),
+    ticket_group_size=as.factor(ticket_group_size)) -> ticket_grp_sum
 
 
 ## Plots
 # Group size only
 ticket_grp_sum %>%
-  barplotter("ticket_group_n")
+  barplotter("ticket_group_size")
 
 # Group size + transported status
 ticket_grp_sum %>%
-  barplotter(c("ticket_group_n","transported"))
+  barplotter(c("ticket_group_size","transported"))
 
   
 
 ### Luxury Expenses
 ## Exploratory plots
-#heat map
+# Heat map
 trainDF %>%
   select(room_service:vr_deck) %>%
+  ggcorr(label=TRUE,digits=3) 
+
+trainDF %>%
+  select(room_service,food_court) %>%
   ggcorr(label=TRUE,digits=3)
 
-#scatter plots
-trainDF %>%
-  select(room_service:vr_deck) %>%
-  ggpairs()
-#note: takes a while to plot
-
+#all scatterplots
 trainDF %>%
   select(room_service:vr_deck) %>%
   pairs()
 #note: takes a while to plot
 
+# Scatterplot of one pair
 trainDF %>%
   ggplot(aes(room_service,food_court)) +
   geom_point() +
+  facet_wrap(~transported) +
   geom_smooth(method="lm") +
   scale_x_log10() +
-  scale_y_log10()
+  scale_y_log10() +
+  theme_bw()
 
-
-## Statistics
+# Boxplots
+#one var
 trainDF %>%
-  select(room_service:vr_deck) %>%
-  filter(across(everything(),~!is.na(.x))) %>%
-  cor() %>%
-  signif(3)
+  ggplot() +
+  geom_boxplot(aes(x=transported,y=room_service)) +
+  scale_y_log10() +
+  theme_bw()
 
-## Calculate feature
+#summing two vars
 trainDF %>%
-  mutate(lux_exp=sum(room_service,food_court,na.rm=TRUE))
+  rowwise() %>%
+  mutate(luxury=sum(room_service,food_court,na.rm=TRUE)) %>% 
+  ungroup() %>%
+  ggplot() +
+  geom_boxplot(aes(x=transported,y=luxury)) +
+  scale_y_log10() +
+  theme_bw()
+
+
 
 
 

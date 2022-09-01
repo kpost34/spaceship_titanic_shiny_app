@@ -233,6 +233,7 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
   if(n==2) {
  p + theme(legend.position="none") +
      scale_color_manual(values=rep("darkblue",n_distinct(dat[vec[2]])))
+      #scale_color_viridis_d(end=.8,na.value="grey50")
   }
   else if(n==3) {
     p + theme(legend.position="bottom") +

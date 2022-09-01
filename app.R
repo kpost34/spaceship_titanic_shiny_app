@@ -1,5 +1,6 @@
 #### Load packages
-pacman::p_load(shiny,shinyjs,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot)
+pacman::p_load(shiny,shinyjs,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot,
+               GGally)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -70,10 +71,12 @@ trnsFea04_transOptVec<-c("leave unchanged"="raw",
                           "log transform"="log",
                           "min-max scale"="mm_scale",
                           "standardize"="standize")
-creFea04_grpSizeVec<-c("ticket group size (same passenger group)"="ticket_group",
-                       "family size (passenger group & last name)"="family",
-                       "travel party size (cabin)"="travel_party")
-creFea04_luxVec<-c("room_service","food_court","shopping_mall","spa","vr_deck")
+creFea04_grpSizeVec<-c("do not create a group size variable"="none",
+                       "ticket group size (same passenger group)"="ticket_group_size",
+                       "family size (passenger group & last name)"="family_size",
+                       "travel party size (cabin)"="travel_party_size")
+creFea04_luxVec<-c("do not create a luxury expense variable"="none", 
+                   "room_service","food_court","shopping_mall","spa","vr_deck")
                        
 
 
@@ -292,9 +295,18 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
                         choices=creFea04_grpSizeVec),
           #select input for luxury expenses
           selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses the sum of",
-                         multiple=TRUE,choices=c("Choose at least two"="",creFea04_luxVec))
+                         multiple=TRUE,choices=c("Choose at least two variables"="",creFea04_luxVec)),
+          br(),
+          actionButton(inputId="btn_exp2_creFea04",label="Visualize results"),
+          uiOutput("ui_btn_cfirm_creFea04"),
         ),
-        mainPanel()
+        mainPanel(
+          plotOutput("plot_sel_exp1a_creFea04"),
+          plotOutput("plot_sel_exp1b_creFea04"),
+          plotOutput("plot_sel_exp2a_creFea04"),
+          plotOutput("plot_sel_exp2b_creFea04"),
+          tableOutput("plot_temp_table_creFea04")
+        )
       )
     ),
   
@@ -1010,6 +1022,85 @@ server<-function(input,output,session){
   
   
   #### Feature Creation-------------------------------------------------------------------------------------------------
+  ### Plot outputs
+  ## Group size variable
+  # Create a reactive data frame based on input
+  dat1_creFea04<-reactive({
+    req(input$sel_exp1_creFea04)
+    switch(input$sel_exp1_creFea04,
+           ticket_group_size=trainDF_nvI() %>%
+            group_by(passenger_group) %>%
+            mutate(ticket_group_size=n(),
+                  ticket_group_size=as.factor(ticket_group_size)) %>%
+             ungroup(),
+           family_size=trainDF_nvI() %>%
+             group_by(passenger_group,l_name) %>%
+             mutate(family_size=n(),
+                    family_size=as.factor(family_size)) %>%
+             ungroup(),
+           travel_party_size=trainDF_nvI() %>%
+             group_by(cabin) %>% 
+             mutate(travel_party_size=n(),
+                    travel_party_size=as.factor(travel_party_size)) %>%
+             ungroup()
+      )
+  })
+  
+  ## Make bar plots using new df
+  output$plot_sel_exp1a_creFea04<-renderPlot({
+    #require that user does not select "none" to get plots
+    req(input$sel_exp1_creFea04 %in% creFea04_grpSizeVec[creFea04_grpSizeVec!="none"])
+    dat1_creFea04() %>%
+      barplotter(input$sel_exp1_creFea04)
+  })
+
+  output$plot_sel_exp1b_creFea04<-renderPlot({
+    #require that user does not select "none" to get plots
+    req(input$sel_exp1_creFea04 %in% creFea04_grpSizeVec[creFea04_grpSizeVec!="none"])
+    dat1_creFea04() %>%
+      barplotter(c(input$sel_exp1_creFea04,"transported"))
+  })
+  
+  
+  ## Luxury expense variable
+  # Create reactive df for plotting and feature creation
+  dat2_creFea04<-reactive({
+    req(input$sel_exp2_creFea04 %in% creFea04_luxVec[creFea04_luxVec!="none"])
+    lux_builder(trainDF_nvI(),input$sel_exp2_creFea04)
+  })
+  
+  
+  # Display plots after action button depressed
+  observeEvent(input$btn_exp2_creFea04, {
+    output$plot_sel_exp2a_creFea04<-renderPlot({
+      heatmapper(dat2_creFea04(),input$sel_exp2_creFea04) 
+    })
+    output$plot_sel_exp2b_creFea04<-renderPlot({
+      boxplotter2(dat2_creFea04())
+    })
+  })
+  
+  
+  ### Feature creation
+  ## Display action button to confirm selections dynamically
+  output$ui_btn_cfirm_creFea04<-renderUI({
+    req(input$sel_exp1_creFea04)
+    req(input$sel_exp2_creFea04=="none"|length(input$sel_exp2_creFea04)>=2)
+    actionButton(inputId="btn_cfirm_creFea04","Confirm feature creation selections")
+  })
+  
+  ## Create features
+  trainDF_nvI_esF<-eventReactive(input$btn_cfirm_creFea04,{
+    dat1_creFea04() %>%
+      select(passenger_id,ends_with("size")) %>%
+      left_join(dat2_creFea04() %>%
+                  select(passenger_id,luxury),by="passenger_id")
+  }
+  )
+  
+  output$plot_temp_table_creFea04<-renderTable({
+    head(trainDF_nvI_esF())
+  })
 
   
   
@@ -1044,7 +1135,9 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-# created skeleton for feature selection tab
+# completed ui and server code (rough version) for feature creation
+# developed new functions heatmapper(), lux_builder(), and boxplotter2() for feature creation
+
 
 
 
@@ -1087,6 +1180,11 @@ shinyApp(ui,server)
 #make the feature extraction-discretization plot interactive so a user can pull values for breaks
 #a notebook?
 #update annotations and add annotations
+#user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
+  #variable
+#fix group size plots not in descending order of frequency
+#consider making grojup size variable switch code a function
+#consider using different layout for feature creation tab--a top-down perspective
 
 
 
