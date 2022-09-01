@@ -70,9 +70,9 @@ trnsFea04_transOptVec<-c("leave unchanged"="raw",
                           "log transform"="log",
                           "min-max scale"="mm_scale",
                           "standardize"="standize")
-creFea04_grpSizeVec<-c("travel party size (same passenger group)"="traevl_party",
+creFea04_grpSizeVec<-c("ticket group size (same passenger group)"="ticket_group",
                        "family size (passenger group & last name)"="family",
-                       "cabin size (cabin)"="cabin")
+                       "travel party size (cabin)"="travel_party")
 creFea04_luxVec<-c("room_service","food_court","shopping_mall","spa","vr_deck")
                        
 
@@ -291,8 +291,29 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           selectInput01(id="sel_exp1_creFea04",label="Create a group size variable that uses...",
                         choices=creFea04_grpSizeVec),
           #select input for luxury expenses
-          selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses two or more of",
+          selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses the sum of",
                          multiple=TRUE,choices=c("Choose at least two"="",creFea04_luxVec))
+        ),
+        mainPanel()
+      )
+    ),
+  
+  
+    #tab 3: feature selection---------------------------------------------------------------------------------------------
+    tabPanel(title="Feature Selection",id="selFea04",
+      titlePanel(title="Feature Selection"),
+      h4("After transforming your data, extracting potential variables, and creating potential variables, you have
+        the opportunity to select a final set of variables for modeling. Look at the variables once more before
+        making your final"),
+      sidebarLayout(
+        sidebarPanel(
+         #CONSIDER A FUNCTION HERE??
+         # #select input for all variables--choose one predictor which will output plots
+         # selectInput01(id="sel_exp1_selFea04",label="Create a group size variable that uses...",
+         #               choices=""),
+         # #select input for final set of variables
+         # selectizeInput(inputId="sel_exp2_selFea04",label="Create a luxury expense variable that uses the sum of",
+         #                multiple=TRUE,choices=c("Choose at least two"="",creFea04_luxVec))
         ),
         mainPanel()
       )
@@ -366,6 +387,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
   # tabPanel(title="Testing",id="mod_test_08",
   #   sidebarLayout(
   #     sidebarPanel(),
+  # downloadUI - give user opportunity to download data to submit to Kaggle
   #     mainPanel()
   #   )
   # )
@@ -1022,23 +1044,20 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
+# created skeleton for feature selection tab
+
+
+
+# LAST PUSHED COMMENT(S)
 # created button to confirm feature scaling
 # updated server code for feature scaling and outputted temp table to confirm it works
 # updated reactive data frame name for feature engineering section
 # began creating UI for feature creation tab
 
 
-
-# LAST PUSHED COMMENT(S)
-# added UI & server code for initial plot of discretization
-# developed bin_plotter() for creating plots of binned numerical plots
-# fleshed out UI for discretization section
-# backbone code for manually cutting numeric variable
-# created user_bin_plotter() and implemented it in app function
-
-
 ## IN PROGRESS
-# about to start backbone code (then function code) for scaling features (then need to figure out how to build reactive df)
+# feature creation code (skipped ahead)--backbone code + functions for two feature creation possibilities
+# specifically working on backbone code (and adapting previous functions) to create server code
 
 
 #---------------------

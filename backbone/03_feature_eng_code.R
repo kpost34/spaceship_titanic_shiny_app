@@ -4,7 +4,7 @@
 # Part 3 of x:  feature engineering
 
 #load packages
-pacman::p_load(conflicted,here,tidyverse,janitor,cowplot)
+pacman::p_load(conflicted,here,tidyverse,janitor,cowplot,GGally)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -195,8 +195,67 @@ trainDF %>%
 #make this a separate function or a modification to tabylize
   
 
+#### Feature Creation==================================================================================================
+### Group Size
+#options: 
+#1) ticket group size (same passenger group); 
+#2) family size (passenger group + last name; 
+#3) travel party size (cabin)
+
+## Calculate feature
+trainDF %>%
+  group_by(passenger_group) %>%
+  mutate(ticket_group_n=n(),
+    ticket_group_n=as.factor(ticket_group_n)) -> ticket_grp_sum
 
 
+## Plots
+# Group size only
+ticket_grp_sum %>%
+  barplotter("ticket_group_n")
+
+# Group size + transported status
+ticket_grp_sum %>%
+  barplotter(c("ticket_group_n","transported"))
+
+  
+
+### Luxury Expenses
+## Exploratory plots
+#heat map
+trainDF %>%
+  select(room_service:vr_deck) %>%
+  ggcorr(label=TRUE,digits=3)
+
+#scatter plots
+trainDF %>%
+  select(room_service:vr_deck) %>%
+  ggpairs()
+#note: takes a while to plot
+
+trainDF %>%
+  select(room_service:vr_deck) %>%
+  pairs()
+#note: takes a while to plot
+
+trainDF %>%
+  ggplot(aes(room_service,food_court)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_x_log10() +
+  scale_y_log10()
+
+
+## Statistics
+trainDF %>%
+  select(room_service:vr_deck) %>%
+  filter(across(everything(),~!is.na(.x))) %>%
+  cor() %>%
+  signif(3)
+
+## Calculate feature
+trainDF %>%
+  mutate(lux_exp=sum(room_service,food_court,na.rm=TRUE))
 
 
 

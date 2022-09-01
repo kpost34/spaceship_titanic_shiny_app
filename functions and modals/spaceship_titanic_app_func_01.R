@@ -158,6 +158,7 @@ barplotter<-function(dat,vec,na.rm=FALSE){
     geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
              color="black") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    xlab(vec[1]) +
     theme_bw() +
     theme(axis.text=element_text(size=12),
           axis.title=element_text(size=13)) -> p
