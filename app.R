@@ -202,7 +202,8 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
       fluidRow(
         column(6,align="center",offset=3,
           radioButtons(inputId="rad_trnsFea04",label="",choices=trnsFea04_transVec,selected=character(0),
-                       inline=TRUE,width="100%")
+                       inline=TRUE,width="100%"),
+          uiOutput("ui_chk_trnsFea04")
         )
       ),
       sidebarLayout(
@@ -231,7 +232,12 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
               uiOutput("ui_num_dis2b_trnsFea04")
             ),
             tabPanelBody("Ordinal Encoding",
-              uiOutput("ui_sel_ordEnc_trnsFea04")
+              uiOutput("ui_sel_ordEnc1_trnsFea04"),
+              linebreaks(2),
+              uiOutput("ui_chkgrp_ordEnc_trnsFea04"),
+              h5(strong("NOTE: selecting/de-selecting variables resets selections below")),
+              br(),
+              uiOutput("ui_sel_ordEnc2_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
               uiOutput("ui_sel_rareEnc1_trnsFea04"),
@@ -251,9 +257,9 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
               plotOutput("plot_sel_dis2_trnsFea04")
             ),
             tabPanelBody("Ordinal Encoding",
-              uiOutput("text_sel_ordEnc_trnsFea04"),
-              br(),
-              plotOutput("plot_sel_ordEnc_trnsFea04")
+              plotOutput("plot_sel_ordEnc1_trnsFea04"),
+              linebreaks(2),
+              htmlOutput("text_sel_ordEnc1_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
               plotOutput("plot_sel_rareEnc1_trnsFea04"),
@@ -264,47 +270,46 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
         )
       )
     ),
-        
-          
-          #set up as update panel framework: given this larger choice then successive uis
-          #1) normalizing/standardizing numerical variables
-          #2) binning numerical (or even character) variables into groups 
-          #3) ordinal encoding: converting categorical variable to ordinal variables (by rank)
-          #4) grouping sparse categories together into a separate group (e.g., other)
-          
-          #1) age, vip, room_service, food_court, shopping_mall, spa, vr_deck
-          #2) age, vip, room_service, food_court, shopping_mall, spa, vr_deck, num
-          #3) home_planet, deck, side, destination
-          #4) to keep things simple: deck or ticket
-    
-    
-    #when to choose which method
-    #1) normalizing data will not handle outliers well, but standardization is robust to outliers
-    #2) normalization good when data are non-normal, while standardization good when data follow normal dist
-    
-    
     #tab 2: feature creation--------------------------------------------------------------------------------------------
     tabPanel(title="Feature Creation",id="creFea04",
       titlePanel(title="Feature Creation"),
       h4("Now you have the opportunity to create new features for your model using the existing variables. Let's look
          at some possible options"),
-      sidebarLayout(
-        sidebarPanel(
-          #select input for group size
-          selectInput01(id="sel_exp1_creFea04",label="Create a group size variable that uses...",
-                        choices=creFea04_grpSizeVec),
-          #select input for luxury expenses
-          selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses the sum of",
-                         multiple=TRUE,choices=c("Choose at least two variables"="",creFea04_luxVec)),
-          br(),
-          actionButton(inputId="btn_exp2_creFea04",label="Visualize results"),
-          uiOutput("ui_btn_cfirm_creFea04"),
+      #inputs
+      wellPanel(
+        fluidRow(
+          column(5,
+            #select input for group size
+            selectInput01(id="sel_exp1_creFea04",label="Create a group size variable that uses...",
+                          choices=creFea04_grpSizeVec)
+          ),
+          column(2,
+            linebreaks(5),    
+            uiOutput("ui_btn_cfirm_creFea04")
+          ),
+          column(3,
+            #select input for luxury expenses
+            selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses the sum of",
+                          multiple=TRUE,choices=c("Choose at least two variables"="",creFea04_luxVec)),
+          ),
+          column(2,
+            actionButton(inputId="btn_exp2_creFea04",label="Visualize results")
+          ),
         ),
-        mainPanel(
+        #vertically aligns button with selectizeInput
+        tags$style(type="text/css", "#btn_exp2_creFea04 {width: 100%; margin-top: 25px;}")
+      ),
+      #outputs
+      fluidRow(
+        column(6,
           plotOutput("plot_sel_exp1a_creFea04"),
-          plotOutput("plot_sel_exp1b_creFea04"),
+          plotOutput("plot_sel_exp1b_creFea04")
+        ),
+        column(6,
           plotOutput("plot_sel_exp2a_creFea04"),
+          br(),
           plotOutput("plot_sel_exp2b_creFea04"),
+          #temporary table--previews data after confirming selections
           tableOutput("plot_temp_table_creFea04")
         )
       )
@@ -811,6 +816,13 @@ server<-function(input,output,session){
 
   
   ##### Server 4: Features==============================================================================================
+  output$ui_chk_trnsFea04<-renderUI({   
+    #update req() statement--should reflect that all four confirmations selected
+    req(input$rad_trnsFea04)
+    checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
+  })
+  
+  
   #### Feature Scaling and Extraction-----------------------------------------------------------------------------------
   ### Conditional UI for displaying sidebar tabset panel
   observeEvent(input$rad_trnsFea04, {
@@ -827,6 +839,8 @@ server<-function(input,output,session){
   ### Dynamic UI to populate choices using names of reactive data frame
   ## Character string objects for label argument
   varViz_feat<-"Please select a variable to visualize"
+  varSel_feat<-"Please select which variables for ordinal encoding"
+  varSelOrd_feat<-c("Select all categories from least to most important"="")
   scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
   
   ## Normalization/standardization
@@ -882,7 +896,6 @@ server<-function(input,output,session){
   ## Discretization
   # Input to select var to visualize as histogram
   output$ui_sel_dis1_trnsFea04<-renderUI({
-    #req(input$rad_trnsFea04)
     selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
                   #dynamically select numerical variables and num (NOTE: will need to update data object later)
                   choices=trainDF_nvI() %>% select(where(is.numeric),num) %>% names())
@@ -913,30 +926,51 @@ server<-function(input,output,session){
   # Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
   output$ui_num_dis2b_trnsFea04<-renderUI({
     req(input$rad_dis2b_trnsFea04=="me")
-    tags<-tagList()
+    tags_num<-tagList()
     for(i in seq_len(input$num_dis2a_trnsFea04)){
-      tags[[i]]<-numericInput(paste0("n",i),
+      tags_num[[i]]<-numericInput(paste0("n",i),
                               paste("Break",i),
                               min=0,value=NULL)
     }
-    tags
+    tags_num
   })
     
+  
   ## Ordinal Encoding
-  output$ui_sel_ordEnc_trnsFea04<-renderUI({
-    #req(input$rad_trnsFea04)
-    selectInput01(id="sel_ordEnc_trnsFea04",label=varViz_feat,
-                  #dynamically select factors (NOTE: will need to update data object later)
+  # Select variable to visualize
+  output$ui_sel_ordEnc1_trnsFea04<-renderUI({
+    selectInput01(id="sel_ordEnc1_trnsFea04",label=varViz_feat,
+                  #dynamically select factors 
                   choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
   })
   
+  # User chooses which variables to ordinally encode
+  output$ui_chkgrp_ordEnc_trnsFea04<-renderUI({
+    #req(input$sel_ordEnc1_trnsFea04)
+    checkboxGroupInput(inputId="chkgrp_ordEnc_trnsFea04",label=varSel_feat,inline=TRUE,
+                       choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
+  })
   
+  # Dynamically create selectizeInput UIs based on vars selected (note that this will be in mainPanel)
+  output$ui_sel_ordEnc2_trnsFea04<-renderUI({
+    req(input$chkgrp_ordEnc_trnsFea04)
+    tags_sel<-tagList()
+    for(i in input$chkgrp_ordEnc_trnsFea04){
+      tags_sel[[i]]<-selectizeInput(inputId=paste("sel",i,"ordEnc2_trnsFea04",sep="_"),
+                                    label=i,multiple=TRUE,
+                                choices=c(varSelOrd_feat,
+                                          trainDF_nvI()[[i]] %>% levels())
+                                )
+    }
+    tags_sel
+  })
+  
+
   ## Rare Label Encoding
   # Input to select var to visualize as a barplot
   output$ui_sel_rareEnc1_trnsFea04<-renderUI({
-    #req(input$rad_trnsFea04)
     selectInput01(id="sel_rareEnc1_trnsFea04",label=varViz_feat,
-                  #dynamically ticket and deck (NOTE: will need to update data object later)
+                  #dynamically ticket and deck 
                   choices=trainDF_nvI() %>% select(deck,ticket) %>% names())
   })
   
@@ -989,18 +1023,53 @@ server<-function(input,output,session){
   
   
   ## Ordinal Encoding
-  # Display text
-  output$text_sel_ordEnc_trnsFea04<-renderUI({
-    req(input$sel_ordEnc_trnsFea04)
-    paste("Insert text here")
-  })
-  
   # Display plot
-  output$plot_sel_ordEnc_trnsFea04<-renderPlot({
-    req(input$sel_ordEnc_trnsFea04)
-    barplotter(trainDF_nvI(),input$sel_ordEnc_trnsFea04)
+  output$plot_sel_ordEnc1_trnsFea04<-renderPlot({
+    req(input$sel_ordEnc1_trnsFea04)
+    barplotter(trainDF_nvI(),input$sel_ordEnc1_trnsFea04)
   })
   
+  
+  # Display text associated with each variable 
+  output$text_sel_ordEnc1_trnsFea04<-renderUI({
+    req(input$sel_ordEnc1_trnsFea04)
+    switch(input$sel_ordEnc1_trnsFea04,
+      ticket=HTML("<i>passenger_id</i> is broken into two parts: <i>passenger_group</i> (the first four digits) and 
+        <i>ticket</i> (the last two digits). The 'ticket' component indicates the number/position within a passenger group."),
+      home_planet=HTML("<i>home_planet</i> represents the planet that the passenger left, which is often where they live. 
+        There are three home planets in this data set: <br>
+        <b>Earth</b>: third planet from the Sun <br>
+        <b>Mars</b>: fourth planet fromt the Sun <br>
+        <b>Europa</b>: smallest of the four Galilean moons orbiting Jupiter"),
+      deck=HTML("<i>deck</i> is one of three components of the variable <i>cabin</i> along with <i>num</i> and <i>side</i>.
+        There are eight different decks: <b>A</b>-<b>G</b> and <b>T</b>"),
+      side=HTML("<i>side</i> is one of three components of the varible <i>cabin</i> along with <i>deck</i> and <i>num</i>.
+        <i>side</i> can take on one of two values: <b>P</b> for port and <b>S</b> for starboard."),
+      destination=HTML("<i>destination</i> represents the planet to which the passenger is traveling. There are three
+        possible destinations: <br>
+        <b>TRAPPIST-1e</b>: a rocky, near-Earth-sized exoplanet that researchers consider as potentially habitable by
+          humans <br>
+        <b>55 Cancri e</b>: an exoplanet nearly 9x the mass of the Earth with an atmosphere composed of at least hydrogen
+          and helium <br>
+        <b>PSO J318.5-22</b>: a rogue planet with estimated temperatures of its clouds exceed 800 <sup>o</sup> C")
+    )
+  })
+  
+
+  # Create reactive data frame
+  dat_ordEnc_trnsFea04<-reactive({
+    ordVars<-syms(input$chkgrp_ordEnc_trnsFea04)
+      
+    trainDF_nvI() %>%
+      #makes all selected factors ordinal categorical variables
+      mutate(across(.cols=input$chkgrp_ordEnc_trnsFea04,~as.ordered(.x)),
+        #change the factor order level
+        !!ordVars[[1]=fct_relevel(!!ordVars[[1],paste("input$sel",ordVars[1],"ordEnc2_trnsFea04",sep="_")))
+  })
+  # input$sel_ticket_ordEnc_trnsFea04
+  # input$sel_deck_ordEnc_trnsFea04
+  # input$sel_side_ordEnc_trnsFea04
+  # input$sel_destination_ordEnc_trnsFea04
   
   
   
@@ -1019,6 +1088,11 @@ server<-function(input,output,session){
   })
   
 
+  # ### Update data frame
+  # trainDF_nvI_eF<-reactive({
+  #   req(input$chk_tranFea04)
+  #   #insert joins here
+  # })
   
   
   #### Feature Creation-------------------------------------------------------------------------------------------------
@@ -1086,6 +1160,7 @@ server<-function(input,output,session){
   output$ui_btn_cfirm_creFea04<-renderUI({
     req(input$sel_exp1_creFea04)
     req(input$sel_exp2_creFea04=="none"|length(input$sel_exp2_creFea04)>=2)
+    req(input$btn_exp2_creFea04)
     actionButton(inputId="btn_cfirm_creFea04","Confirm feature creation selections")
   })
   
@@ -1135,17 +1210,17 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-# completed ui and server code (rough version) for feature creation
-# developed new functions heatmapper(), lux_builder(), and boxplotter2() for feature creation
-
-
+# changed format of feature creation tab 
+# added some UI & server code to update reactive data frame from feature extraction to creation
+# added text output (with html) to ordinal encoding subtab
+# fleshed out some UI for ordinal encoding
+# began working on server code for ordinal encoding
 
 
 # LAST PUSHED COMMENT(S)
-# created button to confirm feature scaling
-# updated server code for feature scaling and outputted temp table to confirm it works
-# updated reactive data frame name for feature engineering section
-# began creating UI for feature creation tab
+# completed ui and server code (rough version) for feature creation
+# developed new functions heatmapper(), lux_builder(), and boxplotter2() for feature creation
+
 
 
 ## IN PROGRESS
@@ -1174,7 +1249,6 @@ shinyApp(ui,server)
 #make selectizeInput functions more flexible (and change edaTabBuilder)
 #conditionally display subset of main tabs based on where user is
 #feature scaling plots--axis labels and plot types (e.g., density, qq)
-#update barplotter() so that it sorts categories from most to least frequent (at least for univariate case)
 #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
   #type of hyperlink or colored text where you hover over to get a more thorough defintion
 #make the feature extraction-discretization plot interactive so a user can pull values for breaks
@@ -1183,8 +1257,7 @@ shinyApp(ui,server)
 #user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
   #variable
 #fix group size plots not in descending order of frequency
-#consider making grojup size variable switch code a function
-#consider using different layout for feature creation tab--a top-down perspective
+#consider making group size variable switch code a function
 
 
 

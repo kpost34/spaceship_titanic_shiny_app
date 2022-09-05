@@ -140,7 +140,7 @@ trainDF %>%
   
 
 
-### Categorical Encoding (home_planet, deck, side, destination, ticket)
+### Ordinal Encoding (home_planet, deck, side, destination, ticket)
 ## Exploratory Plots
 trainDF %>%
   #use barplotting function from eda
@@ -157,7 +157,23 @@ trainDF %>%
 
 trainDF %>% 
   barplotter("ticket")
-  
+
+
+## Find levels of factors and change them
+trainDF[["home_planet"]] %>%
+  as.ordered() %>%
+  levels() -> trainDF$home_planet
+
+levels(trainDF[["home_planet"]])<-c("Europa","Earth","Mars")
+
+
+
+trainDF %>%
+  pull("home_planet") %>%
+  as.ordered() %>%
+  levels()
+
+
   
 
 
