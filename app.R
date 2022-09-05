@@ -234,14 +234,21 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             tabPanelBody("Ordinal Encoding",
               uiOutput("ui_sel_ordEnc1_trnsFea04"),
               linebreaks(2),
+              radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding?",
+                           choices=c("Yes","No"),selected=character(0)),
               uiOutput("ui_chkgrp_ordEnc_trnsFea04"),
               h5(strong("NOTE: selecting/de-selecting variables resets selections below")),
               br(),
-              uiOutput("ui_sel_ordEnc2_trnsFea04")
+              uiOutput("ui_sel_ordEnc2_trnsFea04"),
+              uiOutput("ui_btn_ordEnc2_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
-              uiOutput("ui_sel_rareEnc1_trnsFea04"),
-              uiOutput("ui_sel_rareEnc2_trnsFea04")
+              uiOutput("ui_sel_rareEnc1a_trnsFea04"),
+              uiOutput("ui_sel_rareEnc1b_trnsFea04"),
+              linebreaks(5),
+              uiOutput("ui_sel_rareEnc2a_trnsFea04"),
+              uiOutput("ui_sel_rareEnc2b_trnsFea04"),
+              uiOutput("ui_btn_rareEnc_trnsFea04")
             )
           )
         ),
@@ -259,12 +266,28 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             tabPanelBody("Ordinal Encoding",
               plotOutput("plot_sel_ordEnc1_trnsFea04"),
               linebreaks(2),
-              htmlOutput("text_sel_ordEnc1_trnsFea04")
+              htmlOutput("text_sel_ordEnc1_trnsFea04"),
+              tableOutput("temp_tab_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
-              plotOutput("plot_sel_rareEnc1_trnsFea04"),
-              br(),
-              plotOutput("plot_sel_rareEnc2_trnsFea04")
+              fluidRow(
+                column(6,
+                  plotOutput("plot_sel_rareEnc1a_trnsFea04",height="250px")
+                ),
+                column(6,
+                  plotOutput("plot_sel_rareEnc1b_trnsFea04",height="250px")
+                )
+              ),
+              linebreaks(2),
+              fluidRow(
+                column (6,
+                  plotOutput("plot_sel_rareEnc2a_trnsFea04",height="250px")
+                ),
+                column(6,
+                  plotOutput("plot_sel_rareEnc2b_trnsFea04",height="250px"),
+                  tableOutput("temp_table_rareEnc_trnsFea04")
+                )
+              )
             )
           )
         )
@@ -946,7 +969,7 @@ server<-function(input,output,session){
   
   # User chooses which variables to ordinally encode
   output$ui_chkgrp_ordEnc_trnsFea04<-renderUI({
-    #req(input$sel_ordEnc1_trnsFea04)
+    req(input$rad_ordEnc_trnsFea04=="Yes")
     checkboxGroupInput(inputId="chkgrp_ordEnc_trnsFea04",label=varSel_feat,inline=TRUE,
                        choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
   })
@@ -955,7 +978,7 @@ server<-function(input,output,session){
   output$ui_sel_ordEnc2_trnsFea04<-renderUI({
     req(input$chkgrp_ordEnc_trnsFea04)
     tags_sel<-tagList()
-    for(i in input$chkgrp_ordEnc_trnsFea04){
+    for(i in input$chkgrp_ordEnc_trnsFea04[!input$chkgrp_ordEnc_trnsFea04 %in% "none"]){
       tags_sel[[i]]<-selectizeInput(inputId=paste("sel",i,"ordEnc2_trnsFea04",sep="_"),
                                     label=i,multiple=TRUE,
                                 choices=c(varSelOrd_feat,
@@ -965,25 +988,58 @@ server<-function(input,output,session){
     tags_sel
   })
   
+  # Dynamically display button
+  output$ui_btn_ordEnc2_trnsFea04<-renderUI({
+    #NOTE: will need to improve logic here--need at least one selInput to have max choices selected
+    req(input$rad_ordEnc_trnsFea04=="No"|length(input$chkgrp_ordEnc_trnsFea04>0))
+    actionButton(inputId="btn_ordEnc2_trnsFea04",label="Confirm all ordinal encoding selections")
+  })
+  
 
   ## Rare Label Encoding
   # Input to select var to visualize as a barplot
-  output$ui_sel_rareEnc1_trnsFea04<-renderUI({
-    selectInput01(id="sel_rareEnc1_trnsFea04",label=varViz_feat,
+  output$ui_sel_rareEnc1a_trnsFea04<-renderUI({
+    selectInput01(id="sel_rareEnc1a_trnsFea04",label=varViz_feat,
                   #dynamically ticket and deck 
                   choices=trainDF_nvI() %>% select(deck,ticket) %>% names())
   })
   
-  # Input to select vars to combine as a category and visualize in a new barplot (NAs are off limits)
-  output$ui_sel_rareEnc2_trnsFea04<-renderUI({
-    req(input$sel_rareEnc1_trnsFea04)
-    selectizeInput(inputId="sel_rareEnc2_trnsFea04",label="",multiple=TRUE,
+  # Input to select levels to combine as a category and visualize in a new barplot (NAs are off limits)
+  output$ui_sel_rareEnc1b_trnsFea04<-renderUI({
+    req(input$sel_rareEnc1a_trnsFea04)
+    selectizeInput(inputId="sel_rareEnc1b_trnsFea04",label="",multiple=TRUE,
                    choices=c("Choose at least two"="",
                              trainDF_nvI() %>% 
-                               pull(input$sel_rareEnc1_trnsFea04) %>% 
+                               pull(input$sel_rareEnc1a_trnsFea04) %>% 
                                unique() %>%
                                sort() %>%
                                as.character()))
+  })
+  
+  # Input to select other var to visualize as a barplot
+  output$ui_sel_rareEnc2a_trnsFea04<-renderUI({
+    req(length(input$sel_rareEnc1b_trnsFea04)>1)
+    selectInput01(id="sel_rareEnc2a_trnsFea04",label=varViz_feat,
+                  #dynamically ticket and deck 
+                  choices=trainDF_nvI() %>% select(deck,ticket,-input$sel_rareEnc1a_trnsFea04) %>% names())
+  })
+  
+  # Input to select levels to combine as a category and visualize in a new barplot
+  output$ui_sel_rareEnc2b_trnsFea04<-renderUI({
+    req(input$sel_rareEnc2a_trnsFea04)
+    selectizeInput(inputId="sel_rareEnc2b_trnsFea04",label="",multiple=TRUE,
+                   choices=c("Choose at least two"="",
+                             trainDF_nvI() %>% 
+                               pull(input$sel_rareEnc2a_trnsFea04) %>% 
+                               unique() %>%
+                               sort() %>%
+                               as.character()))
+  })
+  
+  # Button to confirm selections
+  output$ui_btn_rareEnc_trnsFea04<-renderUI({
+    req(input$sel_rareEnc1a_trnsFea04)
+    actionButton(inputId="btn_rareEnc_trnsFea04",label="Confirm selections")
   })
 
   
@@ -1055,38 +1111,88 @@ server<-function(input,output,session){
     )
   })
   
-
-  # Create reactive data frame
-  dat_ordEnc_trnsFea04<-reactive({
-    ordVars<-syms(input$chkgrp_ordEnc_trnsFea04)
-      
-    trainDF_nvI() %>%
-      #makes all selected factors ordinal categorical variables
-      mutate(across(.cols=input$chkgrp_ordEnc_trnsFea04,~as.ordered(.x)),
-        #change the factor order level
-        !!ordVars[[1]=fct_relevel(!!ordVars[[1],paste("input$sel",ordVars[1],"ordEnc2_trnsFea04",sep="_")))
-  })
-  # input$sel_ticket_ordEnc_trnsFea04
-  # input$sel_deck_ordEnc_trnsFea04
-  # input$sel_side_ordEnc_trnsFea04
-  # input$sel_destination_ordEnc_trnsFea04
   
+  # Create reactive data frame
+  trainDF_nvI_o<-eventReactive(input$btn_ordEnc2_trnsFea04, {
+      trainDF_nvI() %>%
+        #makes all selected factors ordinal categorical variables
+        mutate(across(.cols=input$chkgrp_ordEnc_trnsFea04,~as.ordered(.x))) %>%
+          #if...else statements for whether to change factor level order
+          {if(length(input$sel_ticket_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["ticket"]])) 
+            mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ticket_ordEnc2_trnsFea04)) 
+            else .} %>%
+          {if(length(input$sel_home_planet_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["home_planet"]])) 
+            mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_home_planet_ordEnc2_trnsFea04)) 
+            else .} %>%
+          {if(length(input$sel_deck_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["deck"]])) 
+            mutate(.,deck_ord=fct_relevel(deck,input$sel_deck_ordEnc2_trnsFea04)) 
+            else .} %>%
+          {if(length(input$sel_side_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["side"]])) 
+            mutate(.,side_ord=fct_relevel(side,input$sel_side_ordEnc2_trnsFea04)) 
+            else .} %>%
+          {if(length(input$sel_destination_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["destination"]])) 
+            mutate(.,destination_ord=fct_relevel(destination,input$sel_destination_ordEnc2_trnsFea04)) 
+            else .} %>%
+        #retain passenger_id and mutated cols
+        select(passenger_id,ends_with("_ord")) 
+    })
+  
+  output$temp_tab_trnsFea04<-renderTable({
+    trainDF_nvI_o() %>% head()
+  })
+
   
   
   ## Rare Label Encoding
+  # Create reactive data frame
+  # dat1_trnsFea04<-reactive({
+  #   
+  # })
   # Display plots
-  #raw
-  output$plot_sel_rareEnc1_trnsFea04<-renderPlot({
-    req(input$sel_rareEnc1_trnsFea04)
-    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc1_trnsFea04)
+  #var1-raw
+  output$plot_sel_rareEnc1a_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc1a_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc1a_trnsFea04)
   })
   
-  #combined categories
-  output$plot_sel_rareEnc2_trnsFea04<-renderPlot({
-    req(length(input$sel_rareEnc2_trnsFea04)>1)
-    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc1_trnsFea04,cats=input$sel_rareEnc2_trnsFea04)
+  #var1-combined categories
+  output$plot_sel_rareEnc1b_trnsFea04<-renderPlot({
+    req(length(input$sel_rareEnc1b_trnsFea04)>1)
+    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc1a_trnsFea04,cats=input$sel_rareEnc1b_trnsFea04)
   })
   
+  #var2-raw
+  output$plot_sel_rareEnc2a_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc2a_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc2a_trnsFea04)
+  })
+  
+  #var2-combined categories
+  output$plot_sel_rareEnc2b_trnsFea04<-renderPlot({
+    req(length(input$sel_rareEnc2b_trnsFea04)>1)
+    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc2a_trnsFea04,cats=input$sel_rareEnc2b_trnsFea04)
+  })
+  
+  # Extract features via rare label encoding
+  trainDF_nvI_r<-eventReactive(input$btn_rareEnc_trnsFea04, {
+    trainDF_nvI() %>%
+      {if(length(input$sel_rareEnc1b_trnsFea04)>=2) 
+        #paste variable name using !! and :=
+        mutate(.,!!paste0(input$sel_rareEnc1a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc1a_trnsFea04),
+                                                                              other=input$sel_rareEnc1b_trnsFea04))
+        else .} %>%
+      {if(length(input$sel_rareEnc2b_trnsFea04)>=2)
+        mutate(.,!!paste0(input$sel_rareEnc2a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc2a_trnsFea04),
+                                                                              other=input$sel_rareEnc2b_trnsFea04))
+        else .} %>%
+      #retain cols of interest
+      select(passenger_id,ends_with("_rare")) 
+  })
+  
+  # Output temp table
+  output$temp_table_rareEnc_trnsFea04<-renderTable({
+    trainDF_nvI_r() %>% head()
+  })
 
   # ### Update data frame
   # trainDF_nvI_eF<-reactive({
@@ -1210,6 +1316,13 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
+# finished (rough version) of ordinal code--both UI and server
+# updated UI and server code for rare label encoding so that it outputs both variables at the same time and creates
+  #new columns 
+
+
+
+# LAST PUSHED COMMENT(S)
 # changed format of feature creation tab 
 # added some UI & server code to update reactive data frame from feature extraction to creation
 # added text output (with html) to ordinal encoding subtab
@@ -1217,15 +1330,9 @@ shinyApp(ui,server)
 # began working on server code for ordinal encoding
 
 
-# LAST PUSHED COMMENT(S)
-# completed ui and server code (rough version) for feature creation
-# developed new functions heatmapper(), lux_builder(), and boxplotter2() for feature creation
-
-
 
 ## IN PROGRESS
-# feature creation code (skipped ahead)--backbone code + functions for two feature creation possibilities
-# specifically working on backbone code (and adapting previous functions) to create server code
+# discretization - plan to dynamically display button at bottom of each tabPanel that says "keep these settings"
 
 
 #---------------------
@@ -1258,6 +1365,7 @@ shinyApp(ui,server)
   #variable
 #fix group size plots not in descending order of frequency
 #consider making group size variable switch code a function
+#add option to barplotting function(s) to use different color schemes
 
 
 

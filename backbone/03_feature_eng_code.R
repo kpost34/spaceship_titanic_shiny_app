@@ -160,21 +160,15 @@ trainDF %>%
 
 
 ## Find levels of factors and change them
-trainDF[["home_planet"]] %>%
-  as.ordered() %>%
-  levels() -> trainDF$home_planet
-
-levels(trainDF[["home_planet"]])<-c("Europa","Earth","Mars")
-
+fac<-c("ticket","home_planet")
+lev<-c("08","04","02","01","07","03","06","05")
 
 
 trainDF %>%
-  pull("home_planet") %>%
-  as.ordered() %>%
-  levels()
-
-
-  
+  mutate(across(.cols=fac,~as.ordered(.x))) %>% 
+  #mutate(ticket=fct_relevel(ticket,lev)) %>%
+  {if("ticket" %in% fac) mutate(.,ticket_ord=fct_relevel(ticket,lev)) else .} %>%
+  head() 
 
 
 ### Rare Label Encoding       
