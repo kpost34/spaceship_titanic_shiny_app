@@ -42,6 +42,9 @@ trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_ca
 ## All numeric cols
 trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
 
+## All factor cols except for num
+trainDF %>% select(where(is.factor),-num) %>% names() -> trainDF_fct_nonumVars
+
 ## Cabin component cols
 cabinVars<-c("deck","num","side")
 
@@ -77,7 +80,7 @@ creFea04_grpSizeVec<-c("do not create a group size variable"="none",
                        "travel party size (cabin)"="travel_party_size")
 creFea04_luxVec<-c("do not create a luxury expense variable"="none", 
                    "room_service","food_court","shopping_mall","spa","vr_deck")
-                       
+         
 
 
 
@@ -234,12 +237,12 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             tabPanelBody("Ordinal Encoding",
               uiOutput("ui_sel_ordEnc1_trnsFea04"),
               linebreaks(2),
-              radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding?",
-                           choices=c("Yes","No"),selected=character(0)),
-              uiOutput("ui_chkgrp_ordEnc_trnsFea04"),
-              h5(strong("NOTE: selecting/de-selecting variables resets selections below")),
-              br(),
-              uiOutput("ui_sel_ordEnc2_trnsFea04"),
+              radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding on any of
+                           the variables?",choices=c("Yes","No"),selected=character(0)),
+              linebreaks(2),
+              h4("Check each variable for ordinal encoding and rank the categories from least to most important"),
+              #produces a list of checkboxes and selectors
+              ui_splits,
               uiOutput("ui_btn_ordEnc2_trnsFea04")
             ),
             tabPanelBody("Rare Label Encoding",
@@ -863,7 +866,7 @@ server<-function(input,output,session){
   ## Character string objects for label argument
   varViz_feat<-"Please select a variable to visualize"
   varSel_feat<-"Please select which variables for ordinal encoding"
-  varSelOrd_feat<-c("Select all categories from least to most important"="")
+  varSelOrd_feat<-c("Rank all from least to most important"="")
   scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
   
   ## Normalization/standardization
@@ -957,6 +960,7 @@ server<-function(input,output,session){
     }
     tags_num
   })
+  
     
   
   ## Ordinal Encoding
@@ -967,31 +971,91 @@ server<-function(input,output,session){
                   choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
   })
   
-  # User chooses which variables to ordinally encode
-  output$ui_chkgrp_ordEnc_trnsFea04<-renderUI({
-    req(input$rad_ordEnc_trnsFea04=="Yes")
-    checkboxGroupInput(inputId="chkgrp_ordEnc_trnsFea04",label=varSel_feat,inline=TRUE,
-                       choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
+  
+  # Dynamically create checkboxes to choose variables for ordinal encoding
+    output$ui_chk_ordEnc2a_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2a_trnsFea04",label="ticket",value=FALSE)
+    })
+    output$ui_chk_ordEnc2b_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2b_trnsFea04",label="home_planet",value=FALSE)
+    })
+    output$ui_chk_ordEnc2c_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2c_trnsFea04",label="deck",value=FALSE)
+    })
+    output$ui_chk_ordEnc2d_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2d_trnsFea04",label="side",value=FALSE)
+    })
+    output$ui_chk_ordEnc2e_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2e_trnsFea04",label="destination",value=FALSE)
+    })
+
+    
+  # Dynamically create selectors for ordinal encoding
+  output$ui_sel_ordEnc2a_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2a_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2a_trnsFea04",label="", multiple=TRUE,
+                  choices=c(varSelOrd_feat,
+                          trainDF_nvI()[["ticket"]] %>% levels()))
   })
   
-  # Dynamically create selectizeInput UIs based on vars selected (note that this will be in mainPanel)
-  output$ui_sel_ordEnc2_trnsFea04<-renderUI({
-    req(input$chkgrp_ordEnc_trnsFea04)
-    tags_sel<-tagList()
-    for(i in input$chkgrp_ordEnc_trnsFea04[!input$chkgrp_ordEnc_trnsFea04 %in% "none"]){
-      tags_sel[[i]]<-selectizeInput(inputId=paste("sel",i,"ordEnc2_trnsFea04",sep="_"),
-                                    label=i,multiple=TRUE,
-                                choices=c(varSelOrd_feat,
-                                          trainDF_nvI()[[i]] %>% levels())
-                                )
-    }
-    tags_sel
+  output$ui_sel_ordEnc2b_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2b_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2b_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["home_planet"]] %>% levels()))
   })
+  
+  output$ui_sel_ordEnc2c_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2c_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2c_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["deck"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2d_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2d_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2d_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["side"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2e_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2e_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2e_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["destination"]] %>% levels()))
+  })
+  
   
   # Dynamically display button
   output$ui_btn_ordEnc2_trnsFea04<-renderUI({
-    #NOTE: will need to improve logic here--need at least one selInput to have max choices selected
-    req(input$rad_ordEnc_trnsFea04=="No"|length(input$chkgrp_ordEnc_trnsFea04>0))
+    n_ticket<-nlevels(trainDF_nvI()[["ticket"]])
+    n_home_planet<-nlevels(trainDF_nvI()[["home_planet"]])
+    n_deck<-nlevels(trainDF_nvI()[["deck"]])
+    n_side<-nlevels(trainDF_nvI()[["side"]])
+    n_destination<-nlevels(trainDF_nvI()[["destination"]])
+    
+    #button displays if 1) "No" selected in radio button; 2) at least one box is checked AND for each var either
+      #1) box unchecked or all categories selected 
+    req(input$rad_ordEnc_trnsFea04=="No"|(
+      sum(length(input$sel_ordEnc2a_trnsFea04)==n_ticket,
+          length(input$sel_ordEnc2b_trnsFea04)==n_home_planet, 
+          length(input$sel_ordEnc2c_trnsFea04)==n_deck,
+          length(input$sel_ordEnc2d_trnsFea04)==n_side,
+          length(input$sel_ordEnc2e_trnsFea04)==n_destination) > 0 & (
+      (length(input$sel_ordEnc2a_trnsFea04)==n_ticket|input$chk_ordEnc2a_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2b_trnsFea04)==n_home_planet|input$chk_ordEnc2b_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2c_trnsFea04)==n_deck|input$chk_ordEnc2c_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2d_trnsFea04)==n_side|input$chk_ordEnc2d_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2e_trnsFea04)==n_destination|input$chk_ordEnc2e_trnsFea04==FALSE)
+      )
+      )
+    )
     actionButton(inputId="btn_ordEnc2_trnsFea04",label="Confirm all ordinal encoding selections")
   })
   
@@ -1115,28 +1179,29 @@ server<-function(input,output,session){
   # Create reactive data frame
   trainDF_nvI_o<-eventReactive(input$btn_ordEnc2_trnsFea04, {
       trainDF_nvI() %>%
-        #makes all selected factors ordinal categorical variables
-        mutate(across(.cols=input$chkgrp_ordEnc_trnsFea04,~as.ordered(.x))) %>%
-          #if...else statements for whether to change factor level order
-          {if(length(input$sel_ticket_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["ticket"]])) 
-            mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ticket_ordEnc2_trnsFea04)) 
+        #choose all factors except num
+        mutate(across(.cols=trainDF_fct_nonumVars,~as.ordered(.x))) %>%
+          #if...else statements for whether to change factor level order based on if checkbox checked
+          {if(input$chk_ordEnc2a_trnsFea04==TRUE)
+            mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a_trnsFea04))
             else .} %>%
-          {if(length(input$sel_home_planet_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["home_planet"]])) 
-            mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_home_planet_ordEnc2_trnsFea04)) 
+          {if(input$chk_ordEnc2b_trnsFea04==TRUE)
+            mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b_trnsFea04))
             else .} %>%
-          {if(length(input$sel_deck_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["deck"]])) 
-            mutate(.,deck_ord=fct_relevel(deck,input$sel_deck_ordEnc2_trnsFea04)) 
+          {if(input$chk_ordEnc2c_trnsFea04==TRUE)
+            mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c_trnsFea04))
             else .} %>%
-          {if(length(input$sel_side_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["side"]])) 
-            mutate(.,side_ord=fct_relevel(side,input$sel_side_ordEnc2_trnsFea04)) 
+          {if(input$chk_ordEnc2d_trnsFea04==TRUE)
+            mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d_trnsFea04))
             else .} %>%
-          {if(length(input$sel_destination_ordEnc2_trnsFea04)==nlevels(trainDF_nvI()[["destination"]])) 
-            mutate(.,destination_ord=fct_relevel(destination,input$sel_destination_ordEnc2_trnsFea04)) 
+           {if(input$chk_ordEnc2e_trnsFea04==TRUE)
+            mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e_trnsFea04))
             else .} %>%
         #retain passenger_id and mutated cols
-        select(passenger_id,ends_with("_ord")) 
+        select(passenger_id,ends_with("_ord"))
     })
   
+  # Print temp table as a check
   output$temp_tab_trnsFea04<-renderTable({
     trainDF_nvI_o() %>% head()
   })
@@ -1144,10 +1209,6 @@ server<-function(input,output,session){
   
   
   ## Rare Label Encoding
-  # Create reactive data frame
-  # dat1_trnsFea04<-reactive({
-  #   
-  # })
   # Display plots
   #var1-raw
   output$plot_sel_rareEnc1a_trnsFea04<-renderPlot({
@@ -1316,18 +1377,17 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
-# finished (rough version) of ordinal code--both UI and server
-# updated UI and server code for rare label encoding so that it outputs both variables at the same time and creates
-  #new columns 
+# re-organized the UI and server code for ordinal encoding
+# streamlined the UI display of the checkboxes and selectizeInputs and improved logic to display button
+# adjusted and successfully tested functionality of button for ordinal encoding
+# created some backbone code for pulling bin breaks from ggplot objects
 
 
 
 # LAST PUSHED COMMENT(S)
-# changed format of feature creation tab 
-# added some UI & server code to update reactive data frame from feature extraction to creation
-# added text output (with html) to ordinal encoding subtab
-# fleshed out some UI for ordinal encoding
-# began working on server code for ordinal encoding
+# finished (rough version) of ordinal code--both UI and server
+# updated UI and server code for rare label encoding so that it outputs both variables at the same time and creates
+#new columns 
 
 
 

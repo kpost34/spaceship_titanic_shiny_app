@@ -137,6 +137,25 @@ trainDF %>%
   geom_bar(aes(fill=transported)) +
   scale_fill_viridis_d() +
   theme_bw() 
+
+
+# Pull R-created breaks from ggplot object
+#create ggplot object
+trainDF %>%
+  ggplot(aes(room_service)) +
+  scale_x_binned(n.breaks=3,nice.breaks=FALSE) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  geom_bar(aes(fill=transported)) +
+  scale_fill_viridis_d() +
+  theme_bw() -> p
+
+#pull information
+cuts_r<-layer_scales(p)$x$breaks
+
+#pull information to create cuts in data
+trainDF %>%
+  
+
   
 
 
@@ -164,6 +183,7 @@ fac<-c("ticket","home_planet")
 lev<-c("08","04","02","01","07","03","06","05")
 
 
+## Mutate into ordinal factor if column is in character vector
 trainDF %>%
   mutate(across(.cols=fac,~as.ordered(.x))) %>% 
   #mutate(ticket=fct_relevel(ticket,lev)) %>%
@@ -209,7 +229,7 @@ trainDF %>%
 ### Group Size
 #options: 
 #1) ticket group size (same passenger group); 
-#2) family size (passenger group + last name; 
+#2) family size (passenger group + last name); 
 #3) travel party size (cabin)
 
 ## Calculate feature
