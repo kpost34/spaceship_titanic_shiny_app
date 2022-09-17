@@ -154,7 +154,17 @@ cuts_r<-layer_scales(p)$x$breaks
 
 #pull information to create cuts in data
 trainDF %>%
-  
+  #cutting numerical variable by min, R-selected values, and max, and including lowest value
+  mutate(room_service_cut=cut(room_service,
+                              breaks=c(min(room_service,na.rm=TRUE),cuts_r,max(room_service,na.rm=TRUE)),
+                              include.lowest=TRUE)) %>% 
+  #plot with binned num var
+  ggplot(aes(room_service_cut)) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.05))) +
+  #scale_y_log10(expand=expansion(mult=c(0,0.05))) +
+  geom_bar(aes(fill=transported)) +
+  scale_fill_viridis_d() +
+  theme_bw() 
 
   
 

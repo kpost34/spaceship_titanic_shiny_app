@@ -7,13 +7,6 @@ conflict_prefer("filter","dplyr")
 conflict_prefer("chisq.test","stats")
 
 
-#### Load functions
-source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
-source(here("functions and modals","spaceship_titanic_app_func_01.R"))
-source(here("functions and modals","spaceship_titanic_app_func_02.R"))
-source(here("functions and modals","spaceship_titanic_app_func_03.R"))
-
-
 #### Read in and clean data
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
@@ -25,6 +18,13 @@ read_csv(here("data","train.csv")) %>%
   separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
   ### reclassify vars
   mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
+
+
+#### Load functions
+source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
+source(here("functions and modals","spaceship_titanic_app_func_01.R"))
+source(here("functions and modals","spaceship_titanic_app_func_02.R"))
+source(here("functions and modals","spaceship_titanic_app_func_03.R"))
 
 
 #### Create vectors
@@ -93,6 +93,7 @@ creFea04_luxVec<-c("do not create a luxury expense variable"="none",
 #i.e., tab_[inputNameFormula]
 
 ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="static-top",
+               useShinyjs(),
   #### 0: Title page and intro====================================================================================================
   # tabPanel(title="Intro",id="intro_00",
   #          numericInput(inputId = "numInput",label="pick a number",value=2),
@@ -209,42 +210,46 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           uiOutput("ui_chk_trnsFea04")
         )
       ),
+      #selector for the discretization panels
+      fluidRow(
+        uiOutput("ui_sel_dis1_trnsFea04")
+      ),
       sidebarLayout(
         sidebarPanel(
           #create invisible panel that can be updated
           tabsetPanel(id="sidebar_tab_trnsFea04",type="hidden",
+            #feature scaling
             tabPanelBody("Feature Scaling",
               uiOutput("ui_sel_scale1_trnsFea04"),
               br(),
               uiOutput("ui_sel_scale2_trnsFea04"),
               uiOutput("ui_btn_scale_trnsFea04")
             ),
-            tabPanelBody("Discretization",
-              uiOutput("ui_sel_dis1_trnsFea04"),
-              radioButtons(inputId="rad_dis1_trnsFea04",
-                           label="Choose whether to log10-scale the x-axis",
-                           choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE),
-              numericInput(inputId="num_dis1_trnsFea04",
-                           label="Select the number of bins for the histogram (2-100)",
-                           value=30,min=2,max=100),
-              br(),
-              actionButton(inputId="btn_dis2_trnsFea04",label="Visualize binned data?"),
-              uiOutput("ui_rad_dis2a_trnsFea04"),
-              uiOutput("ui_num_dis2a_trnsFea04"),
-              uiOutput("ui_rad_dis2b_trnsFea04"),
-              uiOutput("ui_num_dis2b_trnsFea04")
-            ),
+            #discretization
+            #"dummy" (empty) panel
+            tabPanelBody("Discretization"),
+            #actual variable-specific panels
+            tabPaneler01("age"),
+            tabPaneler01("room_service"),
+            tabPaneler01("food_court"),
+            tabPaneler01("shopping_mall"),
+            tabPaneler01("spa"),
+            tabPaneler01("vr_deck"),
+            tabPaneler01("num"),
+            #ui_tabPanelBody #produces error
+            #ordinal encoding
             tabPanelBody("Ordinal Encoding",
               uiOutput("ui_sel_ordEnc1_trnsFea04"),
               linebreaks(2),
               radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding on any of
                            the variables?",choices=c("Yes","No"),selected=character(0)),
               linebreaks(2),
-              h4("Check each variable for ordinal encoding and rank the categories from least to most important"),
+              htmlOutput("text_ordEnc_trnsFea04"),
               #produces a list of checkboxes and selectors
               ui_splits,
               uiOutput("ui_btn_ordEnc2_trnsFea04")
             ),
+            #rare label encoding
             tabPanelBody("Rare Label Encoding",
               uiOutput("ui_sel_rareEnc1a_trnsFea04"),
               uiOutput("ui_sel_rareEnc1b_trnsFea04"),
@@ -258,20 +263,32 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
         mainPanel(
           #set this to dynamically produce tabs
           tabsetPanel(id="main_tab_trnsFea04",type="hidden",
+            #feature scaling
             tabPanelBody("Feature Scaling",
               plotOutput("plot_sel_scale1_trnsFea04",height="1000px"),
               tableOutput("DT1")
             ),
-            tabPanelBody("Discretization",
-              plotOutput("plot_sel_dis1_trnsFea04"),
-              plotOutput("plot_sel_dis2_trnsFea04")
-            ),
+            #discretization
+            #dummy panel
+            tabPanelBody("Discretization"),
+            #   plotOutput("plot_sel_dis1_trnsFea04"),
+            #   plotOutput("plot_sel_dis2_trnsFea04")
+            # ),
+            tabPaneler02("age"),
+            tabPaneler02("room_service"),
+            tabPaneler02("food_court"),
+            tabPaneler02("shopping_mall"),
+            tabPaneler02("spa"),
+            tabPaneler02("vr_deck"),
+            tabPaneler02("num"),
+            #ordinal encoding
             tabPanelBody("Ordinal Encoding",
               plotOutput("plot_sel_ordEnc1_trnsFea04"),
               linebreaks(2),
               htmlOutput("text_sel_ordEnc1_trnsFea04"),
               tableOutput("temp_tab_trnsFea04")
             ),
+            #rare label encoding
             tabPanelBody("Rare Label Encoding",
               fluidRow(
                 column(6,
@@ -759,6 +776,7 @@ server<-function(input,output,session){
     if(input$sel_impOpt_namMis03=="drop_cols"){
       trainDF %>% select(-contains("name"))
     }
+    
     #same for remove_rows
     else if(input$sel_impOpt_namMis03=="remove_rows"){
       trainDF %>% filter(!is.na("name"))
@@ -848,17 +866,36 @@ server<-function(input,output,session){
     checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
   })
   
+  # Input to select var to visualize as histogram (for discretization)
+  output$ui_sel_dis1_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04=="Discretization")
+    selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
+                  #dynamically select numerical variables and num 
+                  choices=trainDF_nvI() %>% select(where(is.numeric),num) %>% names())
+  })
+  
   
   #### Feature Scaling and Extraction-----------------------------------------------------------------------------------
-  ### Conditional UI for displaying sidebar tabset panel
+  ### Conditional tabsets
+  ## Conditional UI for displaying 'main' sidebar tabset panel
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
   
+  ### Conditional UI for displaying discretization sidebar tabs
+  observeEvent(input$sel_dis1_trnsFea04, {
+    updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$sel_dis1_trnsFea04)
+  })
   
-  ### Conditional UI for displaying main tabset panel
+  
+  ## Conditional UI for displaying main tabset panel for larger categories
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
+  })
+  
+  ## Conditional UI for displaying main tabset panel for discretization variables
+  observeEvent(input$sel_dis1_trnsFea04, {
+    updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$sel_dis1_trnsFea04)
   })
   
   
@@ -920,46 +957,259 @@ server<-function(input,output,session){
   
 
   ## Discretization
-  # Input to select var to visualize as histogram
-  output$ui_sel_dis1_trnsFea04<-renderUI({
-    selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
-                  #dynamically select numerical variables and num (NOTE: will need to update data object later)
-                  choices=trainDF_nvI() %>% select(where(is.numeric),num) %>% names())
-  })
-
   # Create multiple UIs if action button is pressed
-  observeEvent(input$btn_dis2_trnsFea04, {
+  #age
+  observeEvent(input$btn_dis2_age_trnsFea04, {
     #input to select a log10-transformed y-axis
-    output$ui_rad_dis2a_trnsFea04<-renderUI({
-      radioButtons(inputId="rad_dis2a_trnsFea04",
-                   label="Choose whether to log10-scale the y-axis",
-                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+    output$ui_rad_dis2a_age_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
     })
     #input to choose number of breaks
-    output$ui_num_dis2a_trnsFea04<-renderUI({
-      numericInput(inputId="num_dis2a_trnsFea04",
-                   label="Select the number of breaks to create data bins (1-5)",
-                   value=2,min=1,max=5)
+    output$ui_num_dis2a_age_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
     })
     #input to choose whether to have R or the user selects the bin boundaries
-    output$ui_rad_dis2b_trnsFea04<-renderUI({
-      radioButtons(inputId="rad_dis2b_trnsFea04",
-                   label="Choose who selects the bin boundaries",
-                   choices=c("R","me"),selected=character(0),inline=TRUE)
+    output$ui_rad_dis2b_age_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_age_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #room_service
+  observeEvent(input$btn_dis2_room_service_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_room_service_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_room_service_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_room_service_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_room_service_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #food_court
+  observeEvent(input$btn_dis2_food_court_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_food_court_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_food_court_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_food_court_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_food_court_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #shopping_mall
+  observeEvent(input$btn_dis2_shopping_mall_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_shopping_mall_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_shopping_mall_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_shopping_mall_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_shopping_mall_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #spa
+  observeEvent(input$btn_dis2_spa_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_spa_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_spa_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_spa_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_spa_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #vr_deck
+  observeEvent(input$btn_dis2_vr_deck_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_vr_deck_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_vr_deck_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_vr_deck_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_vr_deck_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
+    })
+  })
+  
+  #num
+  observeEvent(input$btn_dis2_num_trnsFea04, {
+    #input to select a log10-transformed y-axis
+    output$ui_rad_dis2a_num_trnsFea04<-renderUI({
+      radioButtons01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose number of breaks
+    output$ui_num_dis2a_num_trnsFea04<-renderUI({
+      numericInput01(input$sel_dis1_trnsFea04)
+    })
+    #input to choose whether to have R or the user selects the bin boundaries
+    output$ui_rad_dis2b_num_trnsFea04<-renderUI({
+      radioButtons02(input$sel_dis1_trnsFea04)
+    })
+    #display text for action buttons
+    output$text_dis3_num_trnsFea04<-renderUI({
+      h4("Would you like to discretize this variable using these settings?")
     })
   })
   
   # Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
-  output$ui_num_dis2b_trnsFea04<-renderUI({
-    req(input$rad_dis2b_trnsFea04=="me")
-    tags_num<-tagList()
-    for(i in seq_len(input$num_dis2a_trnsFea04)){
-      tags_num[[i]]<-numericInput(paste0("n",i),
+  #age
+  output$ui_num_dis2b_age_trnsFea04<-renderUI({
+    req(input$rad_dis2b_age_trnsFea04=="me")
+    tags_n_age<-tagList()
+    for(i in seq_len(input$num_dis2a_age_trnsFea04)){
+      tags_n_age[[i]]<-numericInput(paste("n",var,i,sep="_"),
                               paste("Break",i),
                               min=0,value=NULL)
     }
-    tags_num
+    tags_n_age
   })
+  
+  # #room_service
+  # output$ui_num_dis2b_room_service_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_room_service_trnsFea04=="me")
+  #   tags_n_room_service<-tagList()
+  #   for(i in seq_len(input$num_dis2a_room_service_trnsFea04)){
+  #     tags_n_room_service[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_room_service
+  # })
+  # 
+  # #food_court
+  # output$ui_num_dis2b_food_court_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_food_court_trnsFea04=="me")
+  #   tags_n_food_court<-tagList()
+  #   for(i in seq_len(input$num_dis2a_food_court_trnsFea04)){
+  #     tags_n_food_court[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_food_court
+  # })
+  # 
+  # #shopping_mall
+  # output$ui_num_dis2b_shopping_mall_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_shopping_mall_trnsFea04=="me")
+  #   tags_n_shopping_mall<-tagList()
+  #   for(i in seq_len(input$num_dis2a_shopping_mall_trnsFea04)){
+  #     tags_n_shopping_mall[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_shopping_mall
+  # })
+  # 
+  # #spa
+  # output$ui_num_dis2b_spa_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_spa_trnsFea04=="me")
+  #   tags_n_spa<-tagList()
+  #   for(i in seq_len(input$num_dis2a_spa_trnsFea04)){
+  #     tags_n_spa[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_spa
+  # })
+  # 
+  # #vr_deck
+  # output$ui_num_dis2b_vr_deck_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_vr_deck_trnsFea04=="me")
+  #   tags_n_vr_deck<-tagList()
+  #   for(i in seq_len(input$num_dis2a_vr_deck_trnsFea04)){
+  #     tags_n_vr_deck[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_vr_deck
+  # })
+  # 
+  # #num
+  # output$ui_num_dis2b_num_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_num_trnsFea04=="me")
+  #   tags_n_num<-tagList()
+  #   for(i in seq_len(input$num_dis2a_num_trnsFea04)){
+  #     tags_n_num[[i]]<-numericInput(paste("n",var,i,sep="_"),
+  #                                   paste("Break",i),
+  #                                   min=0,value=NULL)
+  #   }
+  #   tags_n_num
+  # })
+  
+  
+  
+  
+  
+  
+  
+  # Dynamically display action buttons to discretize or not discretize variable
+  #age
+  # output$ui_btn_dis3a_age_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_age_trnsFea04=="R"|
+  #         (input$rad_dis2b_age_trnsFea04=="me" & sum(is.na(tags_num)>0))
+  #   )
+  #   actionButton(inputId="btn_dis3a_age_trnsFea04",label="Yes")
+  # })
+  # 
+  # output$ui_btn_dis3b_age_trnsFea04<-renderUI({
+  #   req(input$rad_dis2b_age_trnsFea04=="R"|
+  #         (input$rad_dis2b_age_trnsFea04=="me" & sum(is.na(tags_num)>0))
+  #   )
+  #   actionButton(inputId="btn_dis3b_age_trnsFea04",label="No")
+  # })
+  
+  
+  
+  
+  
+
   
     
   
@@ -969,6 +1219,12 @@ server<-function(input,output,session){
     selectInput01(id="sel_ordEnc1_trnsFea04",label=varViz_feat,
                   #dynamically select factors 
                   choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
+  })
+  
+  # Dynamically display text above checkboxes below
+  output$text_ordEnc_trnsFea04<-renderUI({
+    req(input$rad_ordEnc_trnsFea04=="Yes") 
+    h4(paste("Check each variable for ordinal encoding and rank the categories from least to most important"))
   })
   
   
@@ -1118,28 +1374,120 @@ server<-function(input,output,session){
   
   ## Discretization
   # Plot raw data with fill=transported as histogram
-  output$plot_sel_dis1_trnsFea04<-renderPlot({
-    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+  #age
+  output$plot_sel_dis1_age_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_age_trnsFea04)
     histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-                 n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04)
+                 n.bins=input$num_dis1_age_trnsFea04,x.log.scale=input$rad_dis1_age_trnsFea04)
   })
   
+  #room_service
+  output$plot_sel_dis1_room_service_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_room_service_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_room_service_trnsFea04,x.log.scale=input$rad_dis1_room_service_trnsFea04)
+  })
+  
+  #food_court
+  output$plot_sel_dis1_food_court_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_food_court_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_food_court_trnsFea04,x.log.scale=input$rad_dis1_food_court_trnsFea04)
+  })
+  
+  #shopping_mall
+  output$plot_sel_dis1_shopping_mall_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_shopping_mall_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_shopping_mall_trnsFea04,x.log.scale=input$rad_dis1_shopping_mall_trnsFea04)
+  })
+  
+  #spa
+  output$plot_sel_dis1_spa_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_spa_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_spa_trnsFea04,x.log.scale=input$rad_dis1_spa_trnsFea04)
+  })
+  
+  #vr_deck
+  output$plot_sel_dis1_vr_deck_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_vr_deck_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_vr_deck_trnsFea04,x.log.scale=input$rad_dis1_vr_deck_trnsFea04)
+  })
+  
+  #num
+  output$plot_sel_dis1_num_trnsFea04<-renderPlot({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_num_trnsFea04)
+    histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+                  n.bins=input$num_dis1_num_trnsFea04,x.log.scale=input$rad_dis1_num_trnsFea04)
+  })
+  
+  
+  
   # Plot numerical var in bins filled by transported either using R or user specified break values
-  #create reactive vector of cut locations
-  cuts<-reactive({
+  #create reactive vectors of cut locations
+  user_cuts<-reactive({ 
     c(input$n1,input$n2,input$n3,input$n4,input$n5)
   })
   
-  #use switch to choose which type of output
-  output$plot_sel_dis2_trnsFea04<-renderPlot({
-    req(input$rad_dis2b_trnsFea04)
-    switch(input$rad_dis2b_trnsFea04,
-           R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
-                         y.log.scale=input$rad_dis2a_trnsFea04),
-           me=user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=cuts(), 
-                               y.log.scale=input$rad_dis2a_trnsFea04)
-    )
+  R_cuts<-reactive({
+    layer_scales(p)$x$breaks
   })
+  
+  
+  
+  #use switch to choose which type of output
+  # output$plot_sel_dis2_trnsFea04<-renderPlot({
+  #   req(input$rad_dis2b_trnsFea04)
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+  #                        y.log.scale=input$rad_dis2a_trnsFea04),
+  #          me=user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
+  #                              y.log.scale=input$rad_dis2a_trnsFea04)
+  #   )
+  # })
+  
+  output$plot_sel_dis2_trnsFea04<-renderPlot({
+    #requires R/me selection 
+    req(input$rad_dis2b_trnsFea04)
+    #if R, uses bin_plotter() to create plot p and output
+    if(input$rad_dis2b_trnsFea04=="R") {
+      bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+        y.log.scale=input$rad_dis2a_trnsFea04) -> p
+    }
+    #if me, uses user_bin_plotter()) to create plot p and output
+    else if(input$rad_dis2b_trnsFea04=="me"){
+      user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
+        y.log.scale=input$rad_dis2a_trnsFea04) -> p
+    }
+    p
+  })
+  
+
+  
+  
+               
+        
+  
+  # dat_age_dis_trnsFea04<-reactive({
+  #   req(input$sel_dis1_trnsFea04,input$sel_dis1_trnsFea04=="age",input$rad_dis3_trnsFea04=="Yes")
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          me=cutter(trainDF_nVI(),input$sel_dis1_trnsFea04,user_cuts()),
+  #          R=cutter(trainDF_nVI(),input$sel_dis1_trnsFea04,R_cuts()))
+  # })
+  
+  # dat_room_service_dis_trnsFea04
+  # 
+  # dat_food_court_dis_trnsFea04
+  # 
+  # dat_shopping_mall_dis_trnsFea04
+  # 
+  # dat_spa_dis_trnsFea04
+  # 
+  # dat_vr_deck_dis_trnsFea04
+  # 
+  # dat_num_dis_trnsFea04
   
   
   ## Ordinal Encoding
@@ -1332,7 +1680,7 @@ server<-function(input,output,session){
   })
   
   ## Create features
-  trainDF_nvI_esF<-eventReactive(input$btn_cfirm_creFea04,{
+  trainDF_nvI_ecF<-eventReactive(input$btn_cfirm_creFea04,{
     dat1_creFea04() %>%
       select(passenger_id,ends_with("size")) %>%
       left_join(dat2_creFea04() %>%
@@ -1341,7 +1689,7 @@ server<-function(input,output,session){
   )
   
   output$plot_temp_table_creFea04<-renderTable({
-    head(trainDF_nvI_esF())
+    head(trainDF_nvI_ecF())
   })
 
   
@@ -1377,6 +1725,14 @@ shinyApp(ui,server)
 #--------------------
 
 ## DONE
+#added function cutter() to bin numerical var
+#added action buttons that display dynamically
+#added UI function to display "sub" tabset panel for discretization
+#updated server code to display first discretization plot for all variables
+
+
+
+# LAST PUSHED COMMENT(S)
 # re-organized the UI and server code for ordinal encoding
 # streamlined the UI display of the checkboxes and selectizeInputs and improved logic to display button
 # adjusted and successfully tested functionality of button for ordinal encoding
@@ -1384,15 +1740,8 @@ shinyApp(ui,server)
 
 
 
-# LAST PUSHED COMMENT(S)
-# finished (rough version) of ordinal code--both UI and server
-# updated UI and server code for rare label encoding so that it outputs both variables at the same time and creates
-#new columns 
-
-
-
 ## IN PROGRESS
-# discretization - plan to dynamically display button at bottom of each tabPanel that says "keep these settings"
+# need to add a tabset panel for discretization to allow one to choose another variable
 
 
 #---------------------
@@ -1426,6 +1775,7 @@ shinyApp(ui,server)
 #fix group size plots not in descending order of frequency
 #consider making group size variable switch code a function
 #add option to barplotting function(s) to use different color schemes
+#update functions so that they don't carry so many extraneous cols/vars
 
 
 

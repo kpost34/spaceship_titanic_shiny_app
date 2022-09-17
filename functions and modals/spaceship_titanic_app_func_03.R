@@ -102,7 +102,8 @@ histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   p
 }
 
-## Function to bin numerical var filled by transported with options to adjust break # & use log y scale
+## Functions to bin and plot numerical var filled by transported 
+# R decides bins
 bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
@@ -126,7 +127,39 @@ bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
 }
 
 
-### Categorical Encoding
+# Create user-defined bins
+cutter<-function(dat,col,break.vals=NA){
+  dat %>%
+    #ensure that col is numeric
+    mutate(var= as.numeric(!!sym(col)),
+      #cut variable using breaks...use := to retain naming
+      !!paste0(col,"_dis") := cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
+              include.lowest=TRUE)) %>%
+    #retain id, new col, and y
+    select(passenger_id,!!paste0(col,"_dis"),transported)
+}
+
+# Make bar plot after creating user-defined bins
+# user_bin_plotter<-function(dat,col,y.log.scale=TRUE){
+#   dat %>%
+#     ggplot(aes({{col}})) +
+#       geom_bar(aes(fill=transported)) +
+#       scale_fill_viridis_d() +
+#       theme_bw() +
+#       theme(axis.text=element_text(size=12),
+#             axis.title=element_text(size=13)) -> p1
+#     
+#     if(y.log.scale==FALSE){
+#       p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
+#     }
+#     
+#     else if(y.log.scale==TRUE){
+#       p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
+#     }
+# }
+
+
+# Make bar plot after creating user-defined bins
 user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
@@ -135,22 +168,23 @@ user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
       var=cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
               include.lowest=TRUE)) %>%
     ggplot(aes(var)) +
-    geom_bar(aes(fill=transported)) +         
+    geom_bar(aes(fill=transported)) +
     scale_fill_viridis_d() +
     xlab(col) +
     theme_bw() +
     theme(axis.text=element_text(size=12),
           axis.title=element_text(size=13)) -> p1
-  
+
   if(y.log.scale==FALSE){
     p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
   }
-  
+
   else if(y.log.scale==TRUE){
     p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
   }
 }
 
+### Categorical Encoding
 
 
 
