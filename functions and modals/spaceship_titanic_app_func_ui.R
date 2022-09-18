@@ -25,27 +25,30 @@ selectizeInput02<-function(id, label, choices) {
 # radio buttons
 #yes/no on whether to log10-transform axis
 radioButtons01<-function(var){
-  radioButtons(inputId=paste("rad_dis2a",var, "trnsFea04",sep="_"),
+  radioButtons(inputId="rad_dis2a_trnsFea04",
                label="Choose whether to log10-scale the y-axis",
                choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
 }
 
 #choose who selects bin boundaries
 radioButtons02<-function(var){
-  radioButtons(inputId=paste("rad_dis2b", var, "trnsFea04",sep="_"),
+  radioButtons(inputId="rad_dis2b_trnsFea04",
               label="Choose who selects the bin boundaries",
               choices=c("R","me"),selected=character(0),inline=TRUE)
 }
 
-# numeric input
+# numeric inputs
 #choose number of breaks
 numericInput01<-function(var){
-  numericInput(inputId=paste("num_dis2a", var, "trnsFea04",sep="_"),
+  numericInput(inputId="num_dis2a_trnsFea04",
               label="Select the number of breaks to create data bins (1-5)",
               value=2,min=1,max=5)
 }
 
-
+#chose break points
+# numericInput02<-function(var,num){
+#   numericInput(paste(var,"n",num,sep="_"),paste0("Break",num),min=0,value=NULL)
+# }
 
 #### EDA Tab Structure Code=======================================================
 edaTabBuilder<-function(name,tabID,varID,options,fn){
@@ -116,20 +119,20 @@ tabPaneler01<-function(var){
 }
 
 #create a vector
-num_vars<-trainDF %>%
-  select(where(is.numeric),num) %>% names()
+# num_vars<-trainDF %>%
+#   select(where(is.numeric),num) %>% names()
 
 #run vector through function
-ui_tabPanelBody<-map(num_vars,tabPaneler01)
+# ui_tabPanelBody<-map(num_vars,tabPaneler01)
 
 
 ### Function for main panel
-tabPaneler02<-function(var){
-  tabPanelBody(var,
-    plotOutput(paste("plot_sel_dis1",var,"trnsFea04",sep="_")),
-    plotOutput(paste("plot_sel_dis2",var,"trnsFea04",sep="_"))
-  )
-}
+# tabPaneler02<-function(var){
+#   tabPanelBody(var,
+#     plotOutput(paste("plot_sel_dis1",var,"trnsFea04",sep="_")),
+#     plotOutput(paste("plot_sel_dis2",var,"trnsFea04",sep="_"))
+#   )
+# }
 
 
 #### Batch output====================================================================
