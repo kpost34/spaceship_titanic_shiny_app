@@ -136,7 +136,7 @@ cutter<-function(dat,col,break.vals=NA){
       !!paste0(col,"_dis") := cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
               include.lowest=TRUE)) %>%
     #retain id, new col, and y
-    select(passenger_id,!!paste0(col,"_dis"),transported)
+    select(passenger_id,!!paste0(col,"_dis"))
 }
 
 # Make bar plot after creating user-defined bins
@@ -184,6 +184,30 @@ user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
   }
 }
 
+
+# Join together DFs into one by passenger_id
+# dis_joiner<-function(dat,j1,j2,j3,j4,j5,j6,j7){
+#   df_list<-vector(mode="list",length=8)
+#   
+#   
+#   
+#   
+#   dat %>%
+#     {if(!missing(j1))(left_join(.,j1,by="passenger_id")) else .} %>%
+#     {if(!missing(j2))(left_join(.,j2,by="passenger_id")) else .} %>%
+#     {if(!missing(j3))(left_join(.,j3,by="passenger_id")) else .} %>%
+#     {if(!missing(j4))(left_join(.,j4,by="passenger_id")) else .} %>%
+#     {if(!missing(j5))(left_join(.,j5,by="passenger_id")) else .} %>%
+#     {if(!missing(j6))(left_join(.,j6,by="passenger_id")) else .} %>%
+#     {if(!missing(j7))(left_join(.,j7,by="passenger_id")) else .} -> dat2
+#   
+#   if(ncol(dat2)==1) {
+#     dat
+#   }
+#   else{dat2}
+# }
+
+#{if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
 ### Categorical Encoding
 
 

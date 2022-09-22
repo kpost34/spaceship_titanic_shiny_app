@@ -1,10 +1,11 @@
 #### Load packages
-pacman::p_load(shiny,shinyjs,conflicted,here,tidyverse,janitor,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot,
+pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot,
                GGally)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
 conflict_prefer("chisq.test","stats")
+
 
 
 #### Read in and clean data
@@ -44,6 +45,9 @@ trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_n
 
 ## All factor cols except for num
 trainDF %>% select(where(is.factor),-num) %>% names() -> trainDF_fct_nonumVars
+
+## Numeric vars + num
+trainDF %>% select(where(is.numeric),num) %>% names() -> trainDF_disVars
 
 ## Cabin component cols
 cabinVars<-c("deck","num","side")
@@ -228,38 +232,34 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             #discretization
             tabPanelBody("Discretization",
               uiOutput("ui_sel_dis1_trnsFea04"),
-              radioButtons(inputId="rad_dis1_trnsFea04",
-                           label="Choose whether to log10-scale the x-axis",
-                           choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE),
-              numericInput(inputId="num_dis1_trnsFea04",
-                           label="Select the number of bins for the histogram (2-100)",
-                           value=30,min=2,max=100),
+              uiOutput("ui_rad_dis1_trnsFea04"),
+              uiOutput("ui_num_dis1_trnsFea04"),
               br(),
-              actionButton(inputId="btn_dis2_trnsFea04",
-                           label="Visualize binned data?"),
+              fluidRow(
+                column(9,
+                  htmlOutput("text_dis3a_trnsFea04")
+                ),
+                column(3,
+                  uiOutput("ui_btn_dis3a_trnsFea04")
+                )
+              ),
+              tags$style(type="text/css", "#ui_btn_dis3a_trnsFea04 {width: 100%; margin-top: 25px;}"),
+              br(),
+              htmlOutput("text_dis2_trnsFea04"),
               uiOutput("ui_rad_dis2a_trnsFea04"),
               uiOutput("ui_num_dis2a_trnsFea04"),
               uiOutput("ui_rad_dis2b_trnsFea04"),
               uiOutput("ui_num_dis2b_trnsFea04"),
-              htmlOutput("text_dis3_trnsFea04"),
               fluidRow(
-                column(6,
-                  uiOutput("ui_btn_dis3a_trnsFea04")
+                column(9,
+                  htmlOutput("text_dis3b_trnsFea04")
                 ),
-                column(6,
+                column(3,
                   uiOutput("ui_btn_dis3b_trnsFea04")
                 )
-              )
-            ),
-            #actual variable-specific panels
-            # tabPaneler01("age"),
-            # tabPaneler01("room_service"),
-            # tabPaneler01("food_court"),
-            # tabPaneler01("shopping_mall"),
-            # tabPaneler01("spa"),
-            # tabPaneler01("vr_deck"),
-            # tabPaneler01("num"),
-            #ui_tabPanelBody #produces error
+              ),
+              tags$style(type="text/css", "#ui_btn_dis3b_trnsFea04 {width: 100%; margin-top: 25px;}")
+            ),           
             #ordinal encoding
             tabPanelBody("Ordinal Encoding",
               uiOutput("ui_sel_ordEnc1_trnsFea04"),
@@ -294,15 +294,16 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
             #discretization
             tabPanelBody("Discretization",
               plotOutput("plot_sel_dis1_trnsFea04"),
-              plotOutput("plot_sel_dis2_trnsFea04")
+              plotOutput("plot_sel_dis2_trnsFea04"),
+              tableOutput("temp_table_dis1_trnsFea04"),
+              tableOutput("temp_table_dis2_trnsFea04"),
+              tableOutput("temp_table_dis3_trnsFea04"),
+              tableOutput("temp_table_dis4_trnsFea04"),
+              tableOutput("temp_table_dis5_trnsFea04"),
+              tableOutput("temp_table_dis6_trnsFea04"),
+              tableOutput("temp_table_dis7_trnsFea04"),
+              tableOutput("temp_table_dis8_trnsFea04")
             ),
-            #tabPaneler02("age"),
-            # tabPaneler02("room_service"),
-            # tabPaneler02("food_court"),
-            # tabPaneler02("shopping_mall"),
-            # tabPaneler02("spa"),
-            # tabPaneler02("vr_deck"),
-            # tabPaneler02("num"),
             #ordinal encoding
             tabPanelBody("Ordinal Encoding",
               plotOutput("plot_sel_ordEnc1_trnsFea04"),
@@ -359,7 +360,7 @@ ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="stati
           ),
           column(2,
             actionButton(inputId="btn_exp2_creFea04",label="Visualize results")
-          ),
+          )
         ),
         #vertically aligns button with selectizeInput
         tags$style(type="text/css", "#btn_exp2_creFea04 {width: 100%; margin-top: 25px;}")
@@ -895,30 +896,21 @@ server<-function(input,output,session){
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
-  # 
-  # ### Conditional UI for displaying discretization sidebar tabs
-  # observeEvent(input$sel_dis1_trnsFea04, {
-  #   updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$sel_dis1_trnsFea04)
-  # })
-  # 
-  # 
+  
+  
   ## Conditional UI for displaying main tabset panel for larger categories
   observeEvent(input$rad_trnsFea04, {
     updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
   })
   
-  ## Conditional UI for displaying main tabset panel for discretization variables
-  # observeEvent(input$sel_dis1_trnsFea04, {
-  #   updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$sel_dis1_trnsFea04)
-  # })
   
-  
-  ### Dynamic UI to populate choices using names of reactive data frame
+  ### Dynamic UI to display inputs
   ## Character string objects for label argument
   varViz_feat<-"Please select a variable to visualize"
   varSel_feat<-"Please select which variables for ordinal encoding"
   varSelOrd_feat<-c("Rank all from least to most important"="")
   scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
+  
   
   ## Normalization/standardization
   # Input to select var to visualize, either unscaled or scaled
@@ -976,144 +968,59 @@ server<-function(input,output,session){
     req(input$rad_trnsFea04=="Discretization")
     selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
                   #dynamically select numerical variables and num 
-                  choices=trainDF_nvI() %>% select(where(is.numeric),num) %>% names())
+                  choices=trainDF_disVars)
   })
   
-  # Create multiple UIs if action button is pressed
-  observeEvent(input$btn_dis2_trnsFea04, {
-    #input to select a log10-transformed y-axis
-    output$ui_rad_dis2a_trnsFea04<-renderUI({
-      radioButtons01(input$sel_dis1_trnsFea04)
-    })
-    #input to choose number of breaks
-    output$ui_num_dis2a_trnsFea04<-renderUI({
-      numericInput01(input$sel_dis1_trnsFea04)
-    })
-    #input to choose whether to have R or the user selects the bin boundaries
-    output$ui_rad_dis2b_trnsFea04<-renderUI({
-      radioButtons02(input$sel_dis1_trnsFea04)
-    })
+  # Input to choose whether to log10-transform x-axis
+  output$ui_rad_dis1_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis1_trnsFea04",
+                 label="Choose whether to log10-scale the x-axis",
+                 choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
   })
   
-  #room_service
-  # observeEvent(input$btn_dis2_room_service_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_room_service_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_room_service_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_room_service_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_room_service_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
-  # 
-  # #food_court
-  # observeEvent(input$btn_dis2_food_court_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_food_court_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_food_court_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_food_court_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_food_court_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
+  # Input to choose number of bins for histogram
+  output$ui_num_dis1_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04)
+    numericInput(inputId="num_dis1_trnsFea04",
+                 label="Select the number of bins for the histogram (2-100)",
+                 value=30,min=2,max=100)
+  })
   
-  # #shopping_mall
-  # observeEvent(input$btn_dis2_shopping_mall_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_shopping_mall_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_shopping_mall_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_shopping_mall_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_shopping_mall_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
+  # Output to display text for next set of inputs
+  output$text_dis2_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    h4("Visualization of binned data")
+  })
   
-  # #spa
-  # observeEvent(input$btn_dis2_spa_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_spa_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_spa_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_spa_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_spa_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
   
-  # #vr_deck
-  # observeEvent(input$btn_dis2_vr_deck_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_vr_deck_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_vr_deck_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_vr_deck_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_vr_deck_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
+  # Input to select a log10-transformed y-axis
+  output$ui_rad_dis2a_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis2a_trnsFea04",
+                 label="Choose whether to log10-scale the y-axis",
+                 choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+  })
   
-  # #num
-  # observeEvent(input$btn_dis2_num_trnsFea04, {
-  #   #input to select a log10-transformed y-axis
-  #   output$ui_rad_dis2a_num_trnsFea04<-renderUI({
-  #     radioButtons01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose number of breaks
-  #   output$ui_num_dis2a_num_trnsFea04<-renderUI({
-  #     numericInput01(input$sel_dis1_trnsFea04)
-  #   })
-  #   #input to choose whether to have R or the user selects the bin boundaries
-  #   output$ui_rad_dis2b_num_trnsFea04<-renderUI({
-  #     radioButtons02(input$sel_dis1_trnsFea04)
-  #   })
-  #   #display text for action buttons
-  #   output$text_dis3_num_trnsFea04<-renderUI({
-  #     h4("Would you like to discretize this variable using these settings?")
-  #   })
-  # })
+  # Input to choose number of breaks
+  output$ui_num_dis2a_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    numericInput(inputId="num_dis2a_trnsFea04",
+                 label="Select the number of breaks to create data bins (1-5)",
+                 value=2,min=1,max=5)
+  })
+  
+  # Input to choose whether to have R or user-selected bin boundaries
+  output$ui_rad_dis2b_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis2b_trnsFea04",
+                 label="Choose who selects the bin boundaries",
+                 choices=c("R","me"),selected=character(0),inline=TRUE)
+  })
+  
+  
+
+  
   
   # Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
   output$ui_num_dis2b_trnsFea04<-renderUI({
@@ -1125,102 +1032,54 @@ server<-function(input,output,session){
     tags_num
   })
   
-  #room_service
-  # output$ui_num_dis2b_room_service_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_room_service_trnsFea04=="me")
-  #   tags_num<-tagList()
-  #   for(i in seq_len(input$num_dis2a_room_service_trnsFea04)){
-  #     #tags_room_service[[i]]<-numericInput02(input$sel_dis1_trnsFea04,i)
-  #     tags_num[[i]]<-numericInput(paste0("n",i),paste0("Break",i),min=0,value=NULL)
-  #   }
-  #   tags_num
-  # })
-  
-  # #food_court
-  # output$ui_num_dis2b_food_court_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_food_court_trnsFea04=="me")
-  #   tags_food_court<-tagList()
-  #   for(i in seq_len(input$num_dis2a_food_court_trnsFea04)){
-  #     tags_food_court[[i]]<-numericInput02(i)
-  #   }
-  #   tags_food_court
-  # })
-  # 
-  # #shopping_mall
-  # output$ui_num_dis2b_shopping_mall_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_shopping_mall_trnsFea04=="me")
-  #   tags_shopping_mall<-tagList()
-  #   for(i in seq_len(input$num_dis2a_shopping_mall_trnsFea04)){
-  #     tags_shopping_mall[[i]]<-numericInput02(i)
-  #   }
-  #   tags_shopping_mall
-  # })
-  # 
-  # #spa
-  # output$ui_num_dis2b_spa_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_spa_trnsFea04=="me")
-  #   tags_spa<-tagList()
-  #   for(i in seq_len(input$num_dis2a_spa_trnsFea04)){
-  #     tags_spa[[i]]<-numericInput02(i)
-  #   }
-  #   tags_spa
-  # })
-  # 
-  # #vr_deck
-  # output$ui_num_dis2b_vr_deck_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_vr_deck_trnsFea04=="me")
-  #   tags_vr_deck<-tagList()
-  #   for(i in seq_len(input$num_dis2a_vr_deck_trnsFea04)){
-  #     tags_vr_deck[[i]]<-numericInput02(i)
-  #   }
-  #   tags_vr_deck
-  # })
-  # 
-  # #num
-  # output$ui_num_dis2b_num_trnsFea04<-renderUI({
-  #   req(input$rad_dis2b_num_trnsFea04=="me")
-  #   tags_num<-tagList()
-  #   for(i in seq_len(input$num_dis2a_num_trnsFea04)){
-  #     tags_num[[i]]<-numericInput02(i)
-  #   }
-  #   tags_num
-  # })
-  
-  
-  
-  
-  # Dynamically display action buttons (and associated text) to discretize or not discretize variable
+
+
+  # Dynamically display action button (and associated text) to discretize variable 
   #display text for action buttons
-  output$text_dis3_trnsFea04<-renderUI({
+  output$text_dis3a_trnsFea04<-renderUI({
+    req(!is.na(input$rad_dis1_trnsFea04))
+    h4(paste0("I am not interested in discretizing ",input$sel_dis1_trnsFea04,"."))
+  })
+  
+  output$text_dis3b_trnsFea04<-renderUI({
     #either "R" is selected or "me" is selected and the number and every break point input is populated
-    req(input$rad_dis2b_trnsFea04=="R"|
+    req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
        (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
     )
-    h4("Would you like to discretize this variable using these settings?")
+    h4(paste("Click confirm to discretize",input$sel_dis1_trnsFea04, "using these settings."))
   })
   
   #display buttons
-  output$ui_btn_dis3a_trnsFea04<-renderUI({ 
-    req(input$rad_dis2b_trnsFea04=="R"|
-        (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+  output$ui_btn_dis3a_trnsFea04<-renderUI({
+    req(!is.na(input$rad_dis1_trnsFea04))
+    switch(input$sel_dis1_trnsFea04,
+      age=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      room_service=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      food_court=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      shopping_mall=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      spa=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      vr_deck=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      num=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
     )
-    actionButton(inputId="btn_dis3a_trnsFea04",label="Yes")
   })
-
+  
   output$ui_btn_dis3b_trnsFea04<-renderUI({
-    req(input$rad_dis2b_trnsFea04=="R"|
-       (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+    req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
+          (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
     )
-    actionButton(inputId="btn_dis3b_trnsFea04",label="No")
+    switch(input$sel_dis1_trnsFea04,
+      age=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      room_service=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      food_court=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      shopping_mall=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      spa=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      vr_deck=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      num=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
+    )
   })
-  
-  
-  
-  
   
 
   
-    
   
   ## Ordinal Encoding
   # Select variable to visualize
@@ -1233,7 +1092,7 @@ server<-function(input,output,session){
   # Dynamically display text above checkboxes below
   output$text_ordEnc_trnsFea04<-renderUI({
     req(input$rad_ordEnc_trnsFea04=="Yes") 
-    h4(paste("Check each variable for ordinal encoding and rank the categories from least to most important"))
+    h4("Check each variable for ordinal encoding and rank the categories from least to most important")
   })
   
   
@@ -1409,69 +1268,15 @@ server<-function(input,output,session){
   user_cuts<-reactive({
     c(input$n1,input$n2,input$n3,input$n4,input$n5)
   })
-  # 
-  # R_cuts<-reactive({
-  #   layer_scales(p)$x$breaks
-  # })
   
-  
-  #age
-  # output$plot_sel_dis1_age_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_age_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                n.bins=input$num_dis1_age_trnsFea04,x.log.scale=input$rad_dis1_age_trnsFea04)
-  # })
-  
-  #room_service
-  # output$plot_sel_dis1_room_service_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_room_service_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_room_service_trnsFea04,x.log.scale=input$rad_dis1_room_service_trnsFea04)
-  # })
-  
-  # #food_court
-  # output$plot_sel_dis1_food_court_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_food_court_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_food_court_trnsFea04,x.log.scale=input$rad_dis1_food_court_trnsFea04)
-  # })
-  # 
-  # #shopping_mall
-  # output$plot_sel_dis1_shopping_mall_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_shopping_mall_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_shopping_mall_trnsFea04,x.log.scale=input$rad_dis1_shopping_mall_trnsFea04)
-  # })
-  # 
-  # #spa
-  # output$plot_sel_dis1_spa_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_spa_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_spa_trnsFea04,x.log.scale=input$rad_dis1_spa_trnsFea04)
-  # })
-  # 
-  # #vr_deck
-  # output$plot_sel_dis1_vr_deck_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_vr_deck_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_vr_deck_trnsFea04,x.log.scale=input$rad_dis1_vr_deck_trnsFea04)
-  # })
-  # 
-  # #num
-  # output$plot_sel_dis1_num_trnsFea04<-renderPlot({
-  #   req(input$sel_dis1_trnsFea04,input$rad_dis1_num_trnsFea04)
-  #   histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-  #                 n.bins=input$num_dis1_num_trnsFea04,x.log.scale=input$rad_dis1_num_trnsFea04)
-  # })
-  
-  
+  R_cuts<-reactive({
+    layer_scales(plot_dis_trnsFea04())$x$breaks
+  })
   
 
   
-  
-  
-  #use switch to choose which type of output
-  output$plot_sel_dis2_trnsFea04<-renderPlot({
+  #use switch to create plot object
+  plot_dis_trnsFea04<-reactive({
     req(input$rad_dis2a_trnsFea04, input$rad_dis2b_trnsFea04)
     switch(input$rad_dis2b_trnsFea04,
            R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
@@ -1481,143 +1286,342 @@ server<-function(input,output,session){
     )
   })
   
-  #age
-  # output$plot_sel_dis2_trnsFea04<-renderPlot({
-  #   #requires R/me selection
-  #   req(input$rad_dis2a_trnsFea04 & input$rad_dis2b_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
-  #       y.log.scale=input$rad_dis2a_trnsFea04) -> p
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #       y.log.scale=input$rad_dis2a_trnsFea04) -> p
-  #   }
-  #   p
+  #plot the plot object
+  output$plot_sel_dis2_trnsFea04<-renderPlot({
+    plot_dis_trnsFea04()
+  })
+  
+  
+  
+  # Create reactiveValues object and initialize with NULL values
+  #trainDF_dis_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,vr_deck=NULL,num=NULL)
+  #trainDF_dis_list<-reactiveValues()
+  trainDF_dis_list<-vector(mode="list")
+
+ 
+  
+  # Update reactiveValues object with passenger_id values as a tibble when selector input is used
+  # observeEvent(input$rad_trnsFea04, {
+  #   
+  # }
   # })
   
-  #room_service
-  # output$plot_sel_dis2_room_service_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2b_room_service_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_room_service_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_room_service_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_room_service_trnsFea04) -> p_room_service
-  #   }
-    #if me, uses user_bin_plotter()) to create plot p and output
-    # else if(input$rad_dis2b_room_service_trnsFea04=="me"){
-    #   user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-    #                    y.log.scale=input$rad_dis2a_room_service_trnsFea04) -> p
-    # }
-  #   p_room_service 
+ # trainDF_dis_list<-reactiveValues(age=NULL)
+ #  
+ #  trainDF_dis_list$age<-reactive({trainDF_nvI() %>% select(passenger_id)})
+
+  # 
+  # trainDF_dis_list$room_service<-reactive({
+  #   trainDF_nvI() %>% select(passenger_id) 
   # })
+  # 
+  # trainDF_dis_list$food_court<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$shopping_mall<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$spa<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$vr_deck<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$num<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+
+  
+
+  
+  # trainDF_dis_list<-reactiveValues(age=NULL)
+  
+  #trainDF_dis_list$room_service<-tibble(x="test")
+  
+ # trainDF_dis_list<-reactiveValues(age=trainDF["passenger_id"],
+ #                         room_service=trainDF["passenger_id"])
+ 
+                         # food_court=trainDF["passenger_id"],
+                         # shopping_mall=trainDF["passenger_id"],
+                         # spa=trainDF["passenger_id"],
+                         # vr_deck=trainDF["passenger_id"],
+                         # num=trainDF["passenger_id"])
+  
+  # trainDF_dis_list<-reactiveValues(age=NA,room_service=NA,food_court=NA,shopping_mall=NA,spa=NA,
+  #                                  vr_deck=NA,num=NA)
+  
+  # Confirm discretization (for each variable)
+  #age
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3a_age, {
+  #   trainDF_nvI() %>% select(passenger_id)
+  # })
+  # 
+  # 
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  
+  observeEvent(input$btn_dis3a_age, {
+    trainDF_dis_list$age<-trainDF %>% select(passenger_id)
+  })
+  
+  observeEvent(input$btn_dis3b_age, {
+    req(input$rad_dis2b_trnsFea04)
+    if(input$rad_dis2b_trnsFea04=="R"){
+      trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+    }
+    else if(input$rad_dis2b_trnsFea04=="me"){
+      trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    }
+  })
+  
+  
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  # trainDF_dis_list$age<-reactive({
+  #   if(input$rad_trnsFea04=="Discretization" & !exists("rad_dis2b_trnsFea")){
+  #     trainDF_nvI() %>% select(passenger_id)}
+  #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="R"){
+  #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+  #     }
+  #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="me"){
+  #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #     }
+  # })
+
+  
+
+  #room_service
+  # trainDF_dis_list$room_service<-eventReactive(list(input$rad_trnsFea04,input$btn_room_service), {
+  #   rs1<-trainDF["passenger_id"]
+  #   rs2<- switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  # trainDF_dis_list$room_service<-eventReactive(input$btn_room_service, {
+    # switch(input$rad_dis2b_trnsFea04,
+    #        R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+    #        me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # )
+  # })
+  
+  # reax_room_service<-eventReactive(input$btn_room_service, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
   
   # #food_court
-  # output$plot_sel_dis2_food_court_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2a_food_court_trnsFea04,input$rad_dis2b_food_court_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_food_court_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_food_court_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_food_court_trnsFea04) -> p_food_court
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_food_court_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #                      y.log.scale=input$rad_dis2a_food_court_trnsFea04) -> p_food_court
-  #   }
-  #   p_food_court
+  # trainDF_dis_list$food_court<-eventReactive(input$btn_food_court, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
   # })
   # 
   # #shopping_mall
-  # output$plot_sel_dis2_shopping_mall_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2a_shopping_mall_trnsFea04,input$rad_dis2b_shopping_mall_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_shopping_mall_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_shopping_mall_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_shopping_mall_trnsFea04) -> p_shopping_mall
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_shopping_mall_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #                      y.log.scale=input$rad_dis2a_shopping_mall_trnsFea04) -> p_shopping_mall
-  #   }
-  #   p_shopping_mall
+  # trainDF_dis_list$shopping_mall<-eventReactive(input$btn_shopping_mall, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
   # })
   # 
   # #spa
-  # output$plot_sel_dis2_spa_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2a_spa_trnsFea04,input$rad_dis2b_spa_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_spa_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_spa_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_spa_trnsFea04) -> p_spa
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_spa_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #                      y.log.scale=input$rad_dis2a_spa_trnsFea04) -> p_spa
-  #   }
-  #   p_spa
+  # trainDF_dis_list$spa<-eventReactive(input$btn_spa, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
   # })
   # 
   # #vr_deck
-  # output$plot_sel_dis2_vr_deck_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2a_vr_deck_trnsFea04,input$rad_dis2b_vr_deck_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_vr_deck_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_vr_deck_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_vr_deck_trnsFea04) -> p_vr_deck
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_vr_deck_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #                      y.log.scale=input$rad_dis2a_vr_deck_trnsFea04) -> p_vr_deck
-  #   }
-  #   p_vr_deck
+  # trainDF_dis_list$vr_deck<-eventReactive(input$btn_vr_deck, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
   # })
   # 
   # #num
-  # output$plot_sel_dis2_num_trnsFea04<-renderPlot({
-  #   #requires R/me selection 
-  #   req(input$rad_dis2a_num_trnsFea04,input$rad_dis2b_num_trnsFea04)
-  #   #if R, uses bin_plotter() to create plot p and output
-  #   if(input$rad_dis2b_num_trnsFea04=="R") {
-  #     bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_num_trnsFea04,
-  #                 y.log.scale=input$rad_dis2a_num_trnsFea04) -> p_num
-  #   }
-  #   #if me, uses user_bin_plotter()) to create plot p and output
-  #   else if(input$rad_dis2b_num_trnsFea04=="me"){
-  #     user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-  #                      y.log.scale=input$rad_dis2a_num_trnsFea04) -> p_num
-  #   }
-  #   p_num
+  # trainDF_dis_list$num<-eventReactive(input$btn_num, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  #train_list<-reactiveValuesToList(trainDF_dis_list)
+  
+  
+  
+  
+# Combine all list elements into a new reactive DF
+
+  
+  # trainDF_nvI_d<-eventReactive(input$btn_age,{
+  #   trainDF_nvI() %>%
+  #     select(passenger_id) %>%
+  #     {if(ncol(trainDF_dis_list$age())==2)(left_join(.,trainDF_dis_list$age(),by="passenger_id")) else .} #%>%
+  #     {if(ncol(trainDF_dis_list$room_service())==2)(left_join(.,trainDF_dis_list$room_service(),by="passenger_id")) else .} %>%
+  #     {if(ncol(trainDF_dis_list$food_court())==2)(left_join(.,trainDF_dis_list$food_court(),by="passenger_id")) else .} #%>%
+  # #     # {if(input$btn_shopping_mall==1)(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_spa==1)(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_vr_deck==1)(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_num==1)(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+  # })
+  
+
+  
+
+  
+  
+  # trainDF_nvI_d<-reactive({
+  #   reduce(list(trainDF_dis_list$age),
+  # # #               # trainDF_dis_list$room_service(),
+  # # #               # trainDF_dis_list$food_court(),
+  # # #               # trainDF_dis_list$shopping_mall(),
+  # # #               # trainDF_dis_list$spa(),
+  # # #               # trainDF_dis_list$vr_deck(),
+  # #               # trainDF_dis_list$num()),
+  #          left_join,by="passenger_id")
+  # })
+  
+  
+
+  
+  # trainDF_nvI_d<-reactive({
+  #   reduce(trainDF_dis_list,left_join,by="passenger_id")
+  # })
+    
+  # trainDF_nvI_d<-reactive({
+  #     trainDF_dis_list$age
+  # })
+      # left_join(trainDF_dis_list$room_service(),by="passenger_id") #%>%
+      # left_join(trainDF_dis_list$food_court,by="passenger_id") %>%
+      # left_join(trainDF_dis_list$shopping_mall,by="passenger_id") %>%
+      # left_join(trainDF_dis_list$spa,by="passenger_id") %>%
+      # left_join(trainDF_dis_list$vr_deck,by="passenger_id") %>%
+      # left_join(trainDF_dis_list$num,by="passenger_id")
+  #})
+    
+      #purrr::when(sum(!is.na(trainDF_dis_list$age()))>0 ~left_join(.,trainDF_dis_list$age(),by="passenger_id"), ~.) %>%
+      #purrr::when(sum(!is.na(trainDF_dis_list$room_service()))>0 ~left_join(.,trainDF_dis_list$room_service(),by="passenger_id"), ~.) %>%
+      #purrr::when(sum(!is.na(trainDF_dis_list$food_court()))>0 ~left_join(.,trainDF_dis_list$food_court(),by="passenger_id"), ~.) #%>%
+      #{if(!is.na(trainDF_list$shopping_mall))(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} #%>%
+    # {if(!is.null(trainDF_dis_list$spa()))(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
+    # {if(!is.null(trainDF_dis_list$vr_deck()))(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+    # {if(!is.null(trainDF_dis_list$num()))(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+  #})
+  
+  
+  # toy_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,
+  #                   c               vr_deck=NULL,num=NULL)
+  
+  # 
+  # trainDF %>%
+  #   select(passenger_id) %>%
+  #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
+  #   {if(is.null(samp))(left_join(.,trainDF[c("passenger_id","age")],by="passenger_id")) else .} %>%
+  #   {if(is.null(dog))(left_join(.,trainDF[c("passenger_id","spa")],by="passenger_id")) else .}
+  # 
+  # trainDF %>%
+  #   select(passenger_id) %>%
+  #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
+  #   purrr::when(is.null(samp) ~left_join(.,trainDF[c("passenger_id","age")],by="passenger_id"), ~.)
+  
+  #Convert reactiveValues to list
+  #trainDF_dis_list<-reactiveValuesToList(trainDF_dis_list)
+  
+  
+  
+  # Check whether results working (by variable)
+  #age
+  output$temp_table_dis1_trnsFea04<-renderTable({
+    trainDF_dis_list$age %>% head()
+  })
+
+  # # #room_service
+  # output$temp_table_dis2_trnsFea04<-renderTable({
+  #   trainDF_dis_list$room_service() %>% head()
+  # })
+  # 
+  # 
+  # # #food_court
+  # output$temp_table_dis3_trnsFea04<-renderTable({
+  #   trainDF_dis_list$food_court() %>% head()
+  # })
+  # 
+  # # #shopping_mall
+  # output$temp_table_dis4_trnsFea04<-renderTable({
+  #   trainDF_dis_list$shopping_mall() %>% head()
+  # })
+  # 
+  # #spa
+  # output$temp_table_dis5_trnsFea04<-renderTable({
+  #   trainDF_dis_list$spa() %>% head()
+  # })
+  # 
+  # #vr_deck
+  # output$temp_table_dis6_trnsFea04<-renderTable({
+  #   trainDF_dis_list$vr_deck() %>% head()
+  # })
+  # 
+  # #num
+  # output$temp_table_dis7_trnsFea04<-renderTable({
+  #   trainDF_dis_list$num() %>% head()
+  # })
+  
+  # output$temp_table_dis8_trnsFea04<-renderTable({
+  #   trainDF_nvI_d() %>% head()
   # })
 
   
+  # Connect reactive DFs together
+  #list_dis_trnsFea04<-vector(mode="list",length=7)
+  # list_dis_trnsFea04<-reactiveValuesToList(c(trainDF_nvI_da(),trainDF_nvI_dr(),trainDF_nvI_df(),trainDF_nvI_dm(),
+  #                                          trainDF_nvI_ds(),trainDF_nvI_dv(),trainDF_nvI_dn()))
+  # 
   
-               
-        
+ # trainDF_nvI_d<-reactive({
+ #   trainDF_nvI_da() %>%
+ #   left_join(trainDF_nvI_dr(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_df(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dm(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_ds(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
+ #     select(passenger_id,ends_with("dis"))
+ # })
   
 
   
-  # dat_room_service_dis_trnsFea04
-  # 
-  # dat_food_court_dis_trnsFea04
-  # 
-  # dat_shopping_mall_dis_trnsFea04
-  # 
-  # dat_spa_dis_trnsFea04
-  # 
-  # dat_vr_deck_dis_trnsFea04
-  # 
-  # dat_num_dis_trnsFea04
+  #age - a
+  #room_service - r
+  #food_court - f
+  #shopping_mall - m
+  #spa - s
+  #vr_deck - v
+  #num - n
+  
+
   
   
   ## Ordinal Encoding
@@ -1680,7 +1684,7 @@ server<-function(input,output,session){
     })
   
   # Print temp table as a check
-  output$temp_tab_trnsFea04<-renderTable({
+  output$temp_table_trnsFea04<-renderTable({
     trainDF_nvI_o() %>% head()
   })
 
@@ -1848,24 +1852,28 @@ shinyApp(ui,server)
 
 #------------------------------------------------
 ## NEED TO...
-# create another function script with a server suffix (for more 'structural' functions) & create functions
-# add ggtitles to rare label encoding(?)
+#1) change inputs for log10 x-axis and bin numbers to dynamic version
+#2) enable a way to reset the input values when someone selects yes or no
+#3) selecting yes/no leads to a change/non-change in growing data frame
+#4) connect all the growing data frames (for discretization) 
+#5) check by outputting a preview table
 
 
 #--------------------
 
 ## DONE
-# went back to previous approach for discretization--one sidebar panel and one main panel
-# got discretization UI logic to work to display all the inputs
-# got both plots to display with R and user-selected breaks
+# discretization: updated inputs for log10 x-axis and bin numbers to dynamic version
+# removed code for reset button and associated text 
+# added code so that confirmation button generates new reactive DF
+# added code so that variable-specific buttons are used to populate UI output
+
 
 
 
 # LAST PUSHED COMMENT(S)
-#added function cutter() to bin numerical var
-#added action buttons that display dynamically
-#added UI function to display "sub" tabset panel for discretization
-#updated server code to display first discretization plot for all variables
+# went back to previous approach for discretization--one sidebar panel and one main panel
+# got discretization UI logic to work to display all the inputs
+# got both plots to display with R and user-selected breaks
 
 
 
@@ -1905,6 +1913,8 @@ shinyApp(ui,server)
 #add option to barplotting function(s) to use different color schemes
 #update functions so that they don't carry so many extraneous cols/vars
 #discretization first plot--log scale y axis as option (and thus update formula)
+# create another function script with a server suffix (for more 'structural' functions) & create functions
+# add ggtitles to rare label encoding(?)
 
 
 

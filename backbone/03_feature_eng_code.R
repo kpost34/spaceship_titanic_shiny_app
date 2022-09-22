@@ -166,7 +166,30 @@ trainDF %>%
   scale_fill_viridis_d() +
   theme_bw() 
 
-  
+
+## Joining data frames if they exist
+# Create toy list elements
+nam<-c("cat","cat","dog","dog","bear","cat","bear")
+df1<-tibble(nam)
+df2<-tibble(nam,x=c(1,3,4,3,2,6,3))
+df4<-tibble(nam,y=c(11,12,15,23,22,20,80))
+
+# Create empty list and populate
+df_list<-vector("list",length=4)
+df_list[[1]]<-df1
+df_list[[2]]<-df2
+df_list[[4]]<-df4
+
+# Remove null elements
+df_list %>% discard(is.null) -> df_list
+
+# Join non-null elements
+df_list %>% reduce(left_join,by="nam")
+
+df1 %>%
+  left_join(df2,by="nam") %>%
+  left_join(df4,by="nam")
+
 
 
 ### Ordinal Encoding (home_planet, deck, side, destination, ticket)
