@@ -1,0 +1,1972 @@
+#### Load packages
+pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,naniar,mice,cowplot,
+               GGally)
+
+#address conflicts
+conflict_prefer("filter","dplyr")
+conflict_prefer("chisq.test","stats")
+
+
+
+#### Read in and clean data
+read_csv(here("data","train.csv")) %>%
+  clean_names() %>%
+  ### passenger_id
+  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  ### cabin
+  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
+  ### name
+  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+  ### reclassify vars
+  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
+
+
+#### Load functions
+source(here("functions and modals","spaceship_titanic_app_func_ui.R"))
+source(here("functions and modals","spaceship_titanic_app_func_01.R"))
+source(here("functions and modals","spaceship_titanic_app_func_02.R"))
+source(here("functions and modals","spaceship_titanic_app_func_03.R"))
+
+
+#### Create vectors
+### Col names
+## All character cols
+trainDF %>% select(where(is.character)) %>% names() -> trainDF_chrVars
+## All cols but character
+trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nchrVars
+#excluding dep var
+trainDF_nchrVars[trainDF_nchrVars!="transported"] -> trainDF_nchrPreds
+
+## All logical and factor cols
+trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_catVars
+
+## All numeric cols
+trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
+
+## All factor cols except for num
+trainDF %>% select(where(is.factor),-num) %>% names() -> trainDF_fct_nonumVars
+
+## Numeric vars + num
+trainDF %>% select(where(is.numeric),num) %>% names() -> trainDF_disVars
+
+## Cabin component cols
+cabinVars<-c("deck","num","side")
+
+## Dependent variable
+depVar<-"transported"
+
+## choices vectors
+Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
+Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
+namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
+namMis03_impOptVec<-c("drop name columns"="drop_cols",
+                      "remove with rows with missing names"="remove_rows",
+                      "populate using passenger group"="imp_pass_group",
+                      "populate using cabin info"="imp_cabin")
+nchrMis03_expVec<-c("missing values occurrences"="miss_occur",
+                   "missing values per variable" = "miss_var",
+                   "missing values per observation" = "miss_obs",
+                   "missing pattern"="miss_patt")
+nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
+                    "remove variable(s) missing data"="var_del",
+                    "mean imputation (numeric vars only)" = "mean_imp")
+trnsFea04_transVec<-c("Feature Scaling",
+                      "Discretization",
+                      "Ordinal Encoding",
+                      "Rare Label Encoding")
+trnsFea04_transOptVec<-c("leave unchanged"="raw",
+                          "log transform"="log",
+                          "min-max scale"="mm_scale",
+                          "standardize"="standize")
+creFea04_grpSizeVec<-c("do not create a group size variable"="none",
+                       "ticket group size (same passenger group)"="ticket_group_size",
+                       "family size (passenger group & last name)"="family_size",
+                       "travel party size (cabin)"="travel_party_size")
+creFea04_luxVec<-c("do not create a luxury expense variable"="none", 
+                   "room_service","food_court","shopping_mall","spa","vr_deck")
+         
+
+
+
+
+#NAMING FORMULAS
+#inputs: [abbrvInput]_[abbrvTask]_[Tabname]
+#e.g., sel_quick_Chk01 (from Chk011 tab): sel = selectInput, quick = "Quick data check", chk01
+#outputs: [abbrOutput]_[abbrvInput]_[# if 2+]_[tabName]
+#e.g., tab_sel_Chk01 (from Chk01 tab): tab = table, sel = selectInput, chk01 (if 2 tables then append 1, 2, etc to before tabName)
+#i.e., tab_[inputNameFormula]
+
+ui<-navbarPage(title="Spaceship Titanic Shiny App", id="mainTab",position="static-top",
+               useShinyjs(),
+  #### 0: Title page and intro====================================================================================================
+  # tabPanel(title="Intro",id="intro_00",
+  #          numericInput(inputId = "numInput",label="pick a number",value=2),
+  #          textOutput("textout1")
+  #          )
+    ##option to skip intro-> advances to tab/menu 1
+    ## input name ... Hello, x. Your mission is....
+    ##preview
+  #### 1: Menu-Data Checking======================================================================================================
+  tabPanel(title="Data Check",id="Chk01",
+    sidebarLayout(
+      sidebarPanel(width=3,
+        selectInput01(id="sel_quick_Chk01",label="Quick data check",choices=Chk01_quickVec),
+        linebreaks(2),
+        selectInput01(id="sel_summ_Chk01",label="Data summaries",choices=Chk01_summVec),
+      ),
+      mainPanel(width=9,
+        DTOutput("tab_sel_quick_Chk01"),
+        br(),
+        DTOutput("tab_sel_summ_Chk01")
+      )
+    )
+  ),
+
+  #### 2: Menu-EDA================================================================================================================
+  navbarMenu(title="EDA",menuName="EDA02",
+    #tab 1: univariate EDA--------------------------------------------------------------------------------------------------------
+    edaTabBuilder(name="Univariate",tabID="uniEDA02",varID=c("var1","var2"),options=trainDF_nchrVars,fn=selectInput01),
+    
+    #tab 2: bivariate EDA---------------------------------------------------------------------------------------------------------
+    edaTabBuilder(name="Bivariate",tabID="biEDA02",varID=c("var12","var34"),options=trainDF_nchrVars,fn=selectizeInput01),
+    
+    #tab 3: multivariate EDA-------------------------------------------------------------------------------------------------------
+    edaTabBuilder(name="Multivariate",tabID="mulEDA02",varID=c("var123","var456"),options=trainDF_nchrVars,fn=selectizeInput02)
+  ),
+
+
+  #### 3: Menu-Missing Data=======================================================================================================
+  navbarMenu(title="Missingness",menuName="Mis03",
+    #tab 1: names-----------------------------------------------------------------------------------------------------------------
+    tabPanel(title="Names", id="namMis03",
+      titlePanel("Names and Missingness"),
+      sidebarLayout(
+        sidebarPanel(
+          #exploring missing names
+          h4("Did you notice that some passengers did not have names? If not, take a closer look"),
+          selectInput01(id="sel_exp_namMis03",label="",choices=namMis03_expVec),
+          br(),
+          #go deeper with some possibilities
+          h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
+             full names will be impossible to impute from the other variables. Last names may be populated with confidence if we
+             assume passengers traveled together as families. Two ways to conclude that the traveling party is a family is
+             1) purchasing tickets together (same passenger group) or 2) saying in the same room (cabin). Here's how the patterns break down."),
+          radioButtons(inputId="rad_grpVar_namMis03",label="",choices=c("passenger_group"="passenger_group",
+                                                                        "cabin occupancy"="cabin"),
+                       selected=character(0)),
+          h4("Note that each group, regardless of group size or grouping variable, has one unnamed passenger."),
+          br(),
+          h4("Given all this information, how would you like to handle passengers with missing names?"),
+          selectInput01(id="sel_impOpt_namMis03",label="",choices=namMis03_impOptVec),
+          br(),
+          uiOutput("ui_slid_impOpt_namMis03")
+        ),
+        mainPanel(
+          htmlOutput("text_sel_exp_namMis03"),
+          DTOutput("tab_sel_exp_namMis03"),
+          plotOutput("plot_sel_exp_namMis03"),
+          br(),
+          htmlOutput("text_rad_grpVar_namMis03"),
+          plotOutput("plot_rad_grpVar_namMis03"),
+          tableOutput("test_table"),
+          tableOutput("test_table2")
+        )
+      )
+    ),
+    #tab 2: exploring non-character missingness-----------------------------------------------------------------------------------
+    tabPanel(title="Explore Missingness",id="nchrMis03",
+      titlePanel("Exploring Other Missing Data"),
+      sidebarLayout(
+        sidebarPanel(
+          h4("Let's visualize missingness in all non-character variables."),
+          selectInput01(id="sel_exp_nchrMis03",label="",choices=nchrMis03_expVec),
+          br(),
+          h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
+          remaining set of variables."),
+          selectInput01(id="sel_compare_nchrMis03",label="",choices=trainDF_nchrPreds),
+          br(),
+          #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
+        ),
+        mainPanel(
+          htmlOutput("text_sel_exp_nchrMis03"),
+          plotOutput("plot_sel_exp_nchrMis03"),
+          br(),
+          htmlOutput("text_sel_compare_nchrMis03"),
+          DTOutput("tab_sel_compare_nchrMis03")
+        )
+      )
+    )
+  ),
+  
+  #### 4: Menu-Feature Engineering======================================================================================
+  navbarMenu(title="Feature Engineering",menuName="Fea04",
+    #tab 1: data transformations----------------------------------------------------------------------------------------
+    tabPanel(title="Transformations",id="trnsFea04",
+      titlePanel("Feature Scaling and Extraction"),
+      h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, bin numerical (or 
+        character or factor variables) into (smaller) groups,perform ordinal encoding, and group rare categories
+        together. What would you like to begin with?"),
+      #fluidRow with column helps to align radio buttons
+      fluidRow(
+        column(6,align="center",offset=3,
+          radioButtons(inputId="rad_trnsFea04",label="",choices=trnsFea04_transVec,selected=character(0),
+                       inline=TRUE,width="100%"),
+          uiOutput("ui_chk_trnsFea04")
+        )
+      ),
+      #selector for the discretization panels
+      # fluidRow(
+      #   uiOutput("ui_sel_dis1_trnsFea04")
+      # ),
+      sidebarLayout(
+        sidebarPanel(
+          #create invisible panel that can be updated
+          tabsetPanel(id="sidebar_tab_trnsFea04",type="hidden",
+            #feature scaling
+            tabPanelBody("Feature Scaling",
+              uiOutput("ui_sel_scale1_trnsFea04"),
+              br(),
+              uiOutput("ui_sel_scale2_trnsFea04"),
+              uiOutput("ui_btn_scale_trnsFea04")
+            ),
+            #discretization
+            tabPanelBody("Discretization",
+              uiOutput("ui_sel_dis1_trnsFea04"),
+              uiOutput("ui_rad_dis1_trnsFea04"),
+              uiOutput("ui_num_dis1_trnsFea04"),
+              br(),
+              fluidRow(
+                column(9,
+                  htmlOutput("text_dis3a_trnsFea04")
+                ),
+                column(3,
+                  uiOutput("ui_btn_dis3a_trnsFea04")
+                )
+              ),
+              tags$style(type="text/css", "#ui_btn_dis3a_trnsFea04 {width: 100%; margin-top: 25px;}"),
+              br(),
+              htmlOutput("text_dis2_trnsFea04"),
+              uiOutput("ui_rad_dis2a_trnsFea04"),
+              uiOutput("ui_num_dis2a_trnsFea04"),
+              uiOutput("ui_rad_dis2b_trnsFea04"),
+              uiOutput("ui_num_dis2b_trnsFea04"),
+              fluidRow(
+                column(9,
+                  htmlOutput("text_dis3b_trnsFea04")
+                ),
+                column(3,
+                  uiOutput("ui_btn_dis3b_trnsFea04")
+                )
+              ),
+              tags$style(type="text/css", "#ui_btn_dis3b_trnsFea04 {width: 100%; margin-top: 25px;}")
+            ),           
+            #ordinal encoding
+            tabPanelBody("Ordinal Encoding",
+              uiOutput("ui_sel_ordEnc1_trnsFea04"),
+              linebreaks(2),
+              radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding on any of
+                           the variables?",choices=c("Yes","No"),selected=character(0)),
+              linebreaks(2),
+              htmlOutput("text_ordEnc_trnsFea04"),
+              #produces a list of checkboxes and selectors
+              ui_splits,
+              uiOutput("ui_btn_ordEnc2_trnsFea04")
+            ),
+            #rare label encoding
+            tabPanelBody("Rare Label Encoding",
+              uiOutput("ui_sel_rareEnc1a_trnsFea04"),
+              uiOutput("ui_sel_rareEnc1b_trnsFea04"),
+              linebreaks(5),
+              uiOutput("ui_sel_rareEnc2a_trnsFea04"),
+              uiOutput("ui_sel_rareEnc2b_trnsFea04"),
+              uiOutput("ui_btn_rareEnc_trnsFea04")
+            )
+          )
+        ),
+        mainPanel(
+          #set this to dynamically produce tabs
+          tabsetPanel(id="main_tab_trnsFea04",type="hidden",
+            #feature scaling
+            tabPanelBody("Feature Scaling",
+              plotOutput("plot_sel_scale1_trnsFea04",height="1000px"),
+              tableOutput("DT1")
+            ),
+            #discretization
+            tabPanelBody("Discretization",
+              plotOutput("plot_sel_dis1_trnsFea04"),
+              plotOutput("plot_sel_dis2_trnsFea04"),
+              tableOutput("temp_table_dis1_trnsFea04"),
+              tableOutput("temp_table_dis2_trnsFea04"),
+              tableOutput("temp_table_dis3_trnsFea04"),
+              tableOutput("temp_table_dis4_trnsFea04"),
+              tableOutput("temp_table_dis5_trnsFea04"),
+              tableOutput("temp_table_dis6_trnsFea04"),
+              tableOutput("temp_table_dis7_trnsFea04"),
+              tableOutput("temp_table_dis8_trnsFea04")
+            ),
+            #ordinal encoding
+            tabPanelBody("Ordinal Encoding",
+              plotOutput("plot_sel_ordEnc1_trnsFea04"),
+              linebreaks(2),
+              htmlOutput("text_sel_ordEnc1_trnsFea04"),
+              tableOutput("temp_tab_trnsFea04")
+            ),
+            #rare label encoding
+            tabPanelBody("Rare Label Encoding",
+              fluidRow(
+                column(6,
+                  plotOutput("plot_sel_rareEnc1a_trnsFea04",height="250px")
+                ),
+                column(6,
+                  plotOutput("plot_sel_rareEnc1b_trnsFea04",height="250px")
+                )
+              ),
+              linebreaks(2),
+              fluidRow(
+                column (6,
+                  plotOutput("plot_sel_rareEnc2a_trnsFea04",height="250px")
+                ),
+                column(6,
+                  plotOutput("plot_sel_rareEnc2b_trnsFea04",height="250px"),
+                  tableOutput("temp_table_rareEnc_trnsFea04")
+                )
+              )
+            )
+          )
+        )
+      )
+    ),
+    #tab 2: feature creation--------------------------------------------------------------------------------------------
+    tabPanel(title="Feature Creation",id="creFea04",
+      titlePanel(title="Feature Creation"),
+      h4("Now you have the opportunity to create new features for your model using the existing variables. Let's look
+         at some possible options"),
+      #inputs
+      wellPanel(
+        fluidRow(
+          column(5,
+            #select input for group size
+            selectInput01(id="sel_exp1_creFea04",label="Create a group size variable that uses...",
+                          choices=creFea04_grpSizeVec)
+          ),
+          column(2,
+            linebreaks(5),    
+            uiOutput("ui_btn_cfirm_creFea04")
+          ),
+          column(3,
+            #select input for luxury expenses
+            selectizeInput(inputId="sel_exp2_creFea04",label="Create a luxury expense variable that uses the sum of",
+                          multiple=TRUE,choices=c("Choose at least two variables"="",creFea04_luxVec)),
+          ),
+          column(2,
+            actionButton(inputId="btn_exp2_creFea04",label="Visualize results")
+          )
+        ),
+        #vertically aligns button with selectizeInput
+        tags$style(type="text/css", "#btn_exp2_creFea04 {width: 100%; margin-top: 25px;}")
+      ),
+      #outputs
+      fluidRow(
+        column(6,
+          plotOutput("plot_sel_exp1a_creFea04"),
+          plotOutput("plot_sel_exp1b_creFea04")
+        ),
+        column(6,
+          plotOutput("plot_sel_exp2a_creFea04"),
+          br(),
+          plotOutput("plot_sel_exp2b_creFea04"),
+          #temporary table--previews data after confirming selections
+          tableOutput("plot_temp_table_creFea04")
+        )
+      )
+    ),
+  
+  
+    #tab 3: feature selection---------------------------------------------------------------------------------------------
+    tabPanel(title="Feature Selection",id="selFea04",
+      titlePanel(title="Feature Selection"),
+      h4("After transforming your data, extracting potential variables, and creating potential variables, you have
+        the opportunity to select a final set of variables for modeling. Look at the variables once more before
+        making your final"),
+      sidebarLayout(
+        sidebarPanel(
+         #CONSIDER A FUNCTION HERE??
+         # #select input for all variables--choose one predictor which will output plots
+         # selectInput01(id="sel_exp1_selFea04",label="Create a group size variable that uses...",
+         #               choices=""),
+         # #select input for final set of variables
+         # selectizeInput(inputId="sel_exp2_selFea04",label="Create a luxury expense variable that uses the sum of",
+         #                multiple=TRUE,choices=c("Choose at least two"="",creFea04_luxVec))
+        ),
+        mainPanel()
+      )
+    )
+  )
+  
+      
+  
+
+
+  
+  # #### 5: Tab-Data Partitioning=================================================================================================
+  # tabPanel(title="Data Partitioning",id="part_05",
+  #   sidebarLayout(
+  #     sidebarPanel(),
+  #     mainPanel()
+  #   )
+  # ),
+  # 
+  # #### 6: Menu-Modeling=================================================================================================
+  # navbarMenu(title="Modeling",menuName="mod_06",
+  #   tabPanel(title="Model specification", id="mod_spec_06a",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   ),
+  #   tabPanel(title="Fit models", id="mod_fit_06b",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   ),
+  #   tabPanel(title="Model assessment", id="mod_assess_06c",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   )
+  # ),
+  # 
+  # #### 7: Menu-Validation & Tuning===========================================================================================
+  # navbarMenu(title="Validation & Tuning", menuName="valTune_07",
+  #   tabPanel(title="Cross-validate",id="valTune_07a",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   ),
+  #   tabPanel(title="Model tuning", id="valTune_mod_07b",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   ),  
+  #   tabPanel(title="Model selection", id="valTune_sel_07c",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   ),
+  #   tabPanel(title="Model assessment", id="valTune_assess_07d",
+  #     sidebarLayout(
+  #       sidebarPanel(),
+  #       mainPanel()
+  #     )
+  #   )
+  # ),
+  #   
+  # #### 8: Tab-Model Testing============================================================================================
+  # tabPanel(title="Testing",id="mod_test_08",
+  #   sidebarLayout(
+  #     sidebarPanel(),
+  # downloadUI - give user opportunity to download data to submit to Kaggle
+  #     mainPanel()
+  #   )
+  # )
+)
+
+
+
+server<-function(input,output,session){
+  
+  #### Server 0: Intro================================================================================================================
+  
+  #### Server 1: Data Checking========================================================================================================
+  ### Display dims, data sample, or missingness
+  dat_check<-reactive({
+    switch(input$sel_quick_Chk01,
+           dim=dim_tbl(trainDF),
+           dat_samp=slice_sample(trainDF,n=5),
+           miss=n_miss_tbl(trainDF)
+    )
+  })
+
+  output$tab_sel_quick_Chk01<-renderDT(
+    dat_check(),options=list(scrollX="400px",
+                             pageLength=5)
+  )
+
+  ### Display data summary by col type
+  dat_sum<-reactive({
+    switch(input$sel_summ_Chk01,
+      chr=skim_tbl(trainDF,type="character"),
+      fct=skim_tbl(trainDF,type="factor"),
+      lgl=skim_tbl(trainDF,type="logical"),
+      num=skim_tbl(trainDF,type="numeric"))
+  })
+
+  output$tab_sel_summ_Chk01<-renderDT(
+    dat_sum(),options=list(scrollX="400px")
+  )
+
+  
+  #### Server 2: EDA============================================================================================
+  ### Univariate-------------------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_var1_uniEDA02<-renderUI({
+    h3(paste(input$sel_var1_uniEDA02))
+  })
+  
+  output$text_sel_var2_uniEDA02<-renderUI({
+    h3(paste(input$sel_var2_uniEDA02))
+  })
+  
+  ## Table outputs
+  # reactives of output tables
+  dat1_uniEDA02<-reactive({
+    if(input$sel_var1_uniEDA02 %in% trainDF_numVars){
+      summaryize(trainDF,input$sel_var1_uniEDA02)
+    }
+    else if(input$sel_var1_uniEDA02 %in% trainDF_catVars){
+      tabylize(trainDF,input$sel_var1_uniEDA02)
+    }
+  })
+
+  dat2_uniEDA02<-reactive({
+    if(input$sel_var2_uniEDA02 %in% trainDF_numVars){
+      summaryize(trainDF,input$sel_var2_uniEDA02)
+    }
+    else if(input$sel_var2_uniEDA02 %in% trainDF_catVars){
+      tabylize(trainDF,input$sel_var2_uniEDA02)
+    }
+  })
+  
+  # Output tables
+  output$tab_sel_var1_uniEDA02<-renderDT(
+    dat1_uniEDA02(),options=list(scrollX="400px",
+                                pageLength=5)
+  )
+
+  output$tab_sel_var2_uniEDA02<-renderDT(
+    dat2_uniEDA02(),options=list(scrollX="400px",
+                                pageLength=5)
+  )
+  
+  
+  ## Plot outputs
+  output$plot_sel_var1_uniEDA02<-renderPlot({
+    if(input$sel_var1_uniEDA02 %in% trainDF_numVars){
+      histogrammer(trainDF,input$sel_var1_uniEDA02)
+    }
+    else if(input$sel_var1_uniEDA02 %in% trainDF_catVars){
+      barplotter(trainDF,input$sel_var1_uniEDA02)
+    }
+  })
+
+  output$plot_sel_var2_uniEDA02<-renderPlot({
+    if(input$sel_var2_uniEDA02 %in% trainDF_numVars){
+      histogrammer(trainDF,input$sel_var2_uniEDA02)
+    }
+    else if(input$sel_var2_uniEDA02 %in% trainDF_catVars){
+      barplotter(trainDF,input$sel_var2_uniEDA02)
+    }
+  })
+  
+  
+  ### Bivariate-------------------------------------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_var12_biEDA02<-renderUI({
+    h3(paste(input$sel_var12_biEDA02,collapse="-"))
+  })
+  
+  output$text_sel_var34_biEDA02<-renderUI({
+    h3(paste(input$sel_var34_biEDA02,collapse="-"))
+  })
+  
+  ## Table outputs
+  # Create reactives of output tables
+  dat1_biEDA02<-reactive({
+    req(length(input$sel_var12_biEDA02)==2)
+    #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
+    if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
+      tabylize(trainDF,input$sel_var12_biEDA02)
+    }
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+      summaryize(trainDF,input$sel_var12_biEDA02,input$sel_var12_biEDA02[input$sel_var12_biEDA02 %in% trainDF_catVars])
+    }
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_numVars)==2) {
+      corrtester(trainDF,input$sel_var12_biEDA02)
+    }
+  })
+  
+  
+  dat2_biEDA02<-reactive({
+    req(length(input$sel_var34_biEDA02)==2)
+    #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
+    if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==2) {
+      tabylize(trainDF,input$sel_var34_biEDA02)
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+      summaryize(trainDF,input$sel_var34_biEDA02,input$sel_var34_biEDA02[input$sel_var34_biEDA02 %in% trainDF_catVars])
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_numVars)==2) {
+      corrtester(trainDF,input$sel_var34_biEDA02)
+    }
+  })
+  
+  
+  # Output tables
+  output$tab_sel_var12_biEDA02<-renderDT(
+    dat1_biEDA02(),options=list(scrollX="400px",
+                                  pageLength=5)
+  )
+  
+  output$tab_sel_var34_biEDA02<-renderDT(
+    dat2_biEDA02(),options=list(scrollX="400px",
+                                  pageLength=5)
+  )
+
+  ## Plot outputs
+  output$plot_sel_var12_biEDA02<-renderPlot({
+    #must select two inputs first
+    req(length(input$sel_var12_biEDA02)==2)
+    #if both categorical, then bar plot
+    if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==2) {
+      barplotter(trainDF,input$sel_var12_biEDA02)
+    }
+    #if 1 cat & 1 num then boxplot
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==1) {
+      boxplotter(trainDF,input$sel_var12_biEDA02)
+    }
+    #if two num then scatterplot
+    else if(sum(input$sel_var12_biEDA02 %in% trainDF_catVars)==0) {
+      scatterplotter(trainDF,input$sel_var12_biEDA02)
+    }
+  })
+  
+  output$plot_sel_var34_biEDA02<-renderPlot({
+    req(length(input$sel_var34_biEDA02)==2)
+    if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==2) {
+      barplotter(trainDF,input$sel_var34_biEDA02)
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==1) {
+      boxplotter(trainDF,input$sel_var34_biEDA02)
+    }
+    else if(sum(input$sel_var34_biEDA02 %in% trainDF_catVars)==0) {
+      scatterplotter(trainDF,input$sel_var34_biEDA02)
+    }
+  })
+
+  
+  ### Multivariate-------------------------------------------------------------------------------------------------------------------
+  ## Text outputs
+  output$text_sel_var123_mulEDA02<-renderUI({
+    h3(paste(input$sel_var123_mulEDA02,collapse="-"))
+  })
+  
+  output$text_sel_var456_mulEDA02<-renderUI({
+    h3(paste(input$sel_var456_mulEDA02,collapse="-"))
+  })
+  
+  
+  ## Plot outputs
+  output$plot_sel_var123_mulEDA02<-renderPlot({
+    #must select three inputs first
+    req(length(input$sel_var123_mulEDA02)==3)
+    #if all categorical, then bar plot
+    if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==3) {
+      barplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+    #if 2 cat & 1 num then boxplot
+    else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==2) {
+      boxplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+    #if 2-3 num then scatterplot
+    else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars) < 2) {
+      scatterplotter(trainDF,input$sel_var123_mulEDA02)
+    }
+  })
+  
+  output$plot_sel_var456_mulEDA02<-renderPlot({
+    req(length(input$sel_var456_mulEDA02)==3)
+    if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==3) {
+      barplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+    else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==2) {
+      boxplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+    else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars) < 2) {
+      scatterplotter(trainDF,input$sel_var456_mulEDA02)
+    }
+  })
+  
+  
+
+  ##### Server 3: Missing Data====================================================================================================
+  #### Names----------------------------------------------------------------------------------------------------------------------
+  ### Exploring missing names
+  ## Text outputs
+  output$text_sel_exp_namMis03<-renderUI({
+    #here switch() can be used with all four choices to display the appropriate name
+    switch(input$sel_exp_namMis03,
+      miss_samp=h3(paste("Sample of Passengers with Missing Names")),
+      nmiss_samp=h3(paste("Sample of Passengers with Names")),
+      sum_tab=h3(paste("Summary of Missing Names")),
+      plot=h3(paste("Plot of Missing Names"))
+    )
+  })
+  
+  ## Create reactive object (for tabular output)
+  dat1_namMis03<-reactive({
+    #reactive is used to build reactive table objects
+    switch(input$sel_exp_namMis03,
+      miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
+      nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
+      sum_tab=chr_miss_tabler(trainDF)
+    )
+  })
+  
+
+  ## Output table/plot
+  # Table output
+  output$tab_sel_exp_namMis03<-renderDT(
+    dat1_namMis03(),options=list(scrollX="400px")
+  )
+  
+  # Plot output
+  output$plot_sel_exp_namMis03<-renderPlot({
+    #plot outputs only when selected (note that this is always the same plot)
+    req(input$sel_exp_namMis03=="plot")
+    chr_miss_boxplotter(trainDF)
+  })
+  
+  
+  ### Understanding name missingness conditioned on other variables
+  ## Text outputs
+  output$text_rad_grpVar_namMis03<-renderUI({
+    req(input$rad_grpVar_namMis03)
+    switch(input$rad_grpVar_namMis03,
+      passenger_group=h3(paste("Summary of Missing Names by Size of Passenger Groups")),
+      cabin=h3(paste("Summary of Missing Names by Cabin Occupancy"))
+    )
+  })
+  
+  ## Create reactive object (for tabular and plot outputs)
+  dat2_namMis03<-reactive({
+    switch(input$rad_grpVar_namMis03,
+      passenger_group=mis_name_tabler(trainDF,l_name,passenger_group),
+      cabin=mis_name_tabler(trainDF,l_name,cabin)
+    )
+  })
+  
+  
+  ## Output plots
+  output$plot_rad_grpVar_namMis03<-renderPlot({
+    req(input$rad_grpVar_namMis03)
+    col_plotter(dat2_namMis03(),num_name,n)
+  })
+  
+  
+  ## Dynamic UI 
+  # Display sliders
+  output$ui_slid_impOpt_namMis03<-renderUI({
+    req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
+    switch(input$sel_impOpt_namMis03,
+      imp_pass_group=sliderInput("slid1_impOpt_namMis03",
+                      "Select a range of named passengers per passenger_group to use for name imputation",
+                      value=c(3,3),min=1,max=7),
+      imp_cabin=sliderInput("slid2_impOpt_namMis03","Select a range of named passengers per cabin to use for name 
+                            imputation",value=c(3,3),min=1,max=6)
+    )
+  })
+  
+  
+  ## Create reactive object (for creating a new DF)
+  dat3_namMis03<-reactive({
+    req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
+    switch(input$sel_impOpt_namMis03,
+      imp_pass_group=mis_name_tabler(trainDF,l_name,passenger_group),
+      imp_cabin=mis_name_tabler(trainDF,l_name,cabin)
+    )
+  })
+  
+  ## Create new data frame object after name imputation or col/row removal
+  trainDF_nI<-reactive({
+    #requires selection from drop-down menu
+    req(input$sel_impOpt_namMis03)
+    #dplyr code if drop_cols selected
+    if(input$sel_impOpt_namMis03=="drop_cols"){
+      trainDF %>% select(-contains("name"))
+    }
+    
+    #same for remove_rows
+    else if(input$sel_impOpt_namMis03=="remove_rows"){
+      trainDF %>% filter(!is.na("name"))
+    }
+    #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
+    else if(input$sel_impOpt_namMis03=="imp_pass_group" & length(input$slid1_impOpt_namMis03)>0){
+      name_imputer(dat3_namMis03(),num_name,input$slid1_impOpt_namMis03,trainDF,passenger_group)
+    }
+    else if(input$sel_impOpt_namMis03=="imp_cabin" & length(input$slid2_impOpt_namMis03)>0){
+      name_imputer(dat3_namMis03(),num_name,input$slid2_impOpt_namMis03,trainDF,cabin)
+    }
+  })
+  
+  ## Test whether code above is working
+  output$test_table<-renderTable({
+    head(trainDF_nI()) 
+  })
+  
+  
+  ## Temporary code--to update name of DF
+  trainDF_nvI<-reactive({
+    trainDF_nI()
+  })
+  
+  ## Test whether code directly above is working
+  output$test_table2<-renderTable({
+    head(trainDF_nvI()) 
+  })
+  
+  
+
+  
+  #### Non-Character Missingness----------------------------------------------------------------------------------------
+  ### Exploration
+  ## Text output
+  output$text_sel_exp_nchrMis03<-renderUI({
+    switch(input$sel_exp_nchrMis03,
+           miss_occur=h3(paste("Missing Values Occurrences Plot")),
+           miss_var=h3(paste("Missing Values per Variable Plot")),
+           miss_obs=h3(paste("Missing Values per Observation Plot")),
+           miss_patt=h3(paste("Missing Pattern Plot"))
+    )
+  })
+  
+  ## Plot output
+  output$plot_sel_exp_nchrMis03<-renderPlot({
+    switch(input$sel_exp_nchrMis03,
+           miss_occur=trainDF_nvI() %>% missing_plot(depVar,trainDF_nchrPreds),
+           miss_var=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
+           miss_obs=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
+           miss_patt=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
+    )
+  })
+
+  
+  ### Statistical comparisons
+  ## Text output
+  output$text_sel_compare_nchrMis03<-renderUI({
+    req(input$sel_compare_nchrMis03)
+    h3(paste("Missing Data Analysis of",input$sel_compare_nchrMis03))
+  })
+  
+  
+  ## Table output
+  # Create reactive
+  dat_nchrMis03<-reactive({
+    req(input$sel_compare_nchrMis03)
+    if(input$sel_compare_nchrMis03 %in% cabinVars){
+      sel_vars<-setdiff(trainDF_nchrVars,cabinVars)
+    }
+    else{sel_vars<-setdiff(trainDF_nchrVars,input$sel_compare_nchrMis03)}
+    missing_compare(trainDF_nvI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
+    )
+  })
+
+
+  # Output reactive
+  output$tab_sel_compare_nchrMis03<-renderDT(
+    dat_nchrMis03(),options=list(scrollX="400px")
+  )
+
+  
+  ##### Server 4: Features==============================================================================================
+  output$ui_chk_trnsFea04<-renderUI({   
+    #update req() statement--should reflect that all four confirmations selected
+    req(input$rad_trnsFea04)
+    checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
+  })
+  
+  
+  #### Feature Scaling and Extraction-----------------------------------------------------------------------------------
+  ### Conditional tabsets
+  ## Conditional UI for displaying 'main' sidebar tabset panel
+  observeEvent(input$rad_trnsFea04, {
+    updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
+  })
+  
+  
+  ## Conditional UI for displaying main tabset panel for larger categories
+  observeEvent(input$rad_trnsFea04, {
+    updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
+  })
+  
+  
+  ### Dynamic UI to display inputs
+  ## Character string objects for label argument
+  varViz_feat<-"Please select a variable to visualize"
+  varSel_feat<-"Please select which variables for ordinal encoding"
+  varSelOrd_feat<-c("Rank all from least to most important"="")
+  scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
+  
+  
+  ## Normalization/standardization
+  # Input to select var to visualize, either unscaled or scaled
+  output$ui_sel_scale1_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04)
+    selectInput01(id="sel_scale1_trnsFea04",label=varViz_feat,
+                  #dynamically select numeric vars (NOTE: will need to update data object later)
+                  choices=trainDF_nvI() %>% select(where(is.numeric)) %>% names())
+  })
+  
+  
+  # Input to select how to transform/scale selected variables
+  output$ui_sel_scale2_trnsFea04<-renderUI({
+    req(input$sel_scale1_trnsFea04)
+    selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
+                  choices=trnsFea04_transOptVec)
+  })
+  
+  # Button to confirm selection
+  output$ui_btn_scale_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04,input$sel_scale1_trnsFea04,input$sel_scale2_trnsFea04)
+    actionButton(inputId="btn_scale_trnsFea04",label="Confirm your selection") 
+  })
+  
+  # Button to confirm scaling selections and create new columns/variables
+  trainDF_nvI_s<-eventReactive(input$btn_scale_trnsFea04, {
+    switch(input$sel_scale2_trnsFea04,
+           #raw = unchanged
+           raw=trainDF_nvI(),
+           #log = log-transform + identifier
+           log=trainDF_nvI() %>% 
+             mutate(across(where(is.numeric),~log(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")),
+           #mm_scale = min-max scale + identifier
+           mm_scale=trainDF_nvI() %>%
+             mutate(across(where(is.numeric),~min_max_scaler(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")), 
+           #standize = standardized + identifier
+           standize=trainDF_nvI() %>%
+             mutate(across(where(is.numeric),~standardizer(.x),.names="{.col}_scale")) %>%
+             select(passenger_id,ends_with("scale")) 
+    )
+  })
+  
+  #Temporary table--proof that above code is working
+  output$DT1<-renderTable({
+    head(trainDF_nvI_s())
+  })
+  
+  
+
+  ## Discretization
+  # Input to select var to visualize as histogram (for discretization)
+  output$ui_sel_dis1_trnsFea04<-renderUI({
+    req(input$rad_trnsFea04=="Discretization")
+    selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
+                  #dynamically select numerical variables and num 
+                  choices=trainDF_disVars)
+  })
+  
+  # Input to choose whether to log10-transform x-axis
+  output$ui_rad_dis1_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis1_trnsFea04",
+                 label="Choose whether to log10-scale the x-axis",
+                 choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+  })
+  
+  # Input to choose number of bins for histogram
+  output$ui_num_dis1_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04)
+    numericInput(inputId="num_dis1_trnsFea04",
+                 label="Select the number of bins for the histogram (2-100)",
+                 value=30,min=2,max=100)
+  })
+  
+  # Output to display text for next set of inputs
+  output$text_dis2_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    h4("Visualization of binned data")
+  })
+  
+  
+  # Input to select a log10-transformed y-axis
+  output$ui_rad_dis2a_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis2a_trnsFea04",
+                 label="Choose whether to log10-scale the y-axis",
+                 choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+  })
+  
+  # Input to choose number of breaks
+  output$ui_num_dis2a_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    numericInput(inputId="num_dis2a_trnsFea04",
+                 label="Select the number of breaks to create data bins (1-5)",
+                 value=2,min=1,max=5)
+  })
+  
+  # Input to choose whether to have R or user-selected bin boundaries
+  output$ui_rad_dis2b_trnsFea04<-renderUI({
+    req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    radioButtons(inputId="rad_dis2b_trnsFea04",
+                 label="Choose who selects the bin boundaries",
+                 choices=c("R","me"),selected=character(0),inline=TRUE)
+  })
+  
+  
+
+  
+  
+  # Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
+  output$ui_num_dis2b_trnsFea04<-renderUI({
+    req(input$rad_dis2a_trnsFea04,input$rad_dis2b_trnsFea04=="me")
+    tags_num<-tagList()
+    for(i in seq_len(input$num_dis2a_trnsFea04)){
+      tags_num[[i]]<-numericInput(paste0("n",i),paste0("Break",i),min=0,value=NULL)
+    }
+    tags_num
+  })
+  
+
+
+  # Dynamically display action button (and associated text) to discretize variable 
+  #display text for action buttons
+  output$text_dis3a_trnsFea04<-renderUI({
+    req(!is.na(input$rad_dis1_trnsFea04))
+    h4(paste0("I am not interested in discretizing ",input$sel_dis1_trnsFea04,"."))
+  })
+  
+  output$text_dis3b_trnsFea04<-renderUI({
+    #either "R" is selected or "me" is selected and the number and every break point input is populated
+    req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
+       (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+    )
+    h4(paste("Click confirm to discretize",input$sel_dis1_trnsFea04, "using these settings."))
+  })
+  
+  #display buttons
+  output$ui_btn_dis3a_trnsFea04<-renderUI({
+    req(!is.na(input$rad_dis1_trnsFea04))
+    switch(input$sel_dis1_trnsFea04,
+      age=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      room_service=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      food_court=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      shopping_mall=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      spa=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      vr_deck=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      num=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
+    )
+  })
+  
+  output$ui_btn_dis3b_trnsFea04<-renderUI({
+    req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
+          (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+    )
+    switch(input$sel_dis1_trnsFea04,
+      age=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      room_service=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      food_court=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      shopping_mall=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      spa=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      vr_deck=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
+      num=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
+    )
+  })
+  
+
+  
+  
+  ## Ordinal Encoding
+  # Select variable to visualize
+  output$ui_sel_ordEnc1_trnsFea04<-renderUI({
+    selectInput01(id="sel_ordEnc1_trnsFea04",label=varViz_feat,
+                  #dynamically select factors 
+                  choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
+  })
+  
+  # Dynamically display text above checkboxes below
+  output$text_ordEnc_trnsFea04<-renderUI({
+    req(input$rad_ordEnc_trnsFea04=="Yes") 
+    h4("Check each variable for ordinal encoding and rank the categories from least to most important")
+  })
+  
+  
+  # Dynamically create checkboxes to choose variables for ordinal encoding
+    output$ui_chk_ordEnc2a_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2a_trnsFea04",label="ticket",value=FALSE)
+    })
+    output$ui_chk_ordEnc2b_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2b_trnsFea04",label="home_planet",value=FALSE)
+    })
+    output$ui_chk_ordEnc2c_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2c_trnsFea04",label="deck",value=FALSE)
+    })
+    output$ui_chk_ordEnc2d_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2d_trnsFea04",label="side",value=FALSE)
+    })
+    output$ui_chk_ordEnc2e_trnsFea04<-renderUI({
+      req(input$rad_ordEnc_trnsFea04=="Yes") 
+      checkboxInput(inputId="chk_ordEnc2e_trnsFea04",label="destination",value=FALSE)
+    })
+
+    
+  # Dynamically create selectors for ordinal encoding
+  output$ui_sel_ordEnc2a_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2a_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2a_trnsFea04",label="", multiple=TRUE,
+                  choices=c(varSelOrd_feat,
+                          trainDF_nvI()[["ticket"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2b_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2b_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2b_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["home_planet"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2c_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2c_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2c_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["deck"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2d_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2d_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2d_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["side"]] %>% levels()))
+  })
+  
+  output$ui_sel_ordEnc2e_trnsFea04<-renderUI({
+    req(input$chk_ordEnc2e_trnsFea04)
+    selectizeInput(inputId="sel_ordEnc2e_trnsFea04",label="", multiple=TRUE,
+                   choices=c(varSelOrd_feat,
+                             trainDF_nvI()[["destination"]] %>% levels()))
+  })
+  
+  
+  # Dynamically display button
+  output$ui_btn_ordEnc2_trnsFea04<-renderUI({
+    n_ticket<-nlevels(trainDF_nvI()[["ticket"]])
+    n_home_planet<-nlevels(trainDF_nvI()[["home_planet"]])
+    n_deck<-nlevels(trainDF_nvI()[["deck"]])
+    n_side<-nlevels(trainDF_nvI()[["side"]])
+    n_destination<-nlevels(trainDF_nvI()[["destination"]])
+    
+    #button displays if 1) "No" selected in radio button; 2) at least one box is checked AND for each var either
+      #1) box unchecked or all categories selected 
+    req(input$rad_ordEnc_trnsFea04=="No"|(
+      sum(length(input$sel_ordEnc2a_trnsFea04)==n_ticket,
+          length(input$sel_ordEnc2b_trnsFea04)==n_home_planet, 
+          length(input$sel_ordEnc2c_trnsFea04)==n_deck,
+          length(input$sel_ordEnc2d_trnsFea04)==n_side,
+          length(input$sel_ordEnc2e_trnsFea04)==n_destination) > 0 & (
+      (length(input$sel_ordEnc2a_trnsFea04)==n_ticket|input$chk_ordEnc2a_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2b_trnsFea04)==n_home_planet|input$chk_ordEnc2b_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2c_trnsFea04)==n_deck|input$chk_ordEnc2c_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2d_trnsFea04)==n_side|input$chk_ordEnc2d_trnsFea04==FALSE) &
+      (length(input$sel_ordEnc2e_trnsFea04)==n_destination|input$chk_ordEnc2e_trnsFea04==FALSE)
+      )
+      )
+    )
+    actionButton(inputId="btn_ordEnc2_trnsFea04",label="Confirm all ordinal encoding selections")
+  })
+  
+
+  ## Rare Label Encoding
+  # Input to select var to visualize as a barplot
+  output$ui_sel_rareEnc1a_trnsFea04<-renderUI({
+    selectInput01(id="sel_rareEnc1a_trnsFea04",label=varViz_feat,
+                  #dynamically ticket and deck 
+                  choices=trainDF_nvI() %>% select(deck,ticket) %>% names())
+  })
+  
+  # Input to select levels to combine as a category and visualize in a new barplot (NAs are off limits)
+  output$ui_sel_rareEnc1b_trnsFea04<-renderUI({
+    req(input$sel_rareEnc1a_trnsFea04)
+    selectizeInput(inputId="sel_rareEnc1b_trnsFea04",label="",multiple=TRUE,
+                   choices=c("Choose at least two"="",
+                             trainDF_nvI() %>% 
+                               pull(input$sel_rareEnc1a_trnsFea04) %>% 
+                               unique() %>%
+                               sort() %>%
+                               as.character()))
+  })
+  
+  # Input to select other var to visualize as a barplot
+  output$ui_sel_rareEnc2a_trnsFea04<-renderUI({
+    req(length(input$sel_rareEnc1b_trnsFea04)>1)
+    selectInput01(id="sel_rareEnc2a_trnsFea04",label=varViz_feat,
+                  #dynamically ticket and deck 
+                  choices=trainDF_nvI() %>% select(deck,ticket,-input$sel_rareEnc1a_trnsFea04) %>% names())
+  })
+  
+  # Input to select levels to combine as a category and visualize in a new barplot
+  output$ui_sel_rareEnc2b_trnsFea04<-renderUI({
+    req(input$sel_rareEnc2a_trnsFea04)
+    selectizeInput(inputId="sel_rareEnc2b_trnsFea04",label="",multiple=TRUE,
+                   choices=c("Choose at least two"="",
+                             trainDF_nvI() %>% 
+                               pull(input$sel_rareEnc2a_trnsFea04) %>% 
+                               unique() %>%
+                               sort() %>%
+                               as.character()))
+  })
+  
+  # Button to confirm selections
+  output$ui_btn_rareEnc_trnsFea04<-renderUI({
+    req(input$sel_rareEnc1a_trnsFea04)
+    actionButton(inputId="btn_rareEnc_trnsFea04",label="Confirm selections")
+  })
+
+  
+  ### Conditional output for feature extraction
+  ## Normalization/standardization
+  # Display set of plots
+  output$plot_sel_scale1_trnsFea04<-renderPlot({
+    req(input$sel_scale1_trnsFea04)
+    cowplotter(trainDF_nvI(),input$sel_scale1_trnsFea04)
+  })
+
+  
+  ## Discretization
+  # Plot raw data with fill=transported as histogram
+  output$plot_sel_dis1_trnsFea04<-renderPlot({
+    req(input$rad_dis1_trnsFea04)
+    switch(input$sel_dis1_trnsFea04,
+      age=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      room_service=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      food_court=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      shopping_mall=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      spa=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      vr_deck=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
+      num=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
+        n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04)
+    )
+  })
+  
+  
+  # Plot numerical var in bins filled by transported either using R or user specified break values
+  #create reactive vectors of cut locations
+  user_cuts<-reactive({
+    c(input$n1,input$n2,input$n3,input$n4,input$n5)
+  })
+  
+  R_cuts<-reactive({
+    layer_scales(plot_dis_trnsFea04())$x$breaks
+  })
+  
+
+  
+  #use switch to create plot object
+  plot_dis_trnsFea04<-reactive({
+    req(input$rad_dis2a_trnsFea04, input$rad_dis2b_trnsFea04)
+    switch(input$rad_dis2b_trnsFea04,
+           R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
+                         y.log.scale=input$rad_dis2a_trnsFea04),
+           me=user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
+                               y.log.scale=input$rad_dis2a_trnsFea04)
+    )
+  })
+  
+  #plot the plot object
+  output$plot_sel_dis2_trnsFea04<-renderPlot({
+    plot_dis_trnsFea04()
+  })
+  
+  
+  
+  # Create reactiveValues object and initialize with NULL values
+  #trainDF_dis_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,vr_deck=NULL,num=NULL)
+  # trainDF_dis_list<-reactiveValues()
+  trainDF_dis_list<-vector(mode="list")
+
+ 
+  
+  # Update reactiveValues object with passenger_id values as a tibble when selector input is used
+  # observeEvent(input$rad_trnsFea04, {
+  #   
+  # }
+  # })
+  
+ # trainDF_dis_list<-reactiveValues(age=NULL)
+ #  
+ #  trainDF_dis_list$age<-reactive({trainDF_nvI() %>% select(passenger_id)})
+
+  # 
+  # trainDF_dis_list$room_service<-reactive({
+  #   trainDF_nvI() %>% select(passenger_id) 
+  # })
+  # 
+  # trainDF_dis_list$food_court<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$shopping_mall<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$spa<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$vr_deck<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+  # 
+  # trainDF_dis_list$num<-eventReactive(input$rad_trnsFea04, {
+  #   trainDF["passenger_id"]
+  # })
+
+  
+
+  
+  # trainDF_dis_list<-reactiveValues(age=NULL)
+  
+  #trainDF_dis_list$room_service<-tibble(x="test")
+  
+ # trainDF_dis_list<-reactiveValues(age=trainDF["passenger_id"],
+ #                         room_service=trainDF["passenger_id"])
+ 
+                         # food_court=trainDF["passenger_id"],
+                         # shopping_mall=trainDF["passenger_id"],
+                         # spa=trainDF["passenger_id"],
+                         # vr_deck=trainDF["passenger_id"],
+                         # num=trainDF["passenger_id"])
+  
+  # trainDF_dis_list<-reactiveValues(age=NA,room_service=NA,food_court=NA,shopping_mall=NA,spa=NA,
+  #                                  vr_deck=NA,num=NA)
+  
+  # Confirm discretization (for each variable)
+  #age
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3a_age, {
+  #   trainDF_nvI() %>% select(passenger_id)
+  # })
+  # 
+  # 
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+
+  observeEvent(input$sel_dis1_trnsFea04e, {
+    trainDF_dis_list$age<-trainDF %>% select(passenger_id)
+  })
+  
+  observeEvent(input$btn_dis3b_age, {
+    req(input$rad_dis2b_trnsFea04)
+    if(input$rad_dis2b_trnsFea04=="R"){
+      trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+    }
+    else if(input$rad_dis2b_trnsFea04=="me"){
+      trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    }
+  })
+  
+  
+  observeEvent(input$sel_dis1_trnsFea04, {
+    trainDF_dis_list$room_service<-trainDF %>% select(passenger_id)
+  })
+  
+  observeEvent(input$btn_dis3b_room_service, {
+    req(input$rad_dis2b_trnsFea04)
+    if(input$rad_dis2b_trnsFea04=="R"){
+      trainDF_dis_list$room_service<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+    }
+    else if(input$rad_dis2b_trnsFea04=="me"){
+      trainDF_dis_list$room_service<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    }
+  })
+  
+  # trainDF_dis_list$age_pi<-eventReactive(input$btn_dis3a_age, {
+  #   trainDF_nvI() %>% select(passenger_id)
+  # })
+  # 
+  # 
+  # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  # trainDF_dis_list$age<-reactive({
+  #   if(input$rad_trnsFea04=="Discretization" & !exists("rad_dis2b_trnsFea")){
+  #     trainDF_nvI() %>% select(passenger_id)}
+  #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="R"){
+  #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+  #     }
+  #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="me"){
+  #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #     }
+  # })
+
+  
+
+  #room_service
+  # trainDF_dis_list$room_service<-eventReactive(list(input$rad_trnsFea04,input$btn_room_service), {
+  #   rs1<-trainDF["passenger_id"]
+  #   rs2<- switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  # trainDF_dis_list$room_service<-eventReactive(input$btn_room_service, {
+    # switch(input$rad_dis2b_trnsFea04,
+    #        R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+    #        me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # )
+  # })
+  
+  # reax_room_service<-eventReactive(input$btn_room_service, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  
+  # #food_court
+  # trainDF_dis_list$food_court<-eventReactive(input$btn_food_court, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  # 
+  # #shopping_mall
+  # trainDF_dis_list$shopping_mall<-eventReactive(input$btn_shopping_mall, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  # 
+  # #spa
+  # trainDF_dis_list$spa<-eventReactive(input$btn_spa, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  # 
+  # #vr_deck
+  # trainDF_dis_list$vr_deck<-eventReactive(input$btn_vr_deck, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  # 
+  # #num
+  # trainDF_dis_list$num<-eventReactive(input$btn_num, {
+  #   switch(input$rad_dis2b_trnsFea04,
+  #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
+  #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+  #   )
+  # })
+  
+  #train_list<-reactiveValuesToList(trainDF_dis_list)
+  
+  
+  
+  
+# Combine all list elements into a new reactive DF
+
+  
+  # trainDF_nvI_d<-eventReactive(input$btn_age,{
+  #   trainDF_nvI() %>%
+  #     select(passenger_id) %>%
+  #     {if(ncol(trainDF_dis_list$age())==2)(left_join(.,trainDF_dis_list$age(),by="passenger_id")) else .} #%>%
+  #     {if(ncol(trainDF_dis_list$room_service())==2)(left_join(.,trainDF_dis_list$room_service(),by="passenger_id")) else .} %>%
+  #     {if(ncol(trainDF_dis_list$food_court())==2)(left_join(.,trainDF_dis_list$food_court(),by="passenger_id")) else .} #%>%
+  # #     # {if(input$btn_shopping_mall==1)(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_spa==1)(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_vr_deck==1)(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+  # #     # {if(input$btn_num==1)(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+  # })
+  
+
+  
+
+  
+  
+  # trainDF_nvI_d<-reactive({
+  #   reduce(list(trainDF_dis_list$age,
+  #               trainDF_dis_list$room_service),
+  # # # #               # trainDF_dis_list$food_court(),
+  # # # #               # trainDF_dis_list$shopping_mall(),
+  # # # #               # trainDF_dis_list$spa(),
+  # # # #               # trainDF_dis_list$vr_deck(),
+  # # #               # trainDF_dis_list$num()),
+  #          left_join,by="passenger_id")
+  # })
+  
+  
+
+  
+  # trainDF_nvI_d<-reactive({
+  #   reduce(trainDF_dis_list,left_join,by="passenger_id")
+  # })
+    
+  # trainDF_nvI_d<-reactive({
+  #     trainDF_dis_list$age %>%
+  #     left_join(trainDF_dis_list$room_service,by="passenger_id") #%>%
+  #     # left_join(trainDF_dis_list$food_court,by="passenger_id") %>%
+  #     # left_join(trainDF_dis_list$shopping_mall,by="passenger_id") %>%
+  #     # left_join(trainDF_dis_list$spa,by="passenger_id") %>%
+  #     # left_join(trainDF_dis_list$vr_deck,by="passenger_id") %>%
+  #     # left_join(trainDF_dis_list$num,by="passenger_id")
+  # })
+    
+      #purrr::when(sum(!is.na(trainDF_dis_list$age()))>0 ~left_join(.,trainDF_dis_list$age(),by="passenger_id"), ~.) %>%
+      #purrr::when(sum(!is.na(trainDF_dis_list$room_service()))>0 ~left_join(.,trainDF_dis_list$room_service(),by="passenger_id"), ~.) %>%
+      #purrr::when(sum(!is.na(trainDF_dis_list$food_court()))>0 ~left_join(.,trainDF_dis_list$food_court(),by="passenger_id"), ~.) #%>%
+      #{if(!is.na(trainDF_list$shopping_mall))(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} #%>%
+    # {if(!is.null(trainDF_dis_list$spa()))(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
+    # {if(!is.null(trainDF_dis_list$vr_deck()))(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+    # {if(!is.null(trainDF_dis_list$num()))(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+  #})
+  
+  
+  # toy_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,
+  #                   c               vr_deck=NULL,num=NULL)
+  
+  # 
+  # trainDF %>%
+  #   select(passenger_id) %>%
+  #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
+  #   {if(is.null(samp))(left_join(.,trainDF[c("passenger_id","age")],by="passenger_id")) else .} %>%
+  #   {if(is.null(dog))(left_join(.,trainDF[c("passenger_id","spa")],by="passenger_id")) else .}
+  # 
+  # trainDF %>%
+  #   select(passenger_id) %>%
+  #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
+  #   purrr::when(is.null(samp) ~left_join(.,trainDF[c("passenger_id","age")],by="passenger_id"), ~.)
+  
+  #Convert reactiveValues to list
+  #trainDF_dis_list<-reactiveValuesToList(trainDF_dis_list)
+  
+  
+  
+  # Check whether results working (by variable)
+  #age
+  output$temp_table_dis1_trnsFea04<-renderTable({
+    trainDF_dis_list$age %>% head()
+  })
+
+  # # #room_service
+  output$temp_table_dis2_trnsFea04<-renderTable({
+    trainDF_dis_list$room_service %>% head()
+  })
+  # 
+  # 
+  # # #food_court
+  # output$temp_table_dis3_trnsFea04<-renderTable({
+  #   trainDF_dis_list$food_court() %>% head()
+  # })
+  # 
+  # # #shopping_mall
+  # output$temp_table_dis4_trnsFea04<-renderTable({
+  #   trainDF_dis_list$shopping_mall() %>% head()
+  # })
+  # 
+  # #spa
+  # output$temp_table_dis5_trnsFea04<-renderTable({
+  #   trainDF_dis_list$spa() %>% head()
+  # })
+  # 
+  # #vr_deck
+  # output$temp_table_dis6_trnsFea04<-renderTable({
+  #   trainDF_dis_list$vr_deck() %>% head()
+  # })
+  # 
+  # #num
+  # output$temp_table_dis7_trnsFea04<-renderTable({
+  #   trainDF_dis_list$num() %>% head()
+  # })
+  
+  # output$temp_table_dis8_trnsFea04<-renderTable({
+  #   trainDF_nvI_d() %>% head()
+  # })
+
+  
+  # Connect reactive DFs together
+  #list_dis_trnsFea04<-vector(mode="list",length=7)
+  # list_dis_trnsFea04<-reactiveValuesToList(c(trainDF_nvI_da(),trainDF_nvI_dr(),trainDF_nvI_df(),trainDF_nvI_dm(),
+  #                                          trainDF_nvI_ds(),trainDF_nvI_dv(),trainDF_nvI_dn()))
+  # 
+  
+ # trainDF_nvI_d<-reactive({
+ #   trainDF_nvI_da() %>%
+ #   left_join(trainDF_nvI_dr(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_df(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dm(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_ds(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
+ #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
+ #     select(passenger_id,ends_with("dis"))
+ # })
+  
+
+  
+  #age - a
+  #room_service - r
+  #food_court - f
+  #shopping_mall - m
+  #spa - s
+  #vr_deck - v
+  #num - n
+  
+
+  
+  
+  ## Ordinal Encoding
+  # Display plot
+  output$plot_sel_ordEnc1_trnsFea04<-renderPlot({
+    req(input$sel_ordEnc1_trnsFea04)
+    barplotter(trainDF_nvI(),input$sel_ordEnc1_trnsFea04)
+  })
+  
+  
+  # Display text associated with each variable 
+  output$text_sel_ordEnc1_trnsFea04<-renderUI({
+    req(input$sel_ordEnc1_trnsFea04)
+    switch(input$sel_ordEnc1_trnsFea04,
+      ticket=HTML("<i>passenger_id</i> is broken into two parts: <i>passenger_group</i> (the first four digits) and 
+        <i>ticket</i> (the last two digits). The 'ticket' component indicates the number/position within a passenger group."),
+      home_planet=HTML("<i>home_planet</i> represents the planet that the passenger left, which is often where they live. 
+        There are three home planets in this data set: <br>
+        <b>Earth</b>: third planet from the Sun <br>
+        <b>Mars</b>: fourth planet fromt the Sun <br>
+        <b>Europa</b>: smallest of the four Galilean moons orbiting Jupiter"),
+      deck=HTML("<i>deck</i> is one of three components of the variable <i>cabin</i> along with <i>num</i> and <i>side</i>.
+        There are eight different decks: <b>A</b>-<b>G</b> and <b>T</b>"),
+      side=HTML("<i>side</i> is one of three components of the varible <i>cabin</i> along with <i>deck</i> and <i>num</i>.
+        <i>side</i> can take on one of two values: <b>P</b> for port and <b>S</b> for starboard."),
+      destination=HTML("<i>destination</i> represents the planet to which the passenger is traveling. There are three
+        possible destinations: <br>
+        <b>TRAPPIST-1e</b>: a rocky, near-Earth-sized exoplanet that researchers consider as potentially habitable by
+          humans <br>
+        <b>55 Cancri e</b>: an exoplanet nearly 9x the mass of the Earth with an atmosphere composed of at least hydrogen
+          and helium <br>
+        <b>PSO J318.5-22</b>: a rogue planet with estimated temperatures of its clouds exceed 800 <sup>o</sup> C")
+    )
+  })
+  
+  
+  # Create reactive data frame
+  trainDF_nvI_o<-eventReactive(input$btn_ordEnc2_trnsFea04, {
+      trainDF_nvI() %>%
+        #choose all factors except num
+        mutate(across(.cols=trainDF_fct_nonumVars,~as.ordered(.x))) %>%
+          #if...else statements for whether to change factor level order based on if checkbox checked
+          {if(input$chk_ordEnc2a_trnsFea04==TRUE)
+            mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a_trnsFea04))
+            else .} %>%
+          {if(input$chk_ordEnc2b_trnsFea04==TRUE)
+            mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b_trnsFea04))
+            else .} %>%
+          {if(input$chk_ordEnc2c_trnsFea04==TRUE)
+            mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c_trnsFea04))
+            else .} %>%
+          {if(input$chk_ordEnc2d_trnsFea04==TRUE)
+            mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d_trnsFea04))
+            else .} %>%
+           {if(input$chk_ordEnc2e_trnsFea04==TRUE)
+            mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e_trnsFea04))
+            else .} %>%
+        #retain passenger_id and mutated cols
+        select(passenger_id,ends_with("_ord"))
+    })
+  
+  # Print temp table as a check
+  output$temp_table_trnsFea04<-renderTable({
+    trainDF_nvI_o() %>% head()
+  })
+
+  
+  
+  ## Rare Label Encoding
+  # Display plots
+  #var1-raw
+  output$plot_sel_rareEnc1a_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc1a_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc1a_trnsFea04)
+  })
+  
+  #var1-combined categories
+  output$plot_sel_rareEnc1b_trnsFea04<-renderPlot({
+    req(length(input$sel_rareEnc1b_trnsFea04)>1)
+    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc1a_trnsFea04,cats=input$sel_rareEnc1b_trnsFea04)
+  })
+  
+  #var2-raw
+  output$plot_sel_rareEnc2a_trnsFea04<-renderPlot({
+    req(input$sel_rareEnc2a_trnsFea04)
+    rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc2a_trnsFea04)
+  })
+  
+  #var2-combined categories
+  output$plot_sel_rareEnc2b_trnsFea04<-renderPlot({
+    req(length(input$sel_rareEnc2b_trnsFea04)>1)
+    rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc2a_trnsFea04,cats=input$sel_rareEnc2b_trnsFea04)
+  })
+  
+  # Extract features via rare label encoding
+  trainDF_nvI_r<-eventReactive(input$btn_rareEnc_trnsFea04, {
+    trainDF_nvI() %>%
+      {if(length(input$sel_rareEnc1b_trnsFea04)>=2) 
+        #paste variable name using !! and :=
+        mutate(.,!!paste0(input$sel_rareEnc1a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc1a_trnsFea04),
+                                                                              other=input$sel_rareEnc1b_trnsFea04))
+        else .} %>%
+      {if(length(input$sel_rareEnc2b_trnsFea04)>=2)
+        mutate(.,!!paste0(input$sel_rareEnc2a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc2a_trnsFea04),
+                                                                              other=input$sel_rareEnc2b_trnsFea04))
+        else .} %>%
+      #retain cols of interest
+      select(passenger_id,ends_with("_rare")) 
+  })
+  
+  # Output temp table
+  output$temp_table_rareEnc_trnsFea04<-renderTable({
+    trainDF_nvI_r() %>% head()
+  })
+
+  # ### Update data frame
+  # trainDF_nvI_eF<-reactive({
+  #   req(input$chk_tranFea04)
+  #   #insert joins here
+  # })
+  
+  
+  #### Feature Creation-------------------------------------------------------------------------------------------------
+  ### Plot outputs
+  ## Group size variable
+  # Create a reactive data frame based on input
+  dat1_creFea04<-reactive({
+    req(input$sel_exp1_creFea04)
+    switch(input$sel_exp1_creFea04,
+           ticket_group_size=trainDF_nvI() %>%
+            group_by(passenger_group) %>%
+            mutate(ticket_group_size=n(),
+                  ticket_group_size=as.factor(ticket_group_size)) %>%
+             ungroup(),
+           family_size=trainDF_nvI() %>%
+             group_by(passenger_group,l_name) %>%
+             mutate(family_size=n(),
+                    family_size=as.factor(family_size)) %>%
+             ungroup(),
+           travel_party_size=trainDF_nvI() %>%
+             group_by(cabin) %>% 
+             mutate(travel_party_size=n(),
+                    travel_party_size=as.factor(travel_party_size)) %>%
+             ungroup()
+      )
+  })
+  
+  ## Make bar plots using new df
+  output$plot_sel_exp1a_creFea04<-renderPlot({
+    #require that user does not select "none" to get plots
+    req(input$sel_exp1_creFea04 %in% creFea04_grpSizeVec[creFea04_grpSizeVec!="none"])
+    dat1_creFea04() %>%
+      barplotter(input$sel_exp1_creFea04)
+  })
+
+  output$plot_sel_exp1b_creFea04<-renderPlot({
+    #require that user does not select "none" to get plots
+    req(input$sel_exp1_creFea04 %in% creFea04_grpSizeVec[creFea04_grpSizeVec!="none"])
+    dat1_creFea04() %>%
+      barplotter(c(input$sel_exp1_creFea04,"transported"))
+  })
+  
+  
+  ## Luxury expense variable
+  # Create reactive df for plotting and feature creation
+  dat2_creFea04<-reactive({
+    req(input$sel_exp2_creFea04 %in% creFea04_luxVec[creFea04_luxVec!="none"])
+    lux_builder(trainDF_nvI(),input$sel_exp2_creFea04)
+  })
+  
+  
+  # Display plots after action button depressed
+  observeEvent(input$btn_exp2_creFea04, {
+    output$plot_sel_exp2a_creFea04<-renderPlot({
+      heatmapper(dat2_creFea04(),input$sel_exp2_creFea04) 
+    })
+    output$plot_sel_exp2b_creFea04<-renderPlot({
+      boxplotter2(dat2_creFea04())
+    })
+  })
+  
+  
+  ### Feature creation
+  ## Display action button to confirm selections dynamically
+  output$ui_btn_cfirm_creFea04<-renderUI({
+    req(input$sel_exp1_creFea04)
+    req(input$sel_exp2_creFea04=="none"|length(input$sel_exp2_creFea04)>=2)
+    req(input$btn_exp2_creFea04)
+    actionButton(inputId="btn_cfirm_creFea04","Confirm feature creation selections")
+  })
+  
+  ## Create features
+  trainDF_nvI_ecF<-eventReactive(input$btn_cfirm_creFea04,{
+    dat1_creFea04() %>%
+      select(passenger_id,ends_with("size")) %>%
+      left_join(dat2_creFea04() %>%
+                  select(passenger_id,luxury),by="passenger_id")
+  }
+  )
+  
+  output$plot_temp_table_creFea04<-renderTable({
+    head(trainDF_nvI_ecF())
+  })
+
+  
+  
+  #### Feature Selection------------------------------------------------------------------------------------------------
+    
+  
+  #Server 5: Data Partitioning==========================================================================================
+
+  
+  #Server 6: Modeling===================================================================================================
+  
+  #Server 7: Validation & Tuning========================================================================================
+
+  
+  #Server 8: Model Testing==============================================================================================
+  
+  
+}
+
+  
+
+shinyApp(ui,server)
+
+
+
+#------------------------------------------------
+## NEED TO...
+#1) change inputs for log10 x-axis and bin numbers to dynamic version
+#2) enable a way to reset the input values when someone selects yes or no
+#3) selecting yes/no leads to a change/non-change in growing data frame
+#4) connect all the growing data frames (for discretization) 
+#5) check by outputting a preview table
+
+
+## Update (9/22/22): putting this app on pause because of lack of progress. Right now I am stuck on feature extraction-
+#discretization server code. The code to generate plots and produce DFs works fine. The issue is that I am stuck
+#attempting to develop a way to connect each DF (associated with each numerical variable). Ideally I'd like to join
+#them on passenger_id and create a DF that has one or more vars that end with "_dis." Unfortunately when I try to use
+#an actionButton that triggers (confirms) a "dis" variable and lack of pressing the button generates a reactive DF, 
+#which contains only passenger_id, they won't join. Shiny still says that the var(s) where the button was not pressed
+#is not reactive and I can't join reactive and non-reactive DFs. I've tried various observeEvents eventReactives
+#to cirumvent this but I get either errors or nonsense output. I've tried a second button but shiny seems to "dislike"
+#having inputs control different types of outputs via an observeEvent (or two) or two eventReactives. When I figure this
+#out, I will return. A temporary solution would be to force the user to go through each variable, but that is cumbrersome
+#and it will make testing a PitA. Also I will need to do something similar shortly after this because I want to join
+#the temporary reactive DFs that come from the four types of data transforms/feature extraction methods. Then I will
+#need to join that reactive DF with a feature creation DF.
+
+#--------------------
+
+## DONE
+
+
+
+
+# LAST PUSHED COMMENT(S)
+# added code so that confirmation button generates new reactive DF
+# added code so that variable-specific buttons are used to populate UI output
+
+
+
+## IN PROGRESS
+
+
+#---------------------
+
+
+## TO DO
+#spacing between tables and plots
+#text size on plots (e.g., axes)
+#add table titles--perhaps to correlation table
+#deal with all the variable num categories
+#update edaTabBuilder code to make dt outputs optional (to adjust for mult)
+#ability to bin choices? (vars into factor, logical, etc)
+#convert larger server 'patterns' to functions
+#output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
+#for missing name tab--need to have the first output (plot or DT) output in the same area
+#perhaps add an option to compare before/after datasets re imputation using vis_compare()
+#swap out my missingness function (data check tab) with the one from naniar?
+#in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
+  #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
+#add modals for imputation options that are risky
+#make selectizeInput functions more flexible (and change edaTabBuilder)
+#conditionally display subset of main tabs based on where user is
+#feature scaling plots--axis labels and plot types (e.g., density, qq)
+#in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
+  #type of hyperlink or colored text where you hover over to get a more thorough defintion
+#make the feature extraction-discretization plot interactive so a user can pull values for breaks
+#a notebook?
+#update annotations and add annotations
+#user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
+  #variable
+#fix group size plots not in descending order of frequency
+#consider making group size variable switch code a function
+#add option to barplotting function(s) to use different color schemes
+#update functions so that they don't carry so many extraneous cols/vars
+#discretization first plot--log scale y axis as option (and thus update formula)
+# create another function script with a server suffix (for more 'structural' functions) & create functions
+# add ggtitles to rare label encoding(?)
+
+
+
+#------------------------------------------------
+#OUTLINE
+
+### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
+
+
+### 6. Modeling
+## Create recipe (identify col as id var, predictor, or outcome)
+## Specify models
+## Construct workflow
+## Fit models 
+## Assess model accuracy
+
+
+### 7. Validation and tuning
+## Fit models to cross-validation folds
+## Tune models
+## Select best model and finalize workflow
+## Assess model characteristics
+
+
+### 8. Testing
+## Preprocess test data using same methods for training data
+## Run trained and tuned model onto test data
+
