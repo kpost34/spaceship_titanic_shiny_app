@@ -1,9 +1,89 @@
-library(here)
+# library(here)
+# 
+# source(here("ui.R"))
+# source(here("server.R"))
+# 
+# shinyApp(ui,server)
 
-source(here("ui.R"))
-source(here("server.R"))
 
-shinyApp(ui,server)
+
+
+
+
+# Modularized structure
+## Load packages
+pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
+               naniar,mice,cowplot,GGally)
+
+#address conflicts
+conflict_prefer("filter","dplyr")
+conflict_prefer("chisq.test","stats")
+
+
+## Source files
+### Load objects and functions
+here("fns_objs_modals") %>%
+  list.files(full.names=TRUE) %>%
+  purrr::map(source)
+
+
+### Load modules
+here("modules") %>%
+  list.files(full.names=TRUE) %>%
+  purrr::map(source)
+
+
+
+
+## App
+spaceTitanicApp <- function() {
+  ui <- navbarPage(title="Spaceship Titanic Shiny App", id="mainTab", #posiiton="static-top",
+    useShinyjs(),
+    tabPanel(title="Data Check",
+      dataCheckUI("df"),
+    ),
+    navbarMenu(title="EDA", menuName="EDA02",
+      edaUniUI("data1"),
+      edaBiUI("data2"),
+      edaMultUI("data3")
+      # )
+    ),
+    navbarMenu(title="Missingness", menuName="Mis03",
+      # missNameUI("dat1"),
+      # missOtherUI("dat2")
+      ),
+    # navbarMenu(title="Feature Engineering", menuName="Fea04",
+    #   featureUI("input")
+    #   )
+    )
+  
+  server <- function(input, output, session) {
+    #data checking
+    dataCheckServer("df")
+    
+    #eda
+    edaUniServer("data1")
+    edaBiServer("data2")
+    edaMultServer("data3")
+    #missingness
+    # missNameServer("dat1")
+    # missOtherServer("dat2")
+    # featureServer("input")
+  }
+  
+  shinyApp(ui, server)
+  
+}
+  
+spaceTitanicApp()
+  
+  
+          
+        
+                  
+
+
+
 
 
 
