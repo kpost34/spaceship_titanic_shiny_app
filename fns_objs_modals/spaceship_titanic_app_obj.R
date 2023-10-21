@@ -1,31 +1,48 @@
-#### Create vectors
-### Col names
-## All character cols
+# Read in data
+read_csv(here("data","train.csv")) %>%
+  clean_names() %>%
+  ### passenger_id
+  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  ### cabin
+  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
+  ### name
+  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+  ### reclassify vars
+  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> trainDF
+
+
+
+
+# Create vectors
+## Col names
+### All character cols
 trainDF %>% select(where(is.character)) %>% names() -> trainDF_chrVars
-## All cols but character
+
+### All cols but character
 trainDF %>% select(!where(is.character)) %>% names() -> trainDF_nchrVars
 #excluding dep var
 trainDF_nchrVars[trainDF_nchrVars!="transported"] -> trainDF_nchrPreds
 
-## All logical and factor cols
+### All logical and factor cols
 trainDF %>% select(where(is.logical)|where(is.factor)) %>% names() -> trainDF_catVars
 
-## All numeric cols
+### All numeric cols
 trainDF %>% select(where(is.numeric)|where(is.integer)) %>% names() -> trainDF_numVars
 
-## All factor cols except for num
+### All factor cols except for num
 trainDF %>% select(where(is.factor),-num) %>% names() -> trainDF_fct_nonumVars
 
-## Numeric vars + num
+### Numeric vars + num
 trainDF %>% select(where(is.numeric),num) %>% names() -> trainDF_disVars
 
-## Cabin component cols
+### Cabin component cols
 cabinVars<-c("deck","num","side")
 
-## Dependent variable
+### Dependent variable
 depVar<-"transported"
 
-## choices vectors
+
+## Choices vectors
 Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
 Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
 namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp","summary table"="sum_tab","bar plot"="plot")
