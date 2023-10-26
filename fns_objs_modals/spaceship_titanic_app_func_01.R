@@ -24,7 +24,8 @@ n_miss_tbl<-function(dat){
     rownames_to_column() %>%
     setNames(c("col","n_missing")) %>%
     as_tibble(.name_repair="minimal") %>%
-    arrange(desc(n_missing))
+    arrange(desc(n_missing)) %>%
+    mutate(`complete?`=ifelse(n_missing==0, "Yes", "No"))
 }
 
 
