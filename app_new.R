@@ -46,11 +46,10 @@ spaceTitanicApp <- function() {
       edaUniUI("data1"),
       edaBiUI("data2"),
       edaMultUI("data3")
-      # )
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
-      # missNameUI("dat1"),
-      # missOtherUI("dat2")
+      missNameUI("dat1"),
+      missOtherUI("dat2")
       ),
     # navbarMenu(title="Feature Engineering", menuName="Fea04",
     #   featureUI("input")
@@ -65,9 +64,11 @@ spaceTitanicApp <- function() {
     edaUniServer("data1")
     edaBiServer("data2")
     edaMultServer("data3")
+    
     #missingness
-    # missNameServer("dat1")
-    # missOtherServer("dat2")
+    trainDF_nvI <- missNameServer("dat1")
+    missOtherServer("dat2", trainDF_nvI)
+    
     # featureServer("input")
   }
   
