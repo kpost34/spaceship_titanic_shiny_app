@@ -1,82 +1,89 @@
-# Missingness Module
+# Missingness-Other Module
 
-# UI
-missingUI <- function(id) {
-  navbarMenu(title="Missingness",menuName="Mis03",
-    #tab 1: names-----------------------------------------------------------------------------------------------------------------
-    tabPanel(title="Names", id="namMis03",
-      titlePanel("Names and Missingness"),
-      sidebarLayout(
-        sidebarPanel(
-          #exploring missing names
-          h4("Did you notice that some passengers did not have names? If not, take a closer look"),
-          selectInput01(id="sel_exp_namMis03",label="",choices=namMis03_expVec),
-          br(),
-          #go deeper with some possibilities
-          h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
-             full names will be impossible to impute from the other variables. Last names may be populated with confidence if we
-             assume passengers traveled together as families. Two ways to conclude that the traveling party is a family is
-             1) purchasing tickets together (same passenger group) or 2) saying in the same room (cabin). Here's how the patterns break down."),
-          radioButtons(inputId="rad_grpVar_namMis03",label="",choices=c("passenger_group"="passenger_group",
-                                                                        "cabin occupancy"="cabin"),
-                       selected=character(0)),
-          h4("Note that each group, regardless of group size or grouping variable, has one unnamed passenger."),
-          br(),
-          h4("Given all this information, how would you like to handle passengers with missing names?"),
-          selectInput01(id="sel_impOpt_namMis03",label="",choices=namMis03_impOptVec),
-          br(),
-          uiOutput("ui_slid_impOpt_namMis03")
-        ),
-        mainPanel(
-          htmlOutput("text_sel_exp_namMis03"),
-          DTOutput("tab_sel_exp_namMis03"),
-          plotOutput("plot_sel_exp_namMis03"),
-          br(),
-          htmlOutput("text_rad_grpVar_namMis03"),
-          plotOutput("plot_rad_grpVar_namMis03"),
-          tableOutput("test_table"),
-          tableOutput("test_table2")
-        )
-      )
-    ),
-    #tab 2: exploring non-character missingness-----------------------------------------------------------------------------------
-    tabPanel(title="Explore Missingness",id="nchrMis03",
-      titlePanel("Exploring Other Missing Data"),
-      sidebarLayout(
-        sidebarPanel(
-          h4("Let's visualize missingness in all non-character variables."),
-          selectInput01(id="sel_exp_nchrMis03",label="",choices=nchrMis03_expVec),
-          br(),
-          h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
-          remaining set of variables."),
-          selectInput01(id="sel_compare_nchrMis03",label="",choices=trainDF_nchrPreds),
-          br(),
-          #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
-        ),
-        mainPanel(
-          htmlOutput("text_sel_exp_nchrMis03"),
-          plotOutput("plot_sel_exp_nchrMis03"),
-          br(),
-          htmlOutput("text_sel_compare_nchrMis03"),
-          DTOutput("tab_sel_compare_nchrMis03")
-        )
+
+# UI================================================================================================
+missOtherUI <- function(id) {
+  ns <- NS(id)
+  
+  tabPanel(title="Explore Missingness",
+    titlePanel("Exploring Other Missing Data"),
+    sidebarLayout(
+      sidebarPanel(
+        h4("Let's visualize missingness in all non-character variables."),
+        selectInput01(ID=ns("sel_exp_nchrMis03"),label="",choices=nchrMis03_expVec),
+        br(),
+        h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
+        remaining set of variables."),
+        selectInput01(ID=ns("sel_compare_nchrMis03"),label="",choices=trainDF_nchrPreds),
+        br(),
+        #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
+      ),
+      mainPanel(
+        htmlOutput(ns("text_sel_exp_nchrMis03")),
+        plotOutput(ns("plot_sel_exp_nchrMis03")),
+        br(),
+        htmlOutput(ns("text_sel_compare_nchrMis03")),
+        DTOutput(ns("tab_sel_compare_nchrMis03"))
       )
     )
   )
 }
 
 
-# Server
-# missingServer <- function(id) {
-#   moduleServer(id, function(input, output, session) {
-# 
-#   
-#   
-#   
-#   
-#   
-#   
-# }
+# Server============================================================================================
+missOtherServer <- function(id, trainDF_nvI) {
+  moduleServer(id, function(input, output, session) {
+    
+    ## Exploration
+    ### Text output
+    output$text_sel_exp_nchrMis03<-renderUI({
+      switch(input$sel_exp_nchrMis03,
+             miss_occur=h3(paste("Missing Values Occurrences Plot")),
+             miss_var=h3(paste("Missing Values per Variable Plot")),
+             miss_obs=h3(paste("Missing Values per Observation Plot")),
+             miss_patt=h3(paste("Missing Pattern Plot"))
+      )
+    })
+    
+    ### Plot output
+    output$plot_sel_exp_nchrMis03<-renderPlot({
+      switch(input$sel_exp_nchrMis03,
+             miss_occur=trainDF_nvI() %>% missing_plot(depVar,trainDF_nchrPreds),
+             miss_var=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
+             miss_obs=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
+             miss_patt=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
+      )
+    })
+  
+    
+    ## Statistical comparisons
+    ### Text output
+    output$text_sel_compare_nchrMis03<-renderUI({
+      req(input$sel_compare_nchrMis03)
+      h3(paste("Missing Data Analysis of",input$sel_compare_nchrMis03))
+    })
+    
+    
+    ### Table output
+    #### Create reactive
+    dat_nchrMis03<-reactive({
+      req(input$sel_compare_nchrMis03)
+      if(input$sel_compare_nchrMis03 %in% cabinVars){
+        sel_vars<-setdiff(trainDF_nchrVars,cabinVars)
+      }
+      else{sel_vars<-setdiff(trainDF_nchrVars,input$sel_compare_nchrMis03)}
+      missing_compare(trainDF_nvI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
+      )
+    })
+  
+  
+    #### Output reactive
+    output$tab_sel_compare_nchrMis03<-renderDT(
+      dat_nchrMis03(),options=list(scrollX="400px")
+    )
+    
+  })
+}
 
 
 

@@ -3,38 +3,40 @@
 
 # UI================================================================================================
 missNameUI <- function(id) {
-  tabPanel(title="Names", id="namMis03",
+  ns <- NS(id)
+  
+  tabPanel(title="Names",
     titlePanel("Names and Missingness"),
     sidebarLayout(
       sidebarPanel(
         #exploring missing names
         h4("Did you notice that some passengers did not have names? If not, take a closer look"),
-        selectInput01(id="sel_exp_namMis03",label="",choices=namMis03_expVec),
+        selectInput01(ID=ns("sel_exp_namMis03"),label="",choices=namMis03_expVec),
         br(),
         #go deeper with some possibilities
         h4("Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%. Although first names, and thus
            full names will be impossible to impute from the other variables. Last names may be populated with confidence if we
            assume passengers traveled together as families. Two ways to conclude that the traveling party is a family is
            1) purchasing tickets together (same passenger group) or 2) saying in the same room (cabin). Here's how the patterns break down."),
-        radioButtons(inputId="rad_grpVar_namMis03",label="",choices=c("passenger_group"="passenger_group",
+        radioButtons(inputId=ns("rad_grpVar_namMis03"),label="",choices=c("passenger_group"="passenger_group",
                                                                       "cabin occupancy"="cabin"),
                      selected=character(0)),
         h4("Note that each group, regardless of group size or grouping variable, has one unnamed passenger."),
         br(),
         h4("Given all this information, how would you like to handle passengers with missing names?"),
-        selectInput01(id="sel_impOpt_namMis03",label="",choices=namMis03_impOptVec),
+        selectInput01(ID=ns("sel_impOpt_namMis03"),label="",choices=namMis03_impOptVec),
         br(),
-        uiOutput("ui_slid_impOpt_namMis03")
+        uiOutput(ns("ui_slid_impOpt_namMis03"))
       ),
       mainPanel(
-        htmlOutput("text_sel_exp_namMis03"),
-        DTOutput("tab_sel_exp_namMis03"),
-        plotOutput("plot_sel_exp_namMis03"),
+        htmlOutput(ns("text_sel_exp_namMis03")),
+        DTOutput(ns("tab_sel_exp_namMis03")),
+        plotOutput(ns("plot_sel_exp_namMis03")),
         br(),
-        htmlOutput("text_rad_grpVar_namMis03"),
-        plotOutput("plot_rad_grpVar_namMis03"),
-        tableOutput("test_table"),
-        tableOutput("test_table2")
+        htmlOutput(ns("text_rad_grpVar_namMis03")),
+        plotOutput(ns("plot_rad_grpVar_namMis03")),
+        tableOutput(ns("test_table")),
+        # tableOutput(ns("test_table2"))
       )
     )
   )
@@ -163,14 +165,14 @@ missNameServer <- function(id) {
     
     
     #### Temporary code--to update name of DF
-    trainDF_nvI<-reactive({
+    reactive({
       trainDF_nI()
     })
     
     #### Test whether code directly above is working
-    output$test_table2<-renderTable({
-      head(trainDF_nvI()) 
-    })
+    # output$test_table2<-renderTable({
+    #   head(trainDF_nvI()) 
+    # })
     
   })
 }
