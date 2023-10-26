@@ -66,9 +66,9 @@ missNameServer <- function(id) {
     dat1_namMis03<-reactive({
       #reactive is used to build reactive table objects
       switch(input$sel_exp_namMis03,
-        miss_samp=trainDF %>% filter(is.na(name)) %>% slice_sample(n=5),
-        nmiss_samp=trainDF %>% filter(!is.na(name)) %>% slice_sample(n=5),
-        sum_tab=chr_miss_tabler(trainDF)
+        miss_samp=df_train %>% filter(is.na(name)) %>% slice_sample(n=5),
+        nmiss_samp=df_train %>% filter(!is.na(name)) %>% slice_sample(n=5),
+        sum_tab=chr_miss_tabler(df_train)
       )
     })
     
@@ -83,7 +83,7 @@ missNameServer <- function(id) {
     output$plot_sel_exp_namMis03<-renderPlot({
       #plot outputs only when selected (note that this is always the same plot)
       req(input$sel_exp_namMis03=="plot")
-      chr_miss_boxplotter(trainDF)
+      chr_miss_boxplotter(df_train)
     })
     
     
@@ -100,8 +100,8 @@ missNameServer <- function(id) {
     ### Create reactive object (for tabular and plot outputs)
     dat2_namMis03<-reactive({
       switch(input$rad_grpVar_namMis03,
-        passenger_group=mis_name_tabler(trainDF,l_name,passenger_group),
-        cabin=mis_name_tabler(trainDF,l_name,cabin)
+        passenger_group=mis_name_tabler(df_train,l_name,passenger_group),
+        cabin=mis_name_tabler(df_train,l_name,cabin)
       )
     })
     
@@ -131,47 +131,47 @@ missNameServer <- function(id) {
     dat3_namMis03<-reactive({
       req(input$sel_impOpt_namMis03 %in% c("imp_pass_group","imp_cabin"))
       switch(input$sel_impOpt_namMis03,
-        imp_pass_group=mis_name_tabler(trainDF,l_name,passenger_group),
-        imp_cabin=mis_name_tabler(trainDF,l_name,cabin)
+        imp_pass_group=mis_name_tabler(df_train,l_name,passenger_group),
+        imp_cabin=mis_name_tabler(df_train,l_name,cabin)
       )
     })
     
     #### Create new data frame object after name imputation or col/row removal
-    trainDF_nI<-reactive({
+    df_train_nI<-reactive({
       #requires selection from drop-down menu
       req(input$sel_impOpt_namMis03)
       #dplyr code if drop_cols selected
       if(input$sel_impOpt_namMis03=="drop_cols"){
-        trainDF %>% select(-contains("name"))
+        df_train %>% select(-contains("name"))
       }
       
       #same for remove_rows
       else if(input$sel_impOpt_namMis03=="remove_rows"){
-        trainDF %>% filter(!is.na("name"))
+        df_train %>% filter(!is.na("name"))
       }
       #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
       else if(input$sel_impOpt_namMis03=="imp_pass_group" & length(input$slid1_impOpt_namMis03)>0){
-        name_imputer(dat3_namMis03(),num_name,input$slid1_impOpt_namMis03,trainDF,passenger_group)
+        name_imputer(dat3_namMis03(),num_name,input$slid1_impOpt_namMis03,df_train,passenger_group)
       }
       else if(input$sel_impOpt_namMis03=="imp_cabin" & length(input$slid2_impOpt_namMis03)>0){
-        name_imputer(dat3_namMis03(),num_name,input$slid2_impOpt_namMis03,trainDF,cabin)
+        name_imputer(dat3_namMis03(),num_name,input$slid2_impOpt_namMis03,df_train,cabin)
       }
     })
     
     #### Test whether code above is working
     output$test_table<-renderTable({
-      head(trainDF_nI()) 
+      head(df_train_nI()) 
     })
     
     
     #### Temporary code--to update name of DF
     reactive({
-      trainDF_nI()
+      df_train_nI()
     })
     
     #### Test whether code directly above is working
     # output$test_table2<-renderTable({
-    #   head(trainDF_nvI()) 
+    #   head(df_train_nvI()) 
     # })
     
   })

@@ -14,7 +14,7 @@ missOtherUI <- function(id) {
         br(),
         h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
         remaining set of variables."),
-        selectInput01(ID=ns("sel_compare_nchrMis03"),label="",choices=trainDF_nchrPreds),
+        selectInput01(ID=ns("sel_compare_nchrMis03"),label="",choices=df_train_nchrPreds),
         br(),
         #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
       ),
@@ -31,7 +31,7 @@ missOtherUI <- function(id) {
 
 
 # Server============================================================================================
-missOtherServer <- function(id, trainDF_nvI) {
+missOtherServer <- function(id, df_train_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ## Exploration
@@ -48,10 +48,10 @@ missOtherServer <- function(id, trainDF_nvI) {
     ### Plot output
     output$plot_sel_exp_nchrMis03<-renderPlot({
       switch(input$sel_exp_nchrMis03,
-             miss_occur=trainDF_nvI() %>% missing_plot(depVar,trainDF_nchrPreds),
-             miss_var=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_var(),
-             miss_obs=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_case(),
-             miss_patt=trainDF_nvI() %>% select(all_of(trainDF_nchrVars)) %>% gg_miss_upset()
+             miss_occur=df_train_nvI() %>% missing_plot(depVar,df_train_nchrPreds),
+             miss_var=df_train_nvI() %>% select(all_of(df_train_nchrVars)) %>% gg_miss_var(),
+             miss_obs=df_train_nvI() %>% select(all_of(df_train_nchrVars)) %>% gg_miss_case(),
+             miss_patt=df_train_nvI() %>% select(all_of(df_train_nchrVars)) %>% gg_miss_upset()
       )
     })
   
@@ -69,10 +69,10 @@ missOtherServer <- function(id, trainDF_nvI) {
     dat_nchrMis03<-reactive({
       req(input$sel_compare_nchrMis03)
       if(input$sel_compare_nchrMis03 %in% cabinVars){
-        sel_vars<-setdiff(trainDF_nchrVars,cabinVars)
+        sel_vars<-setdiff(df_train_nchrVars,cabinVars)
       }
-      else{sel_vars<-setdiff(trainDF_nchrVars,input$sel_compare_nchrMis03)}
-      missing_compare(trainDF_nvI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
+      else{sel_vars<-setdiff(df_train_nchrVars,input$sel_compare_nchrMis03)}
+      missing_compare(df_train_nvI(),dependent=input$sel_compare_nchrMis03,explanatory=sel_vars
       )
     })
   

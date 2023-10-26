@@ -8,7 +8,7 @@ edaMultUI <- function(id) {
                   name="Multivariate",
                   tabID="mulEDA02",
                   varID=c("var123","var456"),
-                  options=trainDF_nchrVars,
+                  options=df_train_nchrVars,
                   fn=selectizeInput02)
   )
 }
@@ -35,29 +35,29 @@ edaMultServer <- function(id) {
       #must select three inputs first
       req(length(input$sel_var123_mulEDA02)==3)
       #if all categorical, then bar plot
-      if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==3) {
-        barplotter(trainDF,input$sel_var123_mulEDA02)
+      if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars)==3) {
+        barplotter(df_train,input$sel_var123_mulEDA02)
       }
       #if 2 cat & 1 num then boxplot
-      else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars)==2) {
-        boxplotter(trainDF,input$sel_var123_mulEDA02)
+      else if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars)==2) {
+        boxplotter(df_train,input$sel_var123_mulEDA02)
       }
       #if 2-3 num then scatterplot
-      else if(sum(input$sel_var123_mulEDA02 %in% trainDF_catVars) < 2) {
-        scatterplotter(trainDF,input$sel_var123_mulEDA02)
+      else if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars) < 2) {
+        scatterplotter(df_train,input$sel_var123_mulEDA02)
       }
     })
     
     output$plot_sel_var456_mulEDA02<-renderPlot({
       req(length(input$sel_var456_mulEDA02)==3)
-      if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==3) {
-        barplotter(trainDF,input$sel_var456_mulEDA02)
+      if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars)==3) {
+        barplotter(df_train,input$sel_var456_mulEDA02)
       }
-      else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars)==2) {
-        boxplotter(trainDF,input$sel_var456_mulEDA02)
+      else if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars)==2) {
+        boxplotter(df_train,input$sel_var456_mulEDA02)
       }
-      else if(sum(input$sel_var456_mulEDA02 %in% trainDF_catVars) < 2) {
-        scatterplotter(trainDF,input$sel_var456_mulEDA02)
+      else if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars) < 2) {
+        scatterplotter(df_train,input$sel_var456_mulEDA02)
       }
     })
     
