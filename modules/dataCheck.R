@@ -12,11 +12,10 @@ dataCheckUI <- function(id) {
     ),
     mainPanel(width=10,
       DTOutput(ns("tab_quick")),
-      br(),
+      linebreaks(2),
       DTOutput(ns("tab_summ"))
     )
   )
-  # )
 }
 
 
@@ -34,10 +33,17 @@ dataCheckServer <- function(id) {
     })
 
     output$tab_quick <- renderDT(
-      df_check(), rownames=FALSE, 
+      df_check(), 
+      rownames=FALSE, 
       options=list(dom="tip",
+                   autoWidth=TRUE,
                    pageLength=12,
-                   autoWidth=TRUE)
+                   #conditionally display scroll bar
+                   scrollX=if(input$sel_quick=="dat_samp") {TRUE} else {FALSE}),
+      #creates a caption above table in large, black text
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
+        extract_nm(vec_quick_chk, input$sel_quick))
     )
 
     ### Display data summary by col type
@@ -50,9 +56,13 @@ dataCheckServer <- function(id) {
     })
   
     output$tab_summ <- renderDT(
-      df_summ(), rownames=FALSE,
-      options=list(dom="tip",
-                   autoWidth=TRUE)
+      df_summ(), 
+      rownames=FALSE,
+      options=list(dom="t",
+                   autoWidth=TRUE),
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
+        paste(extract_nm(vec_summ_chk, input$sel_summ), "Variables"))
     )
     
   })

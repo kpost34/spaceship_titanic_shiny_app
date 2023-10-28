@@ -1,10 +1,19 @@
 #Functions for UI
 
-## Easily Create Line Breaks=====================================================
+# Helper UI Functionss=====================================================
+## Easily Create Line Break
 linebreaks <- function(n){HTML(strrep(br(), n))}
 
 
-### Input functions========================================
+## Extract name of selected item
+extract_nm <- function(vec, val) { #val is in quotes
+  names(vec)[vec==val] %>% 
+    str_to_title()
+}
+
+
+
+# Input functions========================================
 selectInput01<-function(ID, label, choices) {
   selectInput(inputId=ID, label=label, selectize=TRUE, choices=c("Choose one"="",choices))
 }
@@ -22,7 +31,7 @@ selectizeInput02<-function(ID, label, choices) {
 }
 
 
-#### EDA Tab Structure Code=======================================================
+# EDA Tab Structure Code=======================================================
 edaTabBuilder<-function(id, name,tabID,varID,options,fn){
   ns <- NS(id)
   
@@ -100,8 +109,8 @@ edaTabBuilder<-function(id, name,tabID,varID,options,fn){
 # }
 
 
-#### Batch output====================================================================
-### Many uiOutput
+# Batch output====================================================================
+## Many uiOutput
 split_chk_sel_builder<-function(lab){
   splitLayout(cellWidths=c("30%","70%"),cellArgs=list(style="vertical-align: middle"),
     uiOutput(paste0("ui_chk_ordEnc",lab,"_trnsFea04")),

@@ -78,17 +78,112 @@ spaceTitanicApp <- function() {
   
 spaceTitanicApp()
   
-  
-          
-        
-                  
+
+
+## DONE
 
 
 
+# LAST PUSHED COMMENT(S)
+#dataCheck module
+  #created formatted table titles using new helper fn extract_nm()
+  #conditionally added horizontal scroll bar to both tables
+  #renamed table headers to be more interpretable
+  #made second table more straightforward
 
+
+## IN PROGRESS
+
+
+#---------------------
+
+
+## TO DO (see below)
+#updates based on output & some perusal of code
+
+#EDA univariate module
+  #Have selector text read "Choose one variable"
+  #Use ggiraph
+  #Remove rownames & search box
+  #Create an NA category for tableular output
+  #num takes too long to load--reconsider how to show this variable
+  #Add space between tables and plots
+  #Increase text size on plots
+  #Log x or y scale for some of the numerical vars?
+
+
+#EDA bivariate module
+  #Have selector text read "Choose two variables"
+  #Use ggiraph
+  #Display "NA" in table (when applicable)
+  #Remove rownames and search box
+  #Log x and/or y scales for numerical vars
+  #Increase text size on plots
+
+
+#EDA multivariate
+  #Have selector text read "Choose three variables"
+  #Use ggiraph
+  #Display "NA" in table (when applicable)
+  #Remove rownames and search box
+  #Log x and/or y scales for numerical vars
+  #Increase text size on plots
+
+
+
+#missName
+  #Use updateTabpanel() to make this more interactive
+  #For tables: remove rownames, search box, show x entries, previous/next (b/c tables are so small)
+  #Remove barplot--both the option and plot
+  #Reduce space between table & plot
+  #Use accordion text for the description in the middle
+  #For passenger_group/cabin occupancy plot--
+
+
+
+### OLD COMMENTS ###-----------------
+#general/unknown
+#add table titles--perhaps to correlation table
+#deal with all the variable num categories
+#ability to bin choices? (vars into factor, logical, etc)
+#add modals for imputation options that are risky
+#conditionally display subset of main tabs based on where user is
+#fix group size plots not in descending order of frequency
+#from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
+
+
+#missingness
+#output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
+#for missing name tab--need to have the first output (plot or DT) output in the same area
+#perhaps add an option to compare before/after datasets re imputation using vis_compare()
+#in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
+  #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
+
+
+#functions
+#make selectizeInput functions more flexible (and change edaTabBuilder)
+#convert larger server 'patterns' to functions
+#update functions so that they don't carry so many extraneous cols/vars
+#consider making group size variable switch code a function
+#add option to barplotting function(s) to use different color schemes
+# create another function script with a server suffix (for more 'structural' functions) & create functions
+#update edaTabBuilder code to make dt outputs optional (to adjust for mult)
+
+
+
+#feature engineering
+#feature scaling plots--axis labels and plot types (e.g., density, qq)
+#in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
+  #type of hyperlink or colored text where you hover over to get a more thorough defintion
+#discretization first plot--log scale y axis as option (and thus update formula)
+# add ggtitles to rare label encoding(?)
+#make the feature extraction-discretization plot interactive so a user can pull values for breaks
+#user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
+  #variable
 
 
 #------------------------------------------------
+### BEFORE PAUSING ON DEVELOPMENT###
 ## NEED TO...
 #1) change inputs for log10 x-axis and bin numbers to dynamic version
 #2) enable a way to reset the input values when someone selects yes or no
@@ -112,56 +207,6 @@ spaceTitanicApp()
 #need to join that reactive DF with a feature creation DF.
 
 #--------------------
-
-## DONE
-
-
-
-
-# LAST PUSHED COMMENT(S)
-# added code so that confirmation button generates new reactive DF
-# added code so that variable-specific buttons are used to populate UI output
-
-
-
-## IN PROGRESS
-
-
-#---------------------
-
-
-## TO DO
-#spacing between tables and plots
-#text size on plots (e.g., axes)
-#add table titles--perhaps to correlation table
-#deal with all the variable num categories
-#update edaTabBuilder code to make dt outputs optional (to adjust for mult)
-#ability to bin choices? (vars into factor, logical, etc)
-#convert larger server 'patterns' to functions
-#output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
-#for missing name tab--need to have the first output (plot or DT) output in the same area
-#perhaps add an option to compare before/after datasets re imputation using vis_compare()
-#swap out my missingness function (data check tab) with the one from naniar?
-#in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
-  #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
-#add modals for imputation options that are risky
-#make selectizeInput functions more flexible (and change edaTabBuilder)
-#conditionally display subset of main tabs based on where user is
-#feature scaling plots--axis labels and plot types (e.g., density, qq)
-#in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
-  #type of hyperlink or colored text where you hover over to get a more thorough defintion
-#make the feature extraction-discretization plot interactive so a user can pull values for breaks
-#a notebook?
-#update annotations and add annotations
-#user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
-  #variable
-#fix group size plots not in descending order of frequency
-#consider making group size variable switch code a function
-#add option to barplotting function(s) to use different color schemes
-#update functions so that they don't carry so many extraneous cols/vars
-#discretization first plot--log scale y axis as option (and thus update formula)
-# create another function script with a server suffix (for more 'structural' functions) & create functions
-# add ggtitles to rare label encoding(?)
 
 
 

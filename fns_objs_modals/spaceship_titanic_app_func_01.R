@@ -6,38 +6,56 @@
 #Load packages
 pacman::p_load(tidyverse,skimr,janitor,purrr,rstatix)
 
-#### Data Checking===================================================================
-### Basic checking
-## Function to return dimensions of data frame as tibble
+# Data Checking===================================================================
+## Basic checking
+### Function to return dimensions of data frame as tibble
 dim_tbl<-function(dat){
   dim(dat) %>%
     t() %>%
     as_tibble(.name_repair="minimal") %>%
-    setNames(c("rows","cols")) 
+    set_names(c("n_row","n_col")) 
 }
 
 
-## Function to return number of missing values per col as tibble
+### Function to return number of missing values per col as tibble
 n_miss_tbl<-function(dat){
   apply(dat,2,function(x) sum(is.na(x))) %>%
     as.data.frame() %>%
     rownames_to_column() %>%
-    setNames(c("col","n_missing")) %>%
+    set_names(c("variable","n_missing")) %>%
     as_tibble(.name_repair="minimal") %>%
     arrange(desc(n_missing)) %>%
     mutate(`complete?`=ifelse(n_missing==0, "Yes", "No"))
 }
 
 
-### Look at variable types more closely
-## Function to provide summary by variable type
-skim_tbl<-function(dat,type="character"){
-  col_type<-paste0("is.",type)
+## Look at variable types more closely
+### Function to provide summary by variable type
+skim_tbl<-function(dat, type="character"){
+  col_type <- paste0("is.",type)
+  
+  nm <- if(type=="character") {
+    c("variable", "n_missing", "complete_rate", "min_chr", "max_chr", "empty_chr", "n_unique",
+      "whitespace_chr")
+    
+  } else if(type=="factor") {
+    c("variable", "n_missing", "complete_rate", "ordered?", "n_unique", "top_categories")
+    
+  } else if(type=="logical") {
+    c("variable", "n_missing", "complete_rate", "prop_true", "counts")
+    
+  } else if(type=="numeric") {
+    c("variable", "n_missing", "complete_rate", "mean", "sd", "min", "1st quartile", "median",
+      "3rd quartile", "max", "histogram")
+  }
+  
+  
   dat %>%
     skim(where(!!col_type)) %>%
     as_tibble(.name_repair="minimal") %>%
     select(-skim_type) %>%
-    mutate(across(where(is.numeric),~signif(.x,3)))
+    mutate(across(where(is.numeric),~signif(.x,3))) %>%
+    set_names(nm)
 }
 
 
