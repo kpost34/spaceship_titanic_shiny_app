@@ -13,7 +13,7 @@
 # Modularized structure
 ## Load packages
 pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
-               naniar,mice,cowplot,GGally)
+               naniar,mice,cowplot,GGally, ggiraph)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -44,8 +44,8 @@ spaceTitanicApp <- function() {
     ),
     navbarMenu(title="EDA", menuName="EDA02",
       edaUniUI("data1"),
-      edaBiUI("data2"),
-      edaMultUI("data3")
+      # edaBiUI("data2"),
+      # edaMultUI("data3")
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
       missNameUI("dat1"),
@@ -62,8 +62,8 @@ spaceTitanicApp <- function() {
     
     #eda
     edaUniServer("data1")
-    edaBiServer("data2")
-    edaMultServer("data3")
+    # edaBiServer("data2")
+    # edaMultServer("data3")
     
     #missingness
     trainDF_nvI <- missNameServer("dat1")
@@ -81,7 +81,16 @@ spaceTitanicApp()
 
 
 ## DONE
-
+#EDA univariate module
+  #simplified edaTabBuilder (by removing tabID) & naming of inputs and outputs
+  #added three spaces between tables and plots
+  #got outputs for each var to display independently 
+  #removed rownames and search box from DTs
+  #replaced html text title with table caption/title
+  #created NA category ("missing") for tabular and plot outputs
+  #updated headers for numeric vars
+  #updated tabylize() so that colheaders for n=1 use 'proportion' not 'percent'
+  #cut num into 6-equally spaced bins and plotted as a factor variable
 
 
 # LAST PUSHED COMMENT(S)
@@ -90,6 +99,8 @@ spaceTitanicApp()
   #conditionally added horizontal scroll bar to both tables
   #renamed table headers to be more interpretable
   #made second table more straightforward
+  #increased text size on barplots and histograms
+  #conditionally log x on histogrammer
 
 
 ## IN PROGRESS
@@ -98,33 +109,32 @@ spaceTitanicApp()
 #---------------------
 
 
-## TO DO (see below)
-#updates based on output & some perusal of code
+## TO DO 
+
 
 #EDA univariate module
-  #Have selector text read "Choose one variable"
   #Use ggiraph
-  #Remove rownames & search box
-  #Create an NA category for tableular output
-  #num takes too long to load--reconsider how to show this variable
-  #Add space between tables and plots
-  #Increase text size on plots
-  #Log x or y scale for some of the numerical vars?
 
 
 #EDA bivariate module
-  #Have selector text read "Choose two variables"
+  #simplify input & output ids and other names (if applicable)
+  #replace html text title with table title
   #Use ggiraph
   #Display "NA" in table (when applicable)
+  #replace NA in plots
+  #need new headers in ... plots
   #Remove rownames and search box
   #Log x and/or y scales for numerical vars
   #Increase text size on plots
 
 
 #EDA multivariate
-  #Have selector text read "Choose three variables"
+  #simplify input & output ids and other names (if applicable)
+  #replace html text title with table title
   #Use ggiraph
   #Display "NA" in table (when applicable)
+  #replace NA in plots
+  #need new headers in ... plots
   #Remove rownames and search box
   #Log x and/or y scales for numerical vars
   #Increase text size on plots
@@ -132,6 +142,7 @@ spaceTitanicApp()
 
 
 #missName
+  #simplify input & output ids and other names (if applicable)
   #Use updateTabpanel() to make this more interactive
   #For tables: remove rownames, search box, show x entries, previous/next (b/c tables are so small)
   #Remove barplot--both the option and plot
@@ -150,6 +161,7 @@ spaceTitanicApp()
 #conditionally display subset of main tabs based on where user is
 #fix group size plots not in descending order of frequency
 #from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
+#need a title page where variables are defined--perhaps some type of accordion presentation
 
 
 #missingness

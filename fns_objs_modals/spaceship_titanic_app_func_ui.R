@@ -15,7 +15,8 @@ extract_nm <- function(vec, val) { #val is in quotes
 
 # Input functions========================================
 selectInput01<-function(ID, label, choices) {
-  selectInput(inputId=ID, label=label, selectize=TRUE, choices=c("Choose one"="",choices))
+  selectInput(inputId=ID, label=label, selectize=TRUE, 
+              choices=c("Choose one"="",choices))
 }
 
 selectizeInput01<-function(ID, label, choices) {
@@ -32,44 +33,88 @@ selectizeInput02<-function(ID, label, choices) {
 
 
 # EDA Tab Structure Code=======================================================
-edaTabBuilder<-function(id, name,tabID,varID,options,fn){
+edaTabBuilder<-function(id, name, varID, options, fn){
   ns <- NS(id)
   
   tagList(
-  # tabPanel(title=name,
+    #title and well panels
     titlePanel(title=paste(name,"Exploratory Data Analysis",sep=" ")),
-      #inputs
+    #inputs
     wellPanel(
       fluidRow(
         column(6,
-          fn(ID=ns(paste("sel",varID[1],tabID,sep="_")),label="",choices=options)
+          fn(ID=ns(paste("sel",varID[1],sep="_")),label="",choices=options)
         ),
         column(6,
-          fn(ID=ns(paste("sel",varID[2],tabID,sep="_")),label="",choices=options)
+          fn(ID=ns(paste("sel",varID[2],sep="_")),label="",choices=options)
         )
       )
     ),
-       #outputs
-      fluidRow(
-        column(6,
-          htmlOutput(ns(paste("text_sel",varID[1],tabID,sep="_"))),
-          DTOutput(ns(paste("tab_sel",varID[1],tabID,sep="_")))
-        ),
-        column(6,
-          htmlOutput(ns(paste("text_sel",varID[2],tabID,sep="_"))),
-          DTOutput(ns(paste("tab_sel",varID[2],tabID,sep="_")))
+    #outputs
+    splitLayout(cellWidths=c("49.5%", "1%", "49.5%"),
+      #first var output
+      tagList(
+        column(12,
+          htmlOutput(ns(paste("text_sel",varID[1],sep="_"))),
+          DTOutput(ns(paste("tab_sel",varID[1],sep="_"))),
+          linebreaks(3),
+          plotOutput(ns(paste("plot_sel",varID[1],sep="_")))
         )
       ),
-      fluidRow(
-        column(6,
-          plotOutput(ns(paste("plot_sel",varID[1],tabID,sep="_")))
-        ),
-        column(6,
-          plotOutput(ns(paste("plot_sel",varID[2],tabID,sep="_")))
+      #space in middle
+      tagList(),
+      #second var output
+      tagList(
+        column(12,
+          htmlOutput(ns(paste("text_sel",varID[2],sep="_"))),
+          DTOutput(ns(paste("tab_sel",varID[2],sep="_"))),
+          linebreaks(3),
+          plotOutput(ns(paste("plot_sel",varID[2],sep="_")))
         )
       )
     )
+  )
 }
+      
+
+# edaTabBuilder<-function(id, name, tabID, varID, options, fn){
+#   ns <- NS(id)
+#   
+#   tagList(
+#   # tabPanel(title=name,
+#     titlePanel(title=paste(name,"Exploratory Data Analysis",sep=" ")),
+#       #inputs
+#     wellPanel(
+#       fluidRow(
+#         column(6,
+#           fn(ID=ns(paste("sel",varID[1],tabID,sep="_")),label="",choices=options)
+#         ),
+#         column(6,
+#           fn(ID=ns(paste("sel",varID[2],tabID,sep="_")),label="",choices=options)
+#         )
+#       )
+#     ),
+#        #outputs
+#       fluidRow(
+#         column(6,
+#           htmlOutput(ns(paste("text_sel",varID[1],tabID,sep="_"))),
+#           DTOutput(ns(paste("tab_sel",varID[1],tabID,sep="_")))
+#         ),
+#         column(6,
+#           htmlOutput(ns(paste("text_sel",varID[2],tabID,sep="_"))),
+#           DTOutput(ns(paste("tab_sel",varID[2],tabID,sep="_")))
+#         )
+#       ),
+#       fluidRow(
+#         column(6,
+#           plotOutput(ns(paste("plot_sel",varID[1],tabID,sep="_")))
+#         ),
+#         column(6,
+#           plotOutput(ns(paste("plot_sel",varID[2],tabID,sep="_")))
+#         )
+#       )
+#     )
+# }
 
 
 # edaTabBuilder<-function(name,tabID,varID,options,fn){

@@ -72,14 +72,17 @@ tabylize<-function(dat,vec){
     
     dat %>%
       tabyl(!!x1) %>%
-      mutate(across(where(is.numeric),~signif(.x,3)))
+      mutate(across(where(is.numeric),~signif(.x,3)),
+             {{x1}} := factor(!!x1) %>% fct_explicit_na()) %>%
+      rename_with(.cols=contains("percent"), ~str_replace(.x, "percent", "proportion"))
   }
   else if(n==2){
     x1<-sym(vec[1])
     x2<-sym(vec[2])
     
     dat %>%
-      tabyl(!!x1,!!x2)
+      tabyl(!!x1,!!x2) %>%
+      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na())
   }
   else if(n==3){
     x1<-sym(vec[1])
@@ -87,7 +90,8 @@ tabylize<-function(dat,vec){
     x3<-sym(vec[3])
     
     dat %>%
-      tabyl(!!x1,!!x2,!!x3)
+      tabyl(!!x1,!!x2,!!x3) %>%
+      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na())
   }
   else{return("Please use 1-3 variables")}
 }
@@ -119,14 +123,18 @@ summaryize<-function(dat,vec,group=NA){
     #conditionally groups data by categorical variable (if present)
     {if(!is.na(group)) group_by(.,!!s_group) else .} %>%
     summarize(across(!!s_var,list(n=length,
-                                  min=~min(.x,na.rm=TRUE),
-                                  q1=~quantile(.x,probs=0.25,na.rm=TRUE),
-                                  median=~median(.x,na.rm=TRUE),
+                                  n_missing=~sum(is.na(.x)),
+                                  complete_rate=~sum(!is.na(.x))/length(.x),
                                   mean=~mean(.x,na.rm=TRUE),
-                                  q3=~quantile(.x,probs=0.75,na.rm=TRUE),
-                                  max=~max(.x,na.rm=TRUE),
-                                  na=~sum(is.na(.x))))) %>%
-    mutate(across(where(is.numeric),~signif(.x,3)))
+                                  sd=~sd(.x, na.rm=TRUE),
+                                  min=~min(.x,na.rm=TRUE),
+                                  `1st quartile`=~quantile(.x,probs=0.25,na.rm=TRUE),
+                                  median=~median(.x,na.rm=TRUE),
+                                  `3rd quartile`=~quantile(.x,probs=0.75,na.rm=TRUE),
+                                  max=~max(.x,na.rm=TRUE)),
+                     .names="{.fn}")) %>%
+    mutate(across(where(is.numeric),~signif(.x,3))) %>%
+    bind_cols(variable=vec[1], .)
 }
 
 ### Figures
@@ -136,10 +144,11 @@ histogrammer<-function(dat,col){
   dat %>%
     ggplot() +
     geom_histogram(aes_string(col),fill="darkred",color="black") +
+    {if(col!="age") scale_x_log10()} +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13))
+    theme_bw(base_size=18) #+
+    # theme(axis.text=element_text(size=12),
+    #       axis.title=element_text(size=13))
 }
 
 ## Function to create bar plot of numeric variable
@@ -172,15 +181,15 @@ barplotter<-function(dat,vec,na.rm=FALSE){
     #conditional filter on na.rm arg
     {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
     #order first cat var by frequency
-    mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq()) %>%
+    mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq() %>% fct_explicit_na()) %>%
     ggplot() +
     geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
              color="black") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     xlab(vec[1]) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13)) -> p
+    theme_bw(base_size=18) -> p
+    # theme(axis.text=element_text(size=12),
+    #       axis.title=element_text(size=13)) -> p
     
     
     if(n==1) {

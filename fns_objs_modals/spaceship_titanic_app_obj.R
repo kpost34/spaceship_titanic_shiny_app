@@ -27,7 +27,7 @@ df_train_nchrVars[df_train_nchrVars!="transported"] -> df_train_nchrPreds
 df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> df_train_catVars
 
 ### All numeric cols
-df_train %>% select(where(is.numeric)|where(is.integer)) %>% names() -> df_train_numVars
+df_train %>% select(where(is.numeric)) %>% names() -> df_train_numVars
 
 ### All factor cols except for num
 df_train %>% select(where(is.factor),-num) %>% names() -> df_train_fct_nonumVars

@@ -6,7 +6,6 @@ edaUniUI <- function(id) {
     tabPanel(title="Univariate",
       edaTabBuilder(id,
                     name="Univariate",
-                    tabID="uniEDA02",
                     varID=c("var1","var2"),
                     options=df_train_nchrVars,
                     fn=selectInput01)
@@ -19,67 +18,90 @@ edaUniUI <- function(id) {
 edaUniServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
-    ## Text outputs----------------------
-    output$text_sel_var1_uniEDA02<-renderUI({
-      h3(paste(input$sel_var1_uniEDA02))
-    })
-    
-    output$text_sel_var2_uniEDA02<-renderUI({
-      h3(paste(input$sel_var2_uniEDA02))
-    })
-    
-    ## Table outputs----------------------
+    ## Tabular outputs----------------------
     ### reactives of output tables
-    dat1_uniEDA02<-reactive({
-      if(input$sel_var1_uniEDA02 %in% df_train_numVars){
-        summaryize(df_train,input$sel_var1_uniEDA02)
+    dat1<-reactive({
+      if(input$sel_var1 %in% df_train_numVars){
+        summaryize(df_train,input$sel_var1)
       }
-      else if(input$sel_var1_uniEDA02 %in% df_train_catVars){
-        tabylize(df_train,input$sel_var1_uniEDA02)
+      else if(input$sel_var1 %in% df_train_catVars){
+        df_train %>%
+          #bin num into six equally spaced groups
+          {if(input$sel_var1=="num") 
+            mutate(., 
+                   num=as.numeric(num), 
+                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+          tabylize(input$sel_var1)
       }
     })
   
-    dat2_uniEDA02<-reactive({
-      if(input$sel_var2_uniEDA02 %in% df_train_numVars){
-        summaryize(df_train,input$sel_var2_uniEDA02)
+    dat2<-reactive({
+      if(input$sel_var2 %in% df_train_numVars){
+        summaryize(df_train,input$sel_var2)
       }
-      else if(input$sel_var2_uniEDA02 %in% df_train_catVars){
-        tabylize(df_train,input$sel_var2_uniEDA02)
+      else if(input$sel_var2 %in% df_train_catVars){
+        df_train %>%
+          {if(input$sel_var2=="num") 
+            mutate(., 
+                   num=as.numeric(num), 
+                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+          tabylize(input$sel_var2)
       }
-    })
+    }) 
     
     ### Output tables
-    output$tab_sel_var1_uniEDA02<-renderDT(
-      dat1_uniEDA02(),options=list(scrollX="400px",
-                                  pageLength=5)
+    output$tab_sel_var1<-renderDT(
+      dat1(),
+      rownames=FALSE,
+      options=list(dom="t",
+                   pageLength=10,
+                   scrollX=TRUE),
+      #creates a caption above table in large, black text
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
+        input$sel_var1)
     )
   
-    output$tab_sel_var2_uniEDA02<-renderDT(
-      dat2_uniEDA02(),options=list(scrollX="400px",
-                                  pageLength=5)
+    output$tab_sel_var2<-renderDT(
+      dat2(),
+      rownames=FALSE, 
+      options=list(dom="t",
+                   pageLength=10,
+                   scrollX=TRUE),
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
+        input$sel_var2)
     )
   
   
     ## Plot outputs----------------------
-    output$plot_sel_var1_uniEDA02<-renderPlot({
-      if(input$sel_var1_uniEDA02 %in% df_train_numVars){
-        histogrammer(df_train,input$sel_var1_uniEDA02)
+    output$plot_sel_var1<-renderPlot({
+      if(input$sel_var1 %in% df_train_numVars){
+        histogrammer(df_train,input$sel_var1)
       }
-      else if(input$sel_var1_uniEDA02 %in% df_train_catVars){
-        barplotter(df_train,input$sel_var1_uniEDA02)
+      else if(input$sel_var1 %in% df_train_catVars){
+        df_train %>%
+          #bin num into six equally spaced groups
+          {if(input$sel_var1=="num")
+              mutate(., 
+                     num=as.numeric(num), 
+                     num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+          barplotter(input$sel_var1)
       }
     })
   
-    output$plot_sel_var2_uniEDA02<-renderPlot({
-      if(input$sel_var2_uniEDA02 %in% df_train_numVars){
-        histogrammer(df_train,input$sel_var2_uniEDA02)
+    output$plot_sel_var2<-renderPlot({
+      if(input$sel_var2 %in% df_train_numVars){
+        histogrammer(df_train,input$sel_var2)
       }
-      else if(input$sel_var2_uniEDA02 %in% df_train_catVars){
-        barplotter(df_train,input$sel_var2_uniEDA02)
+      else if(input$sel_var2 %in% df_train_catVars){
+        df_train %>%
+          {if(input$sel_var2=="num")
+              mutate(., 
+                     num=as.numeric(num), 
+                     num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+        barplotter(df_train,input$sel_var2)
       }
     })
-    
   })
 }
-
-
