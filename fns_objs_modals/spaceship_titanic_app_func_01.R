@@ -81,8 +81,10 @@ tabylize<-function(dat,vec){
     x2<-sym(vec[2])
     
     dat %>%
-      tabyl(!!x1,!!x2) %>%
-      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na())
+      # tabyl(!!x1,!!x2) %>%
+      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na(),
+             {{x2}} := factor(!!x2) %>% fct_explicit_na()) %>%
+      tabyl(!!x1,!!x2)
   }
   else if(n==3){
     x1<-sym(vec[1])
@@ -90,8 +92,7 @@ tabylize<-function(dat,vec){
     x3<-sym(vec[3])
     
     dat %>%
-      tabyl(!!x1,!!x2,!!x3) %>%
-      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na())
+      tabyl(!!x1,!!x2,!!x3)
   }
   else{return("Please use 1-3 variables")}
 }
@@ -133,8 +134,9 @@ summaryize<-function(dat,vec,group=NA){
                                   `3rd quartile`=~quantile(.x,probs=0.75,na.rm=TRUE),
                                   max=~max(.x,na.rm=TRUE)),
                      .names="{.fn}")) %>%
-    mutate(across(where(is.numeric),~signif(.x,3))) %>%
-    bind_cols(variable=vec[1], .)
+    mutate(across(where(is.numeric),~signif(.x,3)),
+           {{s_group}} := fct_explicit_na(!!s_group)) %>%
+    {if(n==1) bind_cols(variable=vec[1], .) else .}
 }
 
 ### Figures

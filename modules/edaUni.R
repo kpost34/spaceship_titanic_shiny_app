@@ -100,7 +100,7 @@ edaUniServer <- function(id) {
               mutate(., 
                      num=as.numeric(num), 
                      num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
-        barplotter(df_train,input$sel_var2)
+          barplotter(input$sel_var2)
       }
     })
   })

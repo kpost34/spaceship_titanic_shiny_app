@@ -44,7 +44,7 @@ spaceTitanicApp <- function() {
     ),
     navbarMenu(title="EDA", menuName="EDA02",
       edaUniUI("data1"),
-      # edaBiUI("data2"),
+      edaBiUI("data2")
       # edaMultUI("data3")
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
@@ -62,7 +62,7 @@ spaceTitanicApp <- function() {
     
     #eda
     edaUniServer("data1")
-    # edaBiServer("data2")
+    edaBiServer("data2")
     # edaMultServer("data3")
     
     #missingness
@@ -81,26 +81,16 @@ spaceTitanicApp()
 
 
 ## DONE
-#EDA univariate module
-  #simplified edaTabBuilder (by removing tabID) & naming of inputs and outputs
-  #added three spaces between tables and plots
-  #got outputs for each var to display independently 
-  #removed rownames and search box from DTs
-  #replaced html text title with table caption/title
-  #created NA category ("missing") for tabular and plot outputs
-  #updated headers for numeric vars
-  #updated tabylize() so that colheaders for n=1 use 'proportion' not 'percent'
-  #cut num into 6-equally spaced bins and plotted as a factor variable
+
 
 
 # LAST PUSHED COMMENT(S)
-#dataCheck module
-  #created formatted table titles using new helper fn extract_nm()
-  #conditionally added horizontal scroll bar to both tables
-  #renamed table headers to be more interpretable
-  #made second table more straightforward
-  #increased text size on barplots and histograms
-  #conditionally log x on histogrammer
+#EDA bivariate module/page
+  #updated and simplified input and output ids
+  #replaced html text title with table title
+  #removed rownames and search box
+  #removed variable col when vars selected are cat & num
+  #replaced empty cells (representing NAs) in tables with "(missing)"
 
 
 ## IN PROGRESS
@@ -110,28 +100,23 @@ spaceTitanicApp()
 
 
 ## TO DO 
+#most important--change plotting custom functions (e.g., barplotter) to move away from use of
+  #aes_string()
 
-
-#EDA univariate module
-  #Use ggiraph
+#add variable type in dropdowns when selecting variable
 
 
 #EDA bivariate module
-  #simplify input & output ids and other names (if applicable)
-  #replace html text title with table title
-  #Use ggiraph
-  #Display "NA" in table (when applicable)
   #replace NA in plots
   #need new headers in ... plots
-  #Remove rownames and search box
-  #Log x and/or y scales for numerical vars
+  #Log x and/or y scales for numerical vars--may need to be conditional
+  #in cat-num boxplots--reverse order of cats so that missing is on bottom
   #Increase text size on plots
 
 
 #EDA multivariate
   #simplify input & output ids and other names (if applicable)
   #replace html text title with table title
-  #Use ggiraph
   #Display "NA" in table (when applicable)
   #replace NA in plots
   #need new headers in ... plots
@@ -139,7 +124,7 @@ spaceTitanicApp()
   #Log x and/or y scales for numerical vars
   #Increase text size on plots
 
-
+#Note: use ggiraph for EDA and all plots--make them interactive
 
 #missName
   #simplify input & output ids and other names (if applicable)
@@ -162,7 +147,7 @@ spaceTitanicApp()
 #fix group size plots not in descending order of frequency
 #from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
 #need a title page where variables are defined--perhaps some type of accordion presentation
-
+#rename objs..no need for df_train for all of them
 
 #missingness
 #output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
