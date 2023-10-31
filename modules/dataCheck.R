@@ -38,6 +38,8 @@ dataCheckServer <- function(id) {
       options=list(dom="tip",
                    autoWidth=TRUE,
                    pageLength=12,
+                   #center-justifies column header and text
+                   columnDefs=list(list(className='dt-center', targets="_all")),
                    #conditionally display scroll bar
                    scrollX=if(input$sel_quick=="dat_samp") {TRUE} else {FALSE}),
       #creates a caption above table in large, black text
@@ -59,7 +61,8 @@ dataCheckServer <- function(id) {
       df_summ(), 
       rownames=FALSE,
       options=list(dom="t",
-                   autoWidth=TRUE),
+                   autoWidth=TRUE,
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
         paste(extract_nm(vec_summ_chk, input$sel_summ), "Variables"))

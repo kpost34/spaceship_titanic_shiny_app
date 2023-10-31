@@ -81,7 +81,11 @@ spaceTitanicApp()
 
 
 ## DONE
+#dataCheck module
+  #added variable type column to missingness table
 
+#all modules
+  #applied center alignment to colheaders and data 
 
 
 # LAST PUSHED COMMENT(S)
@@ -108,9 +112,9 @@ spaceTitanicApp()
 
 #EDA bivariate module
   #replace NA in plots
-  #need new headers in ... plots
   #Log x and/or y scales for numerical vars--may need to be conditional
   #in cat-num boxplots--reverse order of cats so that missing is on bottom
+  #jitter outliers in boxplots?
   #Increase text size on plots
 
 
@@ -119,12 +123,12 @@ spaceTitanicApp()
   #replace html text title with table title
   #Display "NA" in table (when applicable)
   #replace NA in plots
-  #need new headers in ... plots
   #Remove rownames and search box
   #Log x and/or y scales for numerical vars
   #Increase text size on plots
 
 #Note: use ggiraph for EDA and all plots--make them interactive
+#had this feedback "#need new headers in ... plots"--does that make sense? (for eda bi & multivariate)
 
 #missName
   #simplify input & output ids and other names (if applicable)
@@ -140,7 +144,6 @@ spaceTitanicApp()
 ### OLD COMMENTS ###-----------------
 #general/unknown
 #add table titles--perhaps to correlation table
-#deal with all the variable num categories
 #ability to bin choices? (vars into factor, logical, etc)
 #add modals for imputation options that are risky
 #conditionally display subset of main tabs based on where user is

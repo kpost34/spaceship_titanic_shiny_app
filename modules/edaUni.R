@@ -55,7 +55,8 @@ edaUniServer <- function(id) {
       rownames=FALSE,
       options=list(dom="t",
                    pageLength=10,
-                   scrollX=TRUE),
+                   scrollX=TRUE,
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
       #creates a caption above table in large, black text
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
@@ -67,7 +68,8 @@ edaUniServer <- function(id) {
       rownames=FALSE, 
       options=list(dom="t",
                    pageLength=10,
-                   scrollX=TRUE),
+                   scrollX=TRUE,
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
         input$sel_var2)

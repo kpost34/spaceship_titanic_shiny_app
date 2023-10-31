@@ -19,13 +19,21 @@ dim_tbl<-function(dat){
 
 ### Function to return number of missing values per col as tibble
 n_miss_tbl<-function(dat){
+  #grab col classes
+  df_classes <- dat %>%
+    sapply(class) %>%
+    enframe(name="variable", value="type")
+  
+  
   apply(dat,2,function(x) sum(is.na(x))) %>%
     as.data.frame() %>%
     rownames_to_column() %>%
     set_names(c("variable","n_missing")) %>%
     as_tibble(.name_repair="minimal") %>%
     arrange(desc(n_missing)) %>%
-    mutate(`complete?`=ifelse(n_missing==0, "Yes", "No"))
+    mutate(`complete?`=ifelse(n_missing==0, "Yes", "No")) %>%
+    left_join(df_classes) %>%
+    select(variable, type, n_missing, `complete?`)
 }
 
 
@@ -135,7 +143,7 @@ summaryize<-function(dat,vec,group=NA){
                                   max=~max(.x,na.rm=TRUE)),
                      .names="{.fn}")) %>%
     mutate(across(where(is.numeric),~signif(.x,3)),
-           {{s_group}} := fct_explicit_na(!!s_group)) %>%
+           {{s_group}} := factor(!!s_group) %>% fct_explicit_na()) %>%
     {if(n==1) bind_cols(variable=vec[1], .) else .}
 }
 

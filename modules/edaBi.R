@@ -69,7 +69,8 @@ edaBiServer <- function(id) {
       rownames=FALSE,
       options=list(dom="t",
                    pageLength=10,
-                   scrollX=TRUE),
+                   scrollX=TRUE,
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
         paste(input$sel_var1ab[1], input$sel_var1ab[2], sep="-"))
@@ -80,7 +81,8 @@ edaBiServer <- function(id) {
       rownames=FALSE,
       options=list(dom="t",
                    pageLength=10,
-                   scrollX=TRUE),
+                   scrollX=TRUE,
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:175% ;",
         paste(input$sel_var2ab[1], input$sel_var2ab[2], sep="-"))
