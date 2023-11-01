@@ -4,7 +4,8 @@
 #Codes for functions that match backbone 01 script: reading in data, data checking, and eda
 
 #Load packages
-pacman::p_load(tidyverse,skimr,janitor,purrr,rstatix)
+pacman::p_load(tidyverse, skimr, janitor, purrr, rstatix)
+
 
 # Data Checking===================================================================
 ## Basic checking
@@ -67,21 +68,21 @@ skim_tbl<-function(dat, type="character"){
 }
 
 
-##### EDA===============================================================================
-#### Univariate-------------------------------------------------------------------------
+# EDA===============================================================================================
+## Univariate--------------------
 ### Tables
-## Function to create tabyl with numerical values signifed
+#### Function to create tabyl with numerical values signifed
 #for use with col in quotes
-tabylize<-function(dat,vec){
-  n<-length(vec)
+tabylize <- function(dat, vec){
+  n <- length(vec)
   
   if(n==1){
     x1<-sym(vec)
     
     dat %>%
       tabyl(!!x1) %>%
-      mutate(across(where(is.numeric),~signif(.x,3)),
-             {{x1}} := factor(!!x1) %>% fct_explicit_na()) %>%
+      mutate(across(where(is.numeric), ~signif(.x,3)),
+             {{x1}} := factor(!!x1) %>% fct_na_value_to_level(level="NA")) %>%
       rename_with(.cols=contains("percent"), ~str_replace(.x, "percent", "proportion"))
   }
   else if(n==2){
@@ -90,8 +91,8 @@ tabylize<-function(dat,vec){
     
     dat %>%
       # tabyl(!!x1,!!x2) %>%
-      mutate({{x1}} := factor(!!x1) %>% fct_explicit_na(),
-             {{x2}} := factor(!!x2) %>% fct_explicit_na()) %>%
+      mutate({{x1}} := factor(!!x1) %>% fct_na_value_to_level(level="NA"),
+             {{x2}} := factor(!!x2) %>% fct_na_value_to_level(level="NA")) %>%
       tabyl(!!x1,!!x2)
   }
   else if(n==3){
@@ -106,9 +107,9 @@ tabylize<-function(dat,vec){
 }
 
 
-### Function to create tidyverse equivalent of summary() (for use with 1-2 vars)
+#### Function to create tidyverse equivalent of summary() (for use with 1-2 vars)
 #for use with character string or vector; 2nd var could be grouping variable (in quotes)
-summaryize<-function(dat,vec,group=NA){
+summaryize <- function(dat, vec, group=NA){
   
   #error message: size of vector
   n<-length(vec)
@@ -123,9 +124,9 @@ summaryize<-function(dat,vec,group=NA){
   if(num_cat!=1) {return("Use one numeric variable")}
   
   #store inputs as symbols
-  s_var<-setdiff(vec,group) %>% sym()
+  s_var <- setdiff(vec,group) %>% sym()
   if(!is.na(group)) {
-    s_group<-sym(group)
+    s_group <- sym(group)
   }
   
   dat %>%
@@ -134,36 +135,40 @@ summaryize<-function(dat,vec,group=NA){
     summarize(across(!!s_var,list(n=length,
                                   n_missing=~sum(is.na(.x)),
                                   complete_rate=~sum(!is.na(.x))/length(.x),
-                                  mean=~mean(.x,na.rm=TRUE),
+                                  mean=~mean(.x, na.rm=TRUE),
                                   sd=~sd(.x, na.rm=TRUE),
-                                  min=~min(.x,na.rm=TRUE),
-                                  `1st quartile`=~quantile(.x,probs=0.25,na.rm=TRUE),
-                                  median=~median(.x,na.rm=TRUE),
-                                  `3rd quartile`=~quantile(.x,probs=0.75,na.rm=TRUE),
-                                  max=~max(.x,na.rm=TRUE)),
+                                  min=~min(.x, na.rm=TRUE),
+                                  `1st quartile`=~quantile(.x,probs=0.25, na.rm=TRUE),
+                                  median=~median(.x, na.rm=TRUE),
+                                  `3rd quartile`=~quantile(.x,probs=0.75, na.rm=TRUE),
+                                  max=~max(.x, na.rm=TRUE)),
                      .names="{.fn}")) %>%
-    mutate(across(where(is.numeric),~signif(.x,3)),
-           {{s_group}} := factor(!!s_group) %>% fct_explicit_na()) %>%
+    mutate(across(where(is.numeric),~signif(.x, 3))) %>%
+    {if(!is.na(group)) 
+      mutate(., {{s_group}} := factor(!!s_group) %>% 
+               fct_na_value_to_level(level="NA")) else .} %>%
     {if(n==1) bind_cols(variable=vec[1], .) else .}
 }
 
 ### Figures
-## Function to create histogram of numeric variable
+#### Function to create histogram of numeric variable
 #for use with col name in quotes
-histogrammer<-function(dat,col){
+histogrammer<-function(dat, col){
+  #convert & rename col as 's_col'
+  s_col <- sym(col)
+  
   dat %>%
     ggplot() +
-    geom_histogram(aes_string(col),fill="darkred",color="black") +
+    #use bang-bang operator
+    geom_histogram(aes(!!s_col),fill="darkred",color="black") +
     {if(col!="age") scale_x_log10()} +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    theme_bw(base_size=18) #+
-    # theme(axis.text=element_text(size=12),
-    #       axis.title=element_text(size=13))
+    theme_bw(base_size=18) 
 }
 
-## Function to create bar plot of numeric variable
+#### Function to create bar plot of numeric variable
 #for use with col name(s) in quotes stored as an object
-barplotter<-function(dat,vec,na.rm=FALSE){
+barplotter <- function(dat, vec, na.rm=FALSE){
     
   #pull number of vars
   n<-length(vec)
@@ -174,8 +179,8 @@ barplotter<-function(dat,vec,na.rm=FALSE){
   }
   
   #end if numerical vars
-  if(sum(map_chr(dat[vec],class) %in% c("logical","factor")==0)) {
-    return("Use categorical variables only")
+  if(sum(map_chr(dat[vec], class) %in% c("logical", "factor")==0)) {
+    return("Use categorical or logical variables only")
   }
     
   #allow re-sorting of vector (if n=2 or 3) based on # of cats
@@ -185,36 +190,78 @@ barplotter<-function(dat,vec,na.rm=FALSE){
       sort(decreasing=TRUE) %>%
       names() -> vec
   }
-    
+  
+  #turn vector components into symbols
+  vec1 <- sym(vec[1])
+  
+  if(n > 1) {
+    vec2 <- sym(vec[2])
+  }
+
+  if(n==3) {
+    vec3 <- sym(vec[3])
+  }
+  
+  fill_value <- if(n > 1) {
+    vec2
+  } else {vec1}
+  
+  
   #make plot
   dat %>%
     #conditional filter on na.rm arg
-    {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+    {if(na.rm==TRUE) (filter(.,across(everything(),~!is.na(.x)))) else .} %>%
     #order first cat var by frequency
-    mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq() %>% fct_explicit_na()) %>%
+    mutate({{vec1}} := as.factor(!!sym(vec[1])) %>% fct_infreq()) %>%
     ggplot() +
-    geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
-             color="black") +
+    geom_bar(aes(x=!!vec1, fill=!!fill_value), color="black") + 
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     xlab(vec[1]) +
     theme_bw(base_size=18) -> p
-    # theme(axis.text=element_text(size=12),
-    #       axis.title=element_text(size=13)) -> p
-    
-    
+  
     if(n==1) {
-      p + theme(legend.position="none") +
-          scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])))
-    }
-    else if(n==2) (p + scale_fill_viridis_d())
-    else if(n==3) {p + facet_wrap(vec[3]) +
-                     scale_fill_viridis_d(na.value="grey50")
-    }
-  }
+        p + theme(legend.position="none") +
+            scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])), na.value="grey50")
+      }
+      else if(n==2) (p + scale_fill_viridis_d(na.value="grey50"))
+      else if(n==3) {p + facet_wrap(vars(!!vec3)) +
+                       scale_fill_viridis_d(na.value="grey50")
+      }
+}
+  
+  #need to turn logical into factors
+  #need to apply fct_explicit_na() to them so that missing is clear
+  
+    
+  # #make plot
+  # dat %>%
+  #   #conditional filter on na.rm arg
+  #   {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+  #   #order first cat var by frequency
+  #   mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq() %>% fct_na_value_to_level()) %>%
+  #   ggplot() +
+  #   geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
+  #            color="black") +
+  #   scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+  #   xlab(vec[1]) +
+  #   theme_bw(base_size=18) -> p
+  #   # theme(axis.text=element_text(size=12),
+  #   #       axis.title=element_text(size=13)) -> p
+  #   
+  #   
+  #   if(n==1) {
+  #     p + theme(legend.position="none") +
+  #         scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])))
+  #   }
+  #   else if(n==2) (p + scale_fill_viridis_d())
+  #   else if(n==3) {p + facet_wrap(vec[3]) +
+  #                    scale_fill_viridis_d(na.value="grey50")
+  #   }
+  # }
 
-#### Bivariate-------------------------------------------------------------------------
+## Bivariate--------------------
 ### Tabular
-## Cat-cat
+#### Cat-cat
 #see tabylize() above
 
 ## Cat-num
@@ -232,11 +279,11 @@ corrtester<-function(dat,vec) {
 
 
 ### Figures
-## Cat-cat
+#### Cat-cat
 #see barplotter()
 
 
-## Cat-num
+#### Cat-num
 # Function to create boxplots for 2-3 variables (only one numeric)
 boxplotter<-function(dat, vec, na.rm=FALSE) {
   
@@ -280,8 +327,8 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
 }
 
 
-## Num-num
-# Function to build scatterplots (and color points if third variable is chosen)
+#### Num-num
+##### Function to build scatterplots (and color points if third variable is chosen)
 scatterplotter<-function(dat,vec,na.rm=FALSE){
   
   n<-length(vec)
@@ -324,7 +371,7 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
 }
 
 
-#### Multivariate (figures only)-------------------------------------------------------------------------
+## Multivariate (figures only)--------------------
 ### Cat-cat-cat
 ## see barplotter() above
 

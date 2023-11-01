@@ -81,20 +81,12 @@ spaceTitanicApp()
 
 
 ## DONE
-#dataCheck module
-  #added variable type column to missingness table
 
-#all modules
-  #applied center alignment to colheaders and data 
 
 
 # LAST PUSHED COMMENT(S)
-#EDA bivariate module/page
-  #updated and simplified input and output ids
-  #replaced html text title with table title
-  #removed rownames and search box
-  #removed variable col when vars selected are cat & num
-  #replaced empty cells (representing NAs) in tables with "(missing)"
+  # updated more functions to for generating tables and plots to move away from aes_string and
+    #strings in general
 
 
 ## IN PROGRESS
