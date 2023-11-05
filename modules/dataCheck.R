@@ -37,7 +37,7 @@ dataCheckServer <- function(id) {
       rownames=FALSE, 
       options=list(dom="tip",
                    autoWidth=TRUE,
-                   pageLength=12,
+                   pageLength=7,
                    #center-justifies column header and text
                    columnDefs=list(list(className='dt-center', targets="_all")),
                    #conditionally display scroll bar

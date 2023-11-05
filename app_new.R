@@ -81,33 +81,30 @@ spaceTitanicApp()
 
 
 ## DONE
-
+  
 
 
 # LAST PUSHED COMMENT(S)
-  # updated more functions to for generating tables and plots to move away from aes_string and
-    #strings in general
-
+  #edaBi module
+    #improved display of corrtester() outputs
+    #increased text size on plots
+  #moved away from use of aes_string() in custom plotting functions
+  #got boxplotter() to display NA boxes at bottom (both for y and color axes) & to align with legend
+  #added conditional log-transformation of axes for numerical vars in boxplotter & scatterplotter
 
 ## IN PROGRESS
+
 
 
 #---------------------
 
 
 ## TO DO 
-#most important--change plotting custom functions (e.g., barplotter) to move away from use of
-  #aes_string()
+
 
 #add variable type in dropdowns when selecting variable
 
-
-#EDA bivariate module
-  #replace NA in plots
-  #Log x and/or y scales for numerical vars--may need to be conditional
-  #in cat-num boxplots--reverse order of cats so that missing is on bottom
-  #jitter outliers in boxplots?
-  #Increase text size on plots
+  
 
 
 #EDA multivariate
@@ -118,6 +115,7 @@ spaceTitanicApp()
   #Remove rownames and search box
   #Log x and/or y scales for numerical vars
   #Increase text size on plots
+  #if there is a correlaiton--round p-value
 
 #Note: use ggiraph for EDA and all plots--make them interactive
 #had this feedback "#need new headers in ... plots"--does that make sense? (for eda bi & multivariate)

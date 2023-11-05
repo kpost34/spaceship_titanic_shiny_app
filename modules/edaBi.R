@@ -21,26 +21,26 @@ edaBiUI <- function(id) {
 edaBiServer <- function(id) {
   moduleServer(id, function(input, output, session) {
   
-    ## Text outputs----------------------
-    # output$text_sel_var1ab<-renderUI({
-    #   h3(paste(input$sel_var1ab,collapse="-"))
-    # })
-    # 
-    # output$text_sel_var2ab<-renderUI({
-    #   h3(paste(input$sel_var2ab,collapse="-"))
-    # })
-    
-    
     ## Table outputs----------------------
     ### Create reactives of output tables
     dat1<-reactive({
       req(length(input$sel_var1ab)==2)
       #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
       if(sum(input$sel_var1ab %in% df_train_catVars)==2) {
-        tabylize(df_train,input$sel_var1ab)
+        {if(sum(input$sel_var1ab=="num") ==1)
+            mutate(., 
+                   num=as.numeric(num), 
+                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+          tabylize(input$sel_var1ab)
+        # tabylize(df_train,input$sel_var1ab)
       }
       else if(sum(input$sel_var1ab %in% df_train_catVars)==1) {
-        summaryize(df_train,input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% df_train_catVars])
+        {if(sum(input$sel_var1ab=="num") ==1)
+            mutate(., 
+                   num=as.numeric(num), 
+                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
+          summaryize(input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% df_train_catVars])
+        # summaryize(df_train,input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% df_train_catVars])
       }
       else if(sum(input$sel_var1ab %in% df_train_numVars)==2) {
         corrtester(df_train,input$sel_var1ab)

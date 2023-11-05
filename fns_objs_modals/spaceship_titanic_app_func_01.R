@@ -125,9 +125,11 @@ summaryize <- function(dat, vec, group=NA){
   
   #store inputs as symbols
   s_var <- setdiff(vec,group) %>% sym()
+  
   if(!is.na(group)) {
     s_group <- sym(group)
   }
+  
   
   dat %>%
     #conditionally groups data by categorical variable (if present)
@@ -144,8 +146,8 @@ summaryize <- function(dat, vec, group=NA){
                                   max=~max(.x, na.rm=TRUE)),
                      .names="{.fn}")) %>%
     mutate(across(where(is.numeric),~signif(.x, 3))) %>%
-    {if(!is.na(group)) 
-      mutate(., {{s_group}} := factor(!!s_group) %>% 
+    {if(!is.na(group))
+      mutate(., "{{s_group}}" := factor(!!s_group) %>%
                fct_na_value_to_level(level="NA")) else .} %>%
     {if(n==1) bind_cols(variable=vec[1], .) else .}
 }
@@ -211,12 +213,9 @@ barplotter <- function(dat, vec, na.rm=FALSE){
   dat %>%
     #conditional filter on na.rm arg
     {if(na.rm==TRUE) (filter(.,across(everything(),~!is.na(.x)))) else .} %>%
-    #order first cat var by frequency
-    mutate({{vec1}} := as.factor(!!sym(vec[1])) %>% fct_infreq()) %>%
     ggplot() +
     geom_bar(aes(x=!!vec1, fill=!!fill_value), color="black") + 
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    xlab(vec[1]) +
     theme_bw(base_size=18) -> p
   
     if(n==1) {
@@ -229,35 +228,6 @@ barplotter <- function(dat, vec, na.rm=FALSE){
       }
 }
   
-  #need to turn logical into factors
-  #need to apply fct_explicit_na() to them so that missing is clear
-  
-    
-  # #make plot
-  # dat %>%
-  #   #conditional filter on na.rm arg
-  #   {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
-  #   #order first cat var by frequency
-  #   mutate(vec1=as.factor(!!sym(vec[1])) %>% fct_infreq() %>% fct_na_value_to_level()) %>%
-  #   ggplot() +
-  #   geom_bar(aes_string(x=quote(vec1),fill=ifelse(n %in% 2:3,vec[2],vec[1])),
-  #            color="black") +
-  #   scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-  #   xlab(vec[1]) +
-  #   theme_bw(base_size=18) -> p
-  #   # theme(axis.text=element_text(size=12),
-  #   #       axis.title=element_text(size=13)) -> p
-  #   
-  #   
-  #   if(n==1) {
-  #     p + theme(legend.position="none") +
-  #         scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])))
-  #   }
-  #   else if(n==2) (p + scale_fill_viridis_d())
-  #   else if(n==3) {p + facet_wrap(vec[3]) +
-  #                    scale_fill_viridis_d(na.value="grey50")
-  #   }
-  # }
 
 ## Bivariate--------------------
 ### Tabular
@@ -273,8 +243,11 @@ corrtester<-function(dat,vec) {
   dat %>%
     cor_test(all_of(vec),method="spearman") %>%
     select(!starts_with("var")) %>%
-    mutate(across(where(is.numeric),~signif(.x,3)),
-           statistic=formatC(statistic,digits=3))
+    mutate(statistic=formatC(statistic,format="g", digits=3),
+           p=formatC(p, format="f", digits=3),
+           p=ifelse(p=="0.000",
+                  "< 0.001",
+                  p))
 }
 
 
@@ -288,6 +261,7 @@ corrtester<-function(dat,vec) {
 boxplotter<-function(dat, vec, na.rm=FALSE) {
   
   n<-length(vec)
+  
   #errors...too many columns/variables
   if(!n %in% 2:3) {
     return("Use only 2-3 columns")
@@ -305,24 +279,48 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
       #col with most categories is in first position
       sort(decreasing=TRUE) %>%
       names() -> vec
+  
+  #turn vector components into symbols
+  vec1 <- sym(vec[1])
+  vec2 <- sym(vec[2])
 
+  if(n==3) {
+    vec3 <- sym(vec[3])
+  }
+  
+  #set color value conditionally--it's a symbol
+  color_value <- if(n == 3) {
+    vec3
+  } else {vec2}
+
+  
   #make plot
   dat %>%
     #conditional filter on na.rm arg
     {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
+    #code retains a string argument to pass as column name, modifies, and uses it later by
+      #original name; it's critical here to a) create an NA level and b) reverse the levels
+    {if(n==3) mutate(., {{vec3}} := factor(!!vec3) %>%
+                       fct_na_value_to_level() %>% 
+                       fct_rev()) else .} %>%
     ggplot() +
-      geom_boxplot(aes_string(x=vec[2],y=vec[1],color=ifelse(n==3,vec[3],vec[2]))) +
-      coord_flip() +
-      theme_bw() -> p
+      #evaluate vec1 & vec2 (they are symbols) & use curly-curly convention for color
+      geom_boxplot(aes(x=!!vec1, y=!!vec2, color={{color_value}})) +
+      #log-transform axis if not age
+      {if(vec[1]!="age") scale_x_log10()} +
+      #limits=rev puts NA at bottom on y-axis
+      scale_y_discrete(limits=rev) +
+      theme_bw(base_size=18) -> p
   
   if(n==2) {
  p + theme(legend.position="none") +
      scale_color_manual(values=rep("darkblue",n_distinct(dat[vec[2]])))
-      #scale_color_viridis_d(end=.8,na.value="grey50")
   }
   else if(n==3) {
     p + theme(legend.position="bottom") +
-        scale_color_viridis_d(end=.7,na.value="grey50")
+        #na.value still works if NA is an explicit level; how to manually state breaks to align
+          #plot & legend level orders
+        scale_color_viridis_d(end=.7, direction=-1, na.value="grey50", breaks=unique(dat[[vec[3]]]))
   }
 }
 
@@ -338,24 +336,38 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
   }
   
   #wrong categories
-  if(!sum(map_chr(dat[vec],class) %in% c("integer","numeric")) %in% 2:3|
-     sum(map_chr(dat[vec],class) %in% c("logical","factor")) > 1){
+  n_num <- sum(map_chr(dat[vec],class) %in% c("integer","numeric"))
+  n_cat <- sum(map_chr(dat[vec],class) %in% c("logical","factor"))
+  
+  if(!n_num %in% 2:3|n_cat >1) {
     return("Need 2-3 numeric and max 1 categorical variables")
   }
   
-  #re-order variables
-  dat[vec] %>%
-    map_int(n_distinct) %>%
-    #col with most categories is in first position
-    sort(decreasing=TRUE) %>%
-    names() -> vec
+  #sort and make vars symbols
+  if(n_cat==1) {
+    #sort 
+    dat[vec] %>%
+      map_int(n_distinct) %>%
+      sort(decreasing=TRUE) %>%
+      names() -> vec
+  } 
+  
+  if(n==3) {
+    vec3 <- sym(vec[3])
+  }
+    
+  vec1 <- sym(vec[1])
+  vec2 <- sym(vec[2])
   
   #make plot
   dat %>%
     #conditional filter on na.rm arg
     {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
-    ggplot(aes_string(x=vec[2],y=vec[1])) +
-    theme_bw() +
+    ggplot(aes(x=!!vec2, y=!!vec1)) +
+    {if(vec[2]!="age") scale_x_log10()} +
+    {if(vec[1]!="age") scale_y_log10(expand=expansion(mult=c(0,0.1))) 
+      else scale_y_continuous(expand=expansion(mult=c(0,0.1)))} +
+    theme_bw(base_size=18) +
     theme(legend.position="bottom") -> p
       
   #if/else if/else
@@ -363,10 +375,14 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
     p + geom_point(color="darkred")
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
-    p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_d(na.value="grey50")
+    p + 
+      geom_point(aes(color=!!vec3), alpha=0.8) + 
+      scale_color_viridis_d(end=.7, na.value="grey50")
   }
-  else if(n==3 & class(dat[[vec[3]]]) %in% c("intger","numeric")) {
-    p + geom_point(aes_string(color=vec[3])) + scale_color_viridis_c()
+  else if(n==3 & class(dat[[vec[3]]]) %in% c("integer","numeric")) {
+    p + 
+      geom_point(aes(color=!!vec3), alpha=0.8) + 
+      scale_color_viridis_c(end=.8, na.value="grey50")
   }
 }
 
