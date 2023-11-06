@@ -16,18 +16,18 @@ extract_nm <- function(vec, val) { #val is in quotes
 # Input functions========================================
 selectInput01<-function(ID, label, choices) {
   selectInput(inputId=ID, label=label, selectize=TRUE, 
-              choices=c("Choose one"="",choices))
+              choices=c("Choose one"="", choices))
 }
 
 selectizeInput01<-function(ID, label, choices) {
   selectizeInput(inputId=ID, label=label, multiple=TRUE, 
-              choices=c("Choose two"="",choices),
+              choices=c("Choose two"="", choices),
               options=list(maxItems=2))
 }
 
 selectizeInput02<-function(ID, label, choices) {
   selectizeInput(inputId=ID, label=label, multiple=TRUE, 
-                 choices=c("Choose three"="",choices),
+                 choices=c("Choose three"="", choices),
                  options=list(maxItems=3))
 }
 

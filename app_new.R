@@ -44,8 +44,8 @@ spaceTitanicApp <- function() {
     ),
     navbarMenu(title="EDA", menuName="EDA02",
       edaUniUI("data1"),
-      edaBiUI("data2")
-      # edaMultUI("data3")
+      edaBiUI("data2"),
+      edaMultUI("data3")
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
       missNameUI("dat1"),
@@ -63,7 +63,7 @@ spaceTitanicApp <- function() {
     #eda
     edaUniServer("data1")
     edaBiServer("data2")
-    # edaMultServer("data3")
+    edaMultServer("data3")
     
     #missingness
     trainDF_nvI <- missNameServer("dat1")
@@ -81,16 +81,19 @@ spaceTitanicApp()
 
 
 ## DONE
-  
 
 
 # LAST PUSHED COMMENT(S)
   #edaBi module
-    #improved display of corrtester() outputs
-    #increased text size on plots
-  #moved away from use of aes_string() in custom plotting functions
-  #got boxplotter() to display NA boxes at bottom (both for y and color axes) & to align with legend
-  #added conditional log-transformation of axes for numerical vars in boxplotter & scatterplotter
+    #turned num var into factor
+
+  #edaMult module
+    #simplified input & output ids 
+    #conditionally added log x/y to boxplots and scatterplots
+    #NA added to plots
+    #increased text size (in this & other eda modules)
+    #reduced alpha level in scatterplotter
+    #got barplotter to facet by row
 
 ## IN PROGRESS
 
@@ -100,22 +103,15 @@ spaceTitanicApp()
 
 
 ## TO DO 
-
-
 #add variable type in dropdowns when selecting variable
-
+#for barplotter--log counts if > minimum?
   
 
 
 #EDA multivariate
-  #simplify input & output ids and other names (if applicable)
-  #replace html text title with table title
-  #Display "NA" in table (when applicable)
-  #replace NA in plots
-  #Remove rownames and search box
-  #Log x and/or y scales for numerical vars
-  #Increase text size on plots
-  #if there is a correlaiton--round p-value
+  #get num to plot as factor
+  #increase size of points in legend scatterplotter
+  #increase plotOutput height if fn == selectize02
 
 #Note: use ggiraph for EDA and all plots--make them interactive
 #had this feedback "#need new headers in ... plots"--does that make sense? (for eda bi & multivariate)

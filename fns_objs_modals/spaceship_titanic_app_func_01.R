@@ -165,7 +165,7 @@ histogrammer<-function(dat, col){
     geom_histogram(aes(!!s_col),fill="darkred",color="black") +
     {if(col!="age") scale_x_log10()} +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    theme_bw(base_size=18) 
+    theme_bw(base_size=19) 
 }
 
 #### Function to create bar plot of numeric variable
@@ -216,15 +216,20 @@ barplotter <- function(dat, vec, na.rm=FALSE){
     ggplot() +
     geom_bar(aes(x=!!vec1, fill=!!fill_value), color="black") + 
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    theme_bw(base_size=18) -> p
+    theme_bw(base_size=19) -> p
   
     if(n==1) {
         p + theme(legend.position="none") +
             scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])), na.value="grey50")
       }
-      else if(n==2) (p + scale_fill_viridis_d(na.value="grey50"))
-      else if(n==3) {p + facet_wrap(vars(!!vec3)) +
-                       scale_fill_viridis_d(na.value="grey50")
+      else if(n==2) (
+        p + 
+          scale_fill_viridis_d(na.value="grey50") +
+          theme(legend.position="bottom"))
+      else if(n==3) {p + 
+          facet_wrap(vars(!!vec3), dir="v") +
+          scale_fill_viridis_d(na.value="grey50") +
+          theme(legend.position="bottom")
       }
 }
   
@@ -310,7 +315,7 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
       {if(vec[1]!="age") scale_x_log10()} +
       #limits=rev puts NA at bottom on y-axis
       scale_y_discrete(limits=rev) +
-      theme_bw(base_size=18) -> p
+      theme_bw(base_size=19) -> p
   
   if(n==2) {
  p + theme(legend.position="none") +
@@ -367,7 +372,7 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
     {if(vec[2]!="age") scale_x_log10()} +
     {if(vec[1]!="age") scale_y_log10(expand=expansion(mult=c(0,0.1))) 
       else scale_y_continuous(expand=expansion(mult=c(0,0.1)))} +
-    theme_bw(base_size=18) +
+    theme_bw(base_size=19) +
     theme(legend.position="bottom") -> p
       
   #if/else if/else
@@ -376,12 +381,12 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
     p + 
-      geom_point(aes(color=!!vec3), alpha=0.8) + 
+      geom_point(aes(color=!!vec3), alpha=0.7) + 
       scale_color_viridis_d(end=.7, na.value="grey50")
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("integer","numeric")) {
     p + 
-      geom_point(aes(color=!!vec3), alpha=0.8) + 
+      geom_point(aes(color=!!vec3), alpha=0.7) + 
       scale_color_viridis_c(end=.8, na.value="grey50")
   }
 }
