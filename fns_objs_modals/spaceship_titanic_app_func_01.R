@@ -223,13 +223,12 @@ barplotter <- function(dat, vec, na.rm=FALSE){
             scale_fill_manual(values=rep("darkblue",n_distinct(dat[vec])), na.value="grey50")
       }
       else if(n==2) (
-        p + 
-          scale_fill_viridis_d(na.value="grey50") +
-          theme(legend.position="bottom"))
-      else if(n==3) {p + 
-          facet_wrap(vars(!!vec3), dir="v") +
-          scale_fill_viridis_d(na.value="grey50") +
-          theme(legend.position="bottom")
+        p + scale_fill_viridis_d(na.value="grey50") +
+            theme(legend.position="bottom"))
+      else if(n==3) {
+        p + facet_wrap(vars(!!vec3), dir="v", scale="free_y") +
+            scale_fill_viridis_d(na.value="grey50") +
+            theme(legend.position="bottom")
       }
 }
   
@@ -377,17 +376,23 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
       
   #if/else if/else
   if(n==2) {
-    p + geom_point(color="darkred")
+    p + geom_point(color="darkred", size=2, alpha=0.8)
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
     p + 
-      geom_point(aes(color=!!vec3), alpha=0.7) + 
-      scale_color_viridis_d(end=.7, na.value="grey50")
+      geom_point(aes(color=!!vec3), size=2, alpha=0.7) + 
+      scale_color_viridis_d(end=.7, na.value="grey50") +
+      theme(legend.key.width=unit(3, "cm")) +
+      guides(color=guide_legend(override.aes=list(size=4)))
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("integer","numeric")) {
     p + 
-      geom_point(aes(color=!!vec3), alpha=0.7) + 
-      scale_color_viridis_c(end=.8, na.value="grey50")
+      geom_point(aes(color=!!vec3), size=2, alpha=0.7) + 
+      {if(vec[3]!="age") 
+        scale_color_viridis_c(end=.8, na.value="grey50", trans="log", 
+                              labels=label_number(accuracy=10, big.mark=","))
+        else scale_color_viridis_c(end=.8, na.value="grey50")} +
+      theme(legend.key.width=unit(3, "cm")) 
   }
 }
 

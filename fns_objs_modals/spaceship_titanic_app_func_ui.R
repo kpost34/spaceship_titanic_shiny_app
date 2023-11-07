@@ -36,6 +36,12 @@ selectizeInput02<-function(ID, label, choices) {
 edaTabBuilder<-function(id, name, varID, options, fn){
   ns <- NS(id)
   
+  height_val <- if(name=="Multivariate") {
+    "600px"
+  } else{
+    "400px"
+  }
+  
   tagList(
     #title and well panels
     titlePanel(title=paste(name,"Exploratory Data Analysis",sep=" ")),
@@ -57,8 +63,8 @@ edaTabBuilder<-function(id, name, varID, options, fn){
         column(12,
           htmlOutput(ns(paste("text_sel",varID[1],sep="_"))),
           DTOutput(ns(paste("tab_sel",varID[1],sep="_"))),
-          linebreaks(3),
-          plotOutput(ns(paste("plot_sel",varID[1],sep="_")))
+          linebreaks(2),
+          plotOutput(ns(paste("plot_sel",varID[1],sep="_")), height=height_val)
         )
       ),
       #space in middle
@@ -68,8 +74,8 @@ edaTabBuilder<-function(id, name, varID, options, fn){
         column(12,
           htmlOutput(ns(paste("text_sel",varID[2],sep="_"))),
           DTOutput(ns(paste("tab_sel",varID[2],sep="_"))),
-          linebreaks(3),
-          plotOutput(ns(paste("plot_sel",varID[2],sep="_")))
+          linebreaks(2),
+          plotOutput(ns(paste("plot_sel",varID[2],sep="_")), height=height_val)
         )
       )
     )

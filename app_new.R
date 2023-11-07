@@ -81,7 +81,16 @@ spaceTitanicApp()
 
 
 ## DONE
-
+  #edaMult module
+    #turned num into factor for plotting
+    #added 'free_y' to scale of facet_wrap of barplotter when n=3
+    #added trans="log" to color scale of scatterplot if 3 num vars selected & third is not age
+    #increased legend point size for scatterplots
+  #edaBuilder
+    #added conditional formatting to make plotOutput height greater if name is "Multivariate"
+  #scatterplotter
+    #increased size of points in geom_point
+  
 
 # LAST PUSHED COMMENT(S)
   #edaBi module
@@ -96,26 +105,14 @@ spaceTitanicApp()
     #got barplotter to facet by row
 
 ## IN PROGRESS
-
+  #recently added log transform to color scale but legend has many decimals--want signif (tried
+    #scales::trans_new with signif() but distribution of colors was right-skewed)
 
 
 #---------------------
 
 
 ## TO DO 
-#add variable type in dropdowns when selecting variable
-#for barplotter--log counts if > minimum?
-  
-
-
-#EDA multivariate
-  #get num to plot as factor
-  #increase size of points in legend scatterplotter
-  #increase plotOutput height if fn == selectize02
-
-#Note: use ggiraph for EDA and all plots--make them interactive
-#had this feedback "#need new headers in ... plots"--does that make sense? (for eda bi & multivariate)
-
 #missName
   #simplify input & output ids and other names (if applicable)
   #Use updateTabpanel() to make this more interactive
@@ -128,6 +125,11 @@ spaceTitanicApp()
 
 
 ### OLD COMMENTS ###-----------------
+#General (new)
+  #add variable type in dropdowns when selecting variable
+  #Note: use ggiraph for EDA and all plots--make them interactive
+
+
 #general/unknown
 #add table titles--perhaps to correlation table
 #ability to bin choices? (vars into factor, logical, etc)
