@@ -81,32 +81,21 @@ spaceTitanicApp()
 
 
 ## DONE
-  #edaMult module
-    #turned num into factor for plotting
-    #added 'free_y' to scale of facet_wrap of barplotter when n=3
-    #added trans="log" to color scale of scatterplot if 3 num vars selected & third is not age
-    #increased legend point size for scatterplots
-  #edaBuilder
-    #added conditional formatting to make plotOutput height greater if name is "Multivariate"
-  #scatterplotter
-    #increased size of points in geom_point
+
   
 
 # LAST PUSHED COMMENT(S)
-  #edaBi module
-    #turned num var into factor
+  #missName
+    #simplified input & output ids
+    #removed exploring missingness barplot option & output and archived function code
+    #subset columns to missing/non-missing name samples
+    #cleaned up first DT output
+    #col_plotter(): increased text size, added conditional logic to display different colors depending 
+      #on input, labeled each bar (by tweaking mis_name_tabler()), & added caption
 
-  #edaMult module
-    #simplified input & output ids 
-    #conditionally added log x/y to boxplots and scatterplots
-    #NA added to plots
-    #increased text size (in this & other eda modules)
-    #reduced alpha level in scatterplotter
-    #got barplotter to facet by row
 
 ## IN PROGRESS
-  #recently added log transform to color scale but legend has many decimals--want signif (tried
-    #scales::trans_new with signif() but distribution of colors was right-skewed)
+
 
 
 #---------------------
@@ -114,13 +103,12 @@ spaceTitanicApp()
 
 ## TO DO 
 #missName
-  #simplify input & output ids and other names (if applicable)
   #Use updateTabpanel() to make this more interactive
-  #For tables: remove rownames, search box, show x entries, previous/next (b/c tables are so small)
-  #Remove barplot--both the option and plot
-  #Reduce space between table & plot
   #Use accordion text for the description in the middle
-  #For passenger_group/cabin occupancy plot--
+  #look into these bar graphs
+  #unsure if server code is working for third part of this page
+
+  #simplify obj names--this and all modules
 
 
 
@@ -153,7 +141,6 @@ spaceTitanicApp()
 #convert larger server 'patterns' to functions
 #update functions so that they don't carry so many extraneous cols/vars
 #consider making group size variable switch code a function
-#add option to barplotting function(s) to use different color schemes
 # create another function script with a server suffix (for more 'structural' functions) & create functions
 #update edaTabBuilder code to make dt outputs optional (to adjust for mult)
 

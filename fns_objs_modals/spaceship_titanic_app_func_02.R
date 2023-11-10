@@ -17,20 +17,7 @@ chr_miss_tabler<-function(dat){
     summarize(across(name,list(present=~sum(!is.na(.x)),missing=~sum(is.na(.x)),total=length)))
 }
 
-## Function to provide summary barlot of missingness
-chr_miss_boxplotter<-function(dat){
-  dat %>%
-    summarize(across(contains("name"),~ifelse(!is.na(.x),"Present","Missing"))) %>%
-    pivot_longer(cols=everything(),names_to="name_type",values_to="name") %>%
-    ggplot() +
-    geom_bar(aes(x=name_type,fill=name),color="black") +
-    scale_x_discrete(labels=c("first name","last name","full name")) +
-    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    scale_fill_viridis_d(end=0.5) +
-    labs(x="") +
-    theme_bw() +
-    theme(legend.title=element_blank())
-}
+
 
 
 ### Relationship between name missingness and passenger_group or room (cabin) occupancy & imputation
@@ -53,19 +40,29 @@ mis_name_tabler<-function(dat,name,group){
     group_by(num_name,group_size) %>%
     summarize(n=n(),
               group_comp=list({{group}})) %>%
-    ungroup()
+    ungroup() %>%
+    mutate(num_name=as.character(num_name))
 }
 
 
 ## Function that provides column graphs using above table output
-col_plotter<-function(dat,group,count){
+col_plotter<-function(dat, group, count, input){
+  
+  fill_value <- if(input=="passenger_group") {
+    "darkgreen"
+  } else if(input=="cabin") {
+    "purple"
+  }
+
   dat %>%
     ggplot(aes(x={{group}},y={{count}})) +
-    geom_col(fill="darkgreen") +
+    geom_col(fill=fill_value, color="black") +
     labs(x="Number of named passengers",
-         y=paste("Number of groups",sep=" ")) +
+         y=paste("Number of groups",sep=" "),
+         caption="- Note that each group, regardless of size, has one unnamed passenger.") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
-    theme_bw()
+    theme_bw(base_size=18) +
+    theme(plot.caption=element_text(hjust=0, vjust=0))
 }
 
 
@@ -94,4 +91,22 @@ name_imputer<-function(tab,col,range,dat,var) {
       TRUE                           ~ "CHECK")) %>% 
     bind_rows(dat %>% 
                 filter(!{{var}} %in% filter_var)) 
+}
+
+
+
+# Archive===========================================================================================
+## Function to provide summary barlot of missingness
+chr_miss_barplotter<-function(dat){
+  dat %>%
+    summarize(across(contains("name"),~ifelse(!is.na(.x),"Present","Missing"))) %>%
+    pivot_longer(cols=everything(),names_to="name_type",values_to="name") %>%
+    ggplot() +
+    geom_bar(aes(x=name_type,fill=name),color="black") +
+    scale_x_discrete(labels=c("first name","last name","full name")) +
+    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    scale_fill_viridis_d(end=0.5) +
+    labs(x="") +
+    theme_bw() +
+    theme(legend.title=element_blank())
 }

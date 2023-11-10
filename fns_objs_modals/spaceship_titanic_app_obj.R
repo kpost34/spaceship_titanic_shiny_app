@@ -35,6 +35,10 @@ df_train %>% select(where(is.factor),-num) %>% names() -> df_train_fct_nonumVars
 ### Numeric vars + num
 df_train %>% select(where(is.numeric),num) %>% names() -> df_train_disVars
 
+## Missing exploration cols
+vars_miss_exp <- c("passenger_id", "passenger_group", "ticket", "cabin", "home_planet", 
+                   "destination", "name")
+
 ### Cabin component cols
 cabinVars<-c("deck","num","side")
 
@@ -50,7 +54,7 @@ vec_summ_chk <- c("character"="chr","factor"="fct","logical"="lgl","numeric"="nu
 # Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
 
 namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp",
-                   "summary table"="sum_tab","bar plot"="plot")
+                   "summary table"="sum_tab")
 
 namMis03_impOptVec<-c("drop name columns"="drop_cols",
                       "remove with rows with missing names"="remove_rows",
@@ -83,3 +87,38 @@ creFea04_grpSizeVec<-c("do not create a group size variable"="none",
 
 creFea04_luxVec<-c("do not create a luxury expense variable"="none", 
                    "room_service","food_court","shopping_mall","spa","vr_deck")
+
+
+## Long strings
+### 
+str_missName1a <- "Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%."
+str_missName1b <- "Although first names, and thus full names, will be impossible to impute from the other"
+str_missName1c <- "variables, last names may be populated with confidence if we assume passengers"
+str_missName1d <- "traveled together as families."
+
+str_missName1 <- paste(str_missName1a, str_missName1b, str_missName1c, str_missName1d)
+
+str_missName2a <- "Two ways the traveling party is a family is by either..."
+
+str_missName2b <- "  1) purchasing tickets together (same passenger group)"
+str_missName2c <- "  2) staying in the same room (cabin)." 
+
+str_missName2d <- "Here's how the patterns break down."
+
+# str_missName2 <- paste("<h4>", str_missName2a, "<br>", 
+#                       str_missName2b, "<br>",
+#                       str_missName2c, "<br>",
+#                       "<br>",
+#                       str_missName2d, "</h4>")
+
+str_missName2 <- paste("<h4>", str_missName2a, "<br>",
+                      str_missName2b, "<br>",
+                      str_missName2c, "</h4>")
+
+
+
+
+
+
+
+

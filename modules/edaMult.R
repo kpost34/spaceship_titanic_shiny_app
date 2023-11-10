@@ -30,15 +30,6 @@ edaMultServer <- function(id) {
       h3(paste(input$sel_var2abc, collapse="-"))
     })
     
-    # ## Text outputs--------------------
-    # output$text_sel_var123_mulEDA02<-renderUI({
-    #   h3(paste(input$sel_var123_mulEDA02,collapse="-"))
-    # })
-    # 
-    # output$text_sel_var456_mulEDA02<-renderUI({
-    #   h3(paste(input$sel_var456_mulEDA02,collapse="-"))
-    # })
-    
     
     ## Plot outputs--------------------
     output$plot_sel_var1abc <- renderPlot({
@@ -100,38 +91,6 @@ edaMultServer <- function(id) {
           scatterplotter(input$sel_var2abc)
       }
     })
-    
-    
-    # ## Plot outputs--------------------
-    # output$plot_sel_var123_mulEDA02<-renderPlot({
-    #   #must select three inputs first
-    #   req(length(input$sel_var123_mulEDA02)==3)
-    #   #if all categorical, then bar plot
-    #   if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars)==3) {
-    #     barplotter(df_train,input$sel_var123_mulEDA02)
-    #   }
-    #   #if 2 cat & 1 num then boxplot
-    #   else if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars)==2) {
-    #     boxplotter(df_train,input$sel_var123_mulEDA02)
-    #   }
-    #   #if 2-3 num then scatterplot
-    #   else if(sum(input$sel_var123_mulEDA02 %in% df_train_catVars) < 2) {
-    #     scatterplotter(df_train,input$sel_var123_mulEDA02)
-    #   }
-    # })
-    # 
-    # output$plot_sel_var456_mulEDA02<-renderPlot({
-    #   req(length(input$sel_var456_mulEDA02)==3)
-    #   if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars)==3) {
-    #     barplotter(df_train,input$sel_var456_mulEDA02)
-    #   }
-    #   else if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars)==2) {
-    #     boxplotter(df_train,input$sel_var456_mulEDA02)
-    #   }
-    #   else if(sum(input$sel_var456_mulEDA02 %in% df_train_catVars) < 2) {
-    #     scatterplotter(df_train,input$sel_var456_mulEDA02)
-    #   }
-    # })
     
   })
 }

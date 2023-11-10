@@ -4,7 +4,7 @@
 #Codes for functions that match backbone 01 script: reading in data, data checking, and eda
 
 #Load packages
-pacman::p_load(tidyverse, skimr, janitor, purrr, rstatix)
+pacman::p_load(tidyverse, skimr, janitor, purrr, rstatix, scales)
 
 
 # Data Checking===================================================================
