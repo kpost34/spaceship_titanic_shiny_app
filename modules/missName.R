@@ -13,6 +13,7 @@ missNameUI <- function(id) {
         h4("Did you notice that some passengers did not have names? If not, take a closer look"),
           selectInput01(ID=ns("sel_exp"), label="",choices=namMis03_expVec),
           hr(style = "border-top: 1px solid #000000;"),
+        
         #go deeper with some possibilities
         h4(str_missName1),
           HTML(str_missName2),
@@ -21,23 +22,25 @@ missNameUI <- function(id) {
                        choices=c("passenger_group"="passenger_group",
                                  "cabin occupancy"="cabin"),
                        selected=character(0)),
-          h5(em("Note that each group, regardless of group size or grouping variable, has one unnamed passenger.")),
           hr(style = "border-top: 1px solid #000000;"),
+        
+        #options on missing names
         h4("Given all this information, how would you like to handle passengers with missing names?"),
           selectInput01(ID=ns("sel_impOpt"),
                         label="",
                         choices=namMis03_impOptVec),
           br(),
-          uiOutput(ns("ui_slid_impOpt"))
+          uiOutput(ns("ui_slid_impOpt")),
+        actionButton(ns("btn_impOpt"), "Submit")
       ),
+      
       mainPanel(
         htmlOutput(ns("text_sel_exp")),
         DTOutput(ns("tab_sel_exp")),
         br(),
         htmlOutput(ns("text_rad_grpVar")),
         plotOutput(ns("plot_rad_grpVar")),
-        tableOutput(ns("test_table")),
-        # tableOutput(ns("test_table2"))
+        # tableOutput(ns("test_table")),
       )
     )
   )
@@ -50,6 +53,8 @@ missNameUI <- function(id) {
 # Server============================================================================================
 missNameServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    
+    ns <- session$ns
     
     ## Exploring missing names--------------------
     ### Text outputs
@@ -121,12 +126,14 @@ missNameServer <- function(id) {
     ### Dynamic UI 
     #### Display sliders
     output$ui_slid_impOpt <- renderUI({
+      
       req(input$sel_impOpt %in% c("imp_pass_group","imp_cabin"))
       switch(input$sel_impOpt,
-        imp_pass_group=sliderInput("slid1_impOpt",
+        imp_pass_group=sliderInput(ns("slid1_impOpt"),
                         "Select a range of named passengers per passenger_group to use for name imputation",
                         value=c(3,3),min=1,max=7),
-        imp_cabin=sliderInput("slid2_impOpt","Select a range of named passengers per cabin to use for name 
+        imp_cabin=sliderInput(ns("slid2_impOpt"),
+                              "Select a range of named passengers per cabin to use for name 
                               imputation",value=c(3,3),min=1,max=6)
       )
     })
@@ -142,7 +149,7 @@ missNameServer <- function(id) {
     })
     
     #### Create new data frame object after name imputation or col/row removal
-    df_train_nI<-reactive({
+    df_train_nI_tmp <- reactive({
       #requires selection from drop-down menu
       req(input$sel_impOpt)
       #dplyr code if drop_cols selected
@@ -156,10 +163,10 @@ missNameServer <- function(id) {
       }
       #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
       else if(input$sel_impOpt=="imp_pass_group" & length(input$slid1_impOpt) > 0){
-        name_imputer(dat3(),num_name,input$slid1_impOpt,df_train,passenger_group)
+        name_imputer(dat3(), num_name, input$slid1_impOpt,df_train,passenger_group)
       }
       else if(input$sel_impOpt=="imp_cabin" & length(input$slid2_impOpt) > 0){
-        name_imputer(dat3(),num_name,input$slid2_impOpt,df_train,cabin)
+        name_imputer(dat3(), num_name, input$slid2_impOpt,df_train,cabin)
       }
     })
     
@@ -168,11 +175,35 @@ missNameServer <- function(id) {
       head(df_train_nI()) 
     })
     
+    #### Select how to handle missing names
+    eventReactive(input$btn_impOpt, {
+      req(input$sel_impOpt)
+      df_train_nI_tmp()
+    })
+    
+    observeEvent(input$btn_impOpt, {
+      if(input$sel_impOpt %in% namMis03_impOptVec) {
+        show_toast(
+          title="Name imputation",
+          type="success",
+          text=impute_name_msg(input$sel_impOpt),
+          position="center",
+          timer=3000
+        )} else{
+          show_toast(
+            title="Name imputation",
+            type="error",
+            text="Please select an action",
+            position="center",
+            timer=2000
+          )
+        }
+    })
     
     #### Temporary code--to update name of DF
-    reactive({
-      df_train_nI()
-    })
+    # reactive({
+    #   df_train_nI()
+    # })
     
     #### Test whether code directly above is working
     # output$test_table2<-renderTable({

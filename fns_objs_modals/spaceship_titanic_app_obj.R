@@ -57,9 +57,9 @@ namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_sa
                    "summary table"="sum_tab")
 
 namMis03_impOptVec<-c("drop name columns"="drop_cols",
-                      "remove with rows with missing names"="remove_rows",
-                      "populate using passenger group"="imp_pass_group",
-                      "populate using cabin info"="imp_cabin")
+                      "remove rows with missing names"="remove_rows",
+                      "populate names using passenger group"="imp_pass_group",
+                      "populate names using cabin info"="imp_cabin")
 
 nchrMis03_expVec<-c("missing values occurrences"="miss_occur",
                    "missing values per variable" = "miss_var",
@@ -103,7 +103,7 @@ str_missName2a <- "Two ways the traveling party is a family is by either..."
 str_missName2b <- "  1) purchasing tickets together (same passenger group)"
 str_missName2c <- "  2) staying in the same room (cabin)." 
 
-str_missName2d <- "Here's how the patterns break down."
+str_missName2d <- "Let's look at frequencies of passenger and cabin group sizes."
 
 # str_missName2 <- paste("<h4>", str_missName2a, "<br>", 
 #                       str_missName2b, "<br>",

@@ -13,7 +13,7 @@
 # Modularized structure
 ## Load packages
 pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
-               naniar,mice,cowplot,GGally, ggiraph)
+               naniar,mice,cowplot,GGally, ggiraph, shinyWidgets)
 
 #address conflicts
 conflict_prefer("filter","dplyr")
@@ -66,7 +66,7 @@ spaceTitanicApp <- function() {
     edaMultServer("data3")
     
     #missingness
-    trainDF_nvI <- missNameServer("dat1")
+    df_train_nvI <- missNameServer("dat1")
     missOtherServer("dat2", trainDF_nvI)
     
     # featureServer("input")
@@ -85,13 +85,12 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-  #missName
-    #simplified input & output ids
-    #removed exploring missingness barplot option & output and archived function code
-    #subset columns to missing/non-missing name samples
-    #cleaned up first DT output
-    #col_plotter(): increased text size, added conditional logic to display different colors depending 
-      #on input, labeled each bar (by tweaking mis_name_tabler()), & added caption
+#missName
+  #updated mis_name_tabler() & col_plotter() so that group sizes are temporarily classified
+    #as chr type when plotting only
+  #resolved server code for third viz
+  #created a reactive obj that gets exported
+  #added toast notification for name imputation that displays via conditional logic
 
 
 ## IN PROGRESS
@@ -103,12 +102,8 @@ spaceTitanicApp()
 
 ## TO DO 
 #missName
-  #Use updateTabpanel() to make this more interactive
   #Use accordion text for the description in the middle
-  #look into these bar graphs
-  #unsure if server code is working for third part of this page
 
-  #simplify obj names--this and all modules
 
 
 
@@ -116,6 +111,7 @@ spaceTitanicApp()
 #General (new)
   #add variable type in dropdowns when selecting variable
   #Note: use ggiraph for EDA and all plots--make them interactive
+  #simplify obj names--this and all modules
 
 
 #general/unknown
@@ -130,7 +126,6 @@ spaceTitanicApp()
 
 #missingness
 #output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
-#for missing name tab--need to have the first output (plot or DT) output in the same area
 #perhaps add an option to compare before/after datasets re imputation using vis_compare()
 #in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
   #a first drop down selectize with option to choose all and then user can select the missingness pattern from there

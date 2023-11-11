@@ -40,8 +40,7 @@ mis_name_tabler<-function(dat,name,group){
     group_by(num_name,group_size) %>%
     summarize(n=n(),
               group_comp=list({{group}})) %>%
-    ungroup() %>%
-    mutate(num_name=as.character(num_name))
+    ungroup() 
 }
 
 
@@ -55,11 +54,11 @@ col_plotter<-function(dat, group, count, input){
   }
 
   dat %>%
-    ggplot(aes(x={{group}},y={{count}})) +
+    ggplot(aes(x=as.character({{group}}),y={{count}})) +
     geom_col(fill=fill_value, color="black") +
     labs(x="Number of named passengers",
          y=paste("Number of groups",sep=" "),
-         caption="- Note that each group, regardless of size, has one unnamed passenger.") +
+         caption="- Each group, regardless of size, has one unnamed passenger.") +
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     theme_bw(base_size=18) +
     theme(plot.caption=element_text(hjust=0, vjust=0))
@@ -91,6 +90,23 @@ name_imputer<-function(tab,col,range,dat,var) {
       TRUE                           ~ "CHECK")) %>% 
     bind_rows(dat %>% 
                 filter(!{{var}} %in% filter_var)) 
+}
+
+
+### Function to display toast notification
+impute_name_msg <- function(action) {
+  if(action=="drop_cols") {
+    return("Name columns have been dropped")
+    
+  } else if(action=="remove_rows") {
+    return("Rows with missing names have been removed")
+    
+  } else if(action=="imp_pass_group") {
+    return("Names have been populated using passenger group")
+    
+  } else if(action=="imp_cabin") {
+    return("Names have been populated using cabin info")
+  }
 }
 
 
