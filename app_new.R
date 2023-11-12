@@ -50,11 +50,13 @@ spaceTitanicApp <- function() {
     navbarMenu(title="Missingness", menuName="Mis03",
       missNameUI("dat1"),
       missOtherUI("dat2")
-      ),
+      )
     # navbarMenu(title="Feature Engineering", menuName="Fea04",
-    #   featureUI("input")
-    #   )
-    )
+    #   featTransUI("df1")
+      # featCreatUI("df2")
+      # featSelUI("df3")
+      # )
+  )
   
   server <- function(input, output, session) {
     #data checking
@@ -69,7 +71,17 @@ spaceTitanicApp <- function() {
     df_train_nvI <- missNameServer("dat1")
     missOtherServer("dat2", df_train_nvI)
     
-    # featureServer("input")
+    #feature engineering
+    # output$ui_chk_trnsFea04<-renderUI({   
+    #   #update req() statement--should reflect that all four confirmations selected
+    #   req(input$rad_trnsFea04)
+    #   checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
+    # })
+    # featTransServer("df1")
+    # featCreatServer("df2")
+    # featSelServer("df3")
+    
+
   }
   
   shinyApp(ui, server)
@@ -85,12 +97,9 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-#missName
-  #switched renderUI/htmlOutput to text for two outputs by moving h3() to UI
-
-#missOther
-  #successfully moved reactive obj between modules
-  #made sidebarPanel narrower
+# removed 'suffixes' of missOther inputs/outputs
+# copied over feature engineering modules
+# removed 'df_train_' prefix to objs in first three groups of modules
 
 
 ## IN PROGRESS
@@ -114,6 +123,7 @@ spaceTitanicApp()
 #missOther
   #this tab/page (and all of them after) should be hidden until user submits a name imputation method
   #make side panel narrower
+  #last plot won't work with ticket
   #re-think the types of missingness plots that we should use
   #re-think how to assess testing for MAR
     #--> for both bullets, look at the marsh analysis that I started

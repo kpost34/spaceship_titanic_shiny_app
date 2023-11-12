@@ -9,7 +9,7 @@ edaMultUI <- function(id) {
                   # tabID="mulEDA02",
                   varID=c("var1abc", "var2abc"),
                   # varID=c("var123", "var456"),
-                  options=df_train_nchrVars,
+                  options=nchrVars,
                   fn=selectizeInput02)
   )
 }
@@ -36,7 +36,7 @@ edaMultServer <- function(id) {
       #must select three inputs first
       req(length(input$sel_var1abc)==3)
       #if all categorical, then bar plot
-      if(sum(input$sel_var1abc %in% df_train_catVars)==3) {
+      if(sum(input$sel_var1abc %in% catVars)==3) {
         df_train %>%
           {if(sum(input$sel_var1abc=="num") ==1)
             mutate(.,
@@ -45,7 +45,7 @@ edaMultServer <- function(id) {
           barplotter(input$sel_var1abc)
       }
       #if 2 cat & 1 num then boxplot
-      else if(sum(input$sel_var1abc %in% df_train_catVars)==2) {
+      else if(sum(input$sel_var1abc %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var1abc=="num") ==1)
             mutate(.,
@@ -54,7 +54,7 @@ edaMultServer <- function(id) {
           boxplotter(input$sel_var1abc)
       }
       #if 2-3 num then scatterplot
-      else if(sum(input$sel_var1abc %in% df_train_catVars) < 2) {
+      else if(sum(input$sel_var1abc %in% catVars) < 2) {
         df_train %>%
           {if(sum(input$sel_var1abc=="num") ==1)
             mutate(.,
@@ -66,7 +66,7 @@ edaMultServer <- function(id) {
     
     output$plot_sel_var2abc <- renderPlot({
       req(length(input$sel_var2abc)==3)
-      if(sum(input$sel_var2abc %in% df_train_catVars)==3) {
+      if(sum(input$sel_var2abc %in% catVars)==3) {
         df_train %>%
           {if(sum(input$sel_var2abc=="num") ==1)
             mutate(.,
@@ -74,7 +74,7 @@ edaMultServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           barplotter(input$sel_var2abc)
       }
-      else if(sum(input$sel_var2abc %in% df_train_catVars)==2) {
+      else if(sum(input$sel_var2abc %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var2abc=="num") ==1)
             mutate(.,
@@ -82,7 +82,7 @@ edaMultServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           boxplotter(input$sel_var2abc)
       }
-      else if(sum(input$sel_var2abc %in% df_train_catVars) < 2) {
+      else if(sum(input$sel_var2abc %in% catVars) < 2) {
         df_train %>%
           {if(sum(input$sel_var2abc=="num") ==1)
             mutate(.,

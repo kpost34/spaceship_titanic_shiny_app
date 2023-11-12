@@ -7,7 +7,7 @@ edaUniUI <- function(id) {
       edaTabBuilder(id,
                     name="Univariate",
                     varID=c("var1","var2"),
-                    options=df_train_nchrVars,
+                    options=nchrVars,
                     fn=selectInput01)
     )
 }
@@ -21,10 +21,10 @@ edaUniServer <- function(id) {
     ## Tabular outputs----------------------
     ### reactives of output tables
     dat1<-reactive({
-      if(input$sel_var1 %in% df_train_numVars){
+      if(input$sel_var1 %in% numVars){
         summaryize(df_train,input$sel_var1)
       }
-      else if(input$sel_var1 %in% df_train_catVars){
+      else if(input$sel_var1 %in% catVars){
         df_train %>%
           #bin num into six equally spaced groups
           {if(input$sel_var1=="num") 
@@ -36,10 +36,10 @@ edaUniServer <- function(id) {
     })
   
     dat2<-reactive({
-      if(input$sel_var2 %in% df_train_numVars){
+      if(input$sel_var2 %in% numVars){
         summaryize(df_train,input$sel_var2)
       }
-      else if(input$sel_var2 %in% df_train_catVars){
+      else if(input$sel_var2 %in% catVars){
         df_train %>%
           {if(input$sel_var2=="num") 
             mutate(., 
@@ -78,10 +78,10 @@ edaUniServer <- function(id) {
   
     ## Plot outputs----------------------
     output$plot_sel_var1<-renderPlot({
-      if(input$sel_var1 %in% df_train_numVars){
+      if(input$sel_var1 %in% numVars){
         histogrammer(df_train,input$sel_var1)
       }
-      else if(input$sel_var1 %in% df_train_catVars){
+      else if(input$sel_var1 %in% catVars){
         df_train %>%
           #bin num into six equally spaced groups
           {if(input$sel_var1=="num")
@@ -93,10 +93,10 @@ edaUniServer <- function(id) {
     })
   
     output$plot_sel_var2<-renderPlot({
-      if(input$sel_var2 %in% df_train_numVars){
+      if(input$sel_var2 %in% numVars){
         histogrammer(df_train,input$sel_var2)
       }
-      else if(input$sel_var2 %in% df_train_catVars){
+      else if(input$sel_var2 %in% catVars){
         df_train %>%
           {if(input$sel_var2=="num")
               mutate(., 

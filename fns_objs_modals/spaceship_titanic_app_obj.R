@@ -16,24 +16,24 @@ read_csv(here("data","train.csv")) %>%
 # Create vectors
 ## Col names
 ### All character cols
-df_train %>% select(where(is.character)) %>% names() -> df_train_chrVars
+df_train %>% select(where(is.character)) %>% names() -> chrVars
 
 ### All cols but character
-df_train %>% select(!where(is.character)) %>% names() -> df_train_nchrVars
+df_train %>% select(!where(is.character)) %>% names() -> nchrVars
 #excluding dep var
-df_train_nchrVars[df_train_nchrVars!="transported"] -> df_train_nchrPreds
+df_train_nchrVars[df_train_nchrVars!="transported"] -> nchrPreds
 
 ### All logical and factor cols
-df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> df_train_catVars
+df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> catVars
 
 ### All numeric cols
-df_train %>% select(where(is.numeric)) %>% names() -> df_train_numVars
+df_train %>% select(where(is.numeric)) %>% names() -> numVars
 
 ### All factor cols except for num
-df_train %>% select(where(is.factor),-num) %>% names() -> df_train_fct_nonumVars
+df_train %>% select(where(is.factor),-num) %>% names() -> fct_nonumVars
 
 ### Numeric vars + num
-df_train %>% select(where(is.numeric),num) %>% names() -> df_train_disVars
+df_train %>% select(where(is.numeric),num) %>% names() -> disVars
 
 ## Missing exploration cols
 vars_miss_exp <- c("passenger_id", "passenger_group", "ticket", "cabin", "home_planet", 
