@@ -10,7 +10,7 @@ missOtherUI <- function(id) {
     sidebarLayout(
       sidebarPanel(width=3,
         h4("Let's visualize missingness in all non-character variables."),
-        selectInput01(ID=ns("sel_exp"),label="",choices=nchrMis03_expVec),
+        selectInput01(ID=ns("sel_exp"),label="",choices=ch_exp_nnm_missOther),
         br(),
         h4("Which variable pairs exhibit missingness at random (MAR)?. Compare each variable with missing data to the
         remaining set of variables."),

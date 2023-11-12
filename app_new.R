@@ -97,9 +97,7 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-# removed 'suffixes' of missOther inputs/outputs
-# copied over feature engineering modules
-# removed 'df_train_' prefix to objs in first three groups of modules
+# updated remaining object names
 
 
 ## IN PROGRESS

@@ -6,9 +6,9 @@ dataCheckUI <- function(id) {
   
   sidebarLayout(
     sidebarPanel(width=2,
-      selectInput01(ID=ns("sel_quick"), label="Quick data check", choices=vec_quick_chk),
+      selectInput01(ID=ns("sel_quick"), label="Quick data check", choices=ch_quick_dataCheck),
       linebreaks(2),
-      selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=vec_summ_chk),
+      selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=ch_summ_dataCheck),
     ),
     mainPanel(width=10,
       DTOutput(ns("tab_quick")),
@@ -45,7 +45,7 @@ dataCheckServer <- function(id) {
       #creates a caption above table in large, black text
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        extract_nm(vec_quick_chk, input$sel_quick))
+        extract_nm(ch_quick_dataCheck, input$sel_quick))
     )
 
     ### Display data summary by col type
@@ -65,7 +65,7 @@ dataCheckServer <- function(id) {
                    columnDefs=list(list(className='dt-center', targets="_all"))),
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        paste(extract_nm(vec_summ_chk, input$sel_summ), "Variables"))
+        paste(extract_nm(ch_summ_dataCheck, input$sel_summ), "Variables"))
     )
     
   })

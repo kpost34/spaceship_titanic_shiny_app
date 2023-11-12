@@ -11,14 +11,14 @@ missNameUI <- function(id) {
       sidebarPanel(
         #exploring missing names
         h4("Did you notice that some passengers did not have names? If not, take a closer look"),
-          selectInput01(ID=ns("sel_exp"), label="",choices=namMis03_expVec),
+          selectInput01(ID=ns("sel_exp"), label="",choices=ch_exp_nm_missName),
           hr(style = "border-top: 1px solid #000000;"),
         
         #go deeper with some possibilities
-        h4(str_missName1),
-          HTML(str_missName2),
+        h4(chr_1_missName),
+          HTML(chr_2_missName),
           radioButtons(inputId=ns("rad_grpVar"),
-                       label=h4(str_missName2d),
+                       label=h4(chr_2d_missName),
                        choices=c("passenger_group"="passenger_group",
                                  "cabin occupancy"="cabin"),
                        selected=character(0)),
@@ -28,7 +28,7 @@ missNameUI <- function(id) {
         h4("Given all this information, how would you like to handle passengers with missing names?"),
           selectInput01(ID=ns("sel_impOpt"),
                         label="",
-                        choices=namMis03_impOptVec),
+                        choices=ch_imp_opt_missName),
           br(),
           uiOutput(ns("ui_slid_impOpt")),
         actionButton(ns("btn_impOpt"), "Submit")
@@ -153,7 +153,7 @@ missNameServer <- function(id) {
     
     ### Trigger toast notifications
     observeEvent(input$btn_impOpt, {
-      if(input$sel_impOpt %in% namMis03_impOptVec) {
+      if(input$sel_impOpt %in% ch_imp_opt_missName) {
         show_toast(
           title="Name imputation",
           type="success",

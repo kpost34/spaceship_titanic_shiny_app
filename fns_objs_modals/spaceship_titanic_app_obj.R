@@ -1,4 +1,6 @@
-# Read in data
+# Objects
+
+# Read in data======================================================================================
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
   ### passenger_id
@@ -13,8 +15,8 @@ read_csv(here("data","train.csv")) %>%
 
 
 
-# Create vectors
-## Col names
+# Create vectors====================================================================================
+## Col names (variables)--------------------
 ### All character cols
 df_train %>% select(where(is.character)) %>% names() -> chrVars
 
@@ -40,80 +42,87 @@ vars_miss_exp <- c("passenger_id", "passenger_group", "ticket", "cabin", "home_p
                    "destination", "name")
 
 ### Cabin component cols
-cabinVars<-c("deck","num","side")
+cabinVars<-c("deck", "num", "side")
 
 ### Dependent variable
 depVar<-"transported"
 
 
-## Choices vectors
-vec_quick_chk <- c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
-# Chk01_quickVec<-c("dimensions"="dim","data sample"="dat_samp","missingness"="miss")
-
-vec_summ_chk <- c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
-# Chk01_summVec<-c("character"="chr","factor"="fct","logical"="lgl","numeric"="num")
-
-namMis03_expVec<-c("missing example"="miss_samp","non-missing example"="nmiss_samp",
-                   "summary table"="sum_tab")
-
-namMis03_impOptVec<-c("drop name columns"="drop_cols",
-                      "remove rows with missing names"="remove_rows",
-                      "populate names using passenger group"="imp_pass_group",
-                      "populate names using cabin info"="imp_cabin")
-
-nchrMis03_expVec<-c("missing values occurrences"="miss_occur",
-                   "missing values per variable" = "miss_var",
-                   "missing values per observation" = "miss_obs",
-                   "missing pattern"="miss_patt")
-
-nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
-                    "remove variable(s) missing data"="var_del",
-                    "mean imputation (numeric vars only)" = "mean_imp")
-
-trnsFea04_transVec<-c("Feature Scaling",
-                      "Discretization",
-                      "Ordinal Encoding",
-                      "Rare Label Encoding")
-
-trnsFea04_transOptVec<-c("leave unchanged"="raw",
-                          "log transform"="log",
-                          "min-max scale"="mm_scale",
-                          "standardize"="standize")
-
-creFea04_grpSizeVec<-c("do not create a group size variable"="none",
-                       "ticket group size (same passenger group)"="ticket_group_size",
-                       "family size (passenger group & last name)"="family_size",
-                       "travel party size (cabin)"="travel_party_size")
-
-creFea04_luxVec<-c("do not create a luxury expense variable"="none", 
-                   "room_service","food_court","shopping_mall","spa","vr_deck")
+## Choices vectors--------------------
+ch_quick_dataCheck <- c("dimensions"="dim",
+                             "data sample"="dat_samp",
+                             "missingness"="miss")
 
 
-## Long strings
-### 
-str_missName1a <- "Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%."
-str_missName1b <- "Although first names, and thus full names, will be impossible to impute from the other"
-str_missName1c <- "variables, last names may be populated with confidence if we assume passengers"
-str_missName1d <- "traveled together as families."
+ch_summ_dataCheck <- c("character"="chr",
+                       "factor"="fct",
+                       "logical"="lgl",
+                       "numeric"="num")
 
-str_missName1 <- paste(str_missName1a, str_missName1b, str_missName1c, str_missName1d)
+ch_exp_nm_missName <- c("missing example"="miss_samp",
+                        "non-missing example"="nmiss_samp",
+                        "summary table"="sum_tab")
 
-str_missName2a <- "Two ways the traveling party is a family is by either..."
+ch_imp_opt_missName <- c("drop name columns"="drop_cols",
+                         "remove rows with missing names"="remove_rows",
+                         "populate names using passenger group"="imp_pass_group",
+                         "populate names using cabin info"="imp_cabin")
 
-str_missName2b <- "  1) purchasing tickets together (same passenger group)"
-str_missName2c <- "  2) staying in the same room (cabin)." 
+ch_exp_nnm_missOther <- c("missing values occurrences"="miss_occur",
+                          "missing values per variable" = "miss_var",
+                          "missing values per observation" = "miss_obs",
+                          "missing pattern"="miss_patt")
 
-str_missName2d <- "Let's look at frequencies of passenger and cabin group sizes."
+#unused?
+# nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
+#                     "remove variable(s) missing data"="var_del",
+#                     "mean imputation (numeric vars only)" = "mean_imp")
 
-# str_missName2 <- paste("<h4>", str_missName2a, "<br>", 
-#                       str_missName2b, "<br>",
-#                       str_missName2c, "<br>",
-#                       "<br>",
-#                       str_missName2d, "</h4>")
+ch_trans_featTrans <- c("Feature Scaling",
+                        "Discretization",
+                        "Ordinal Encoding",
+                        "Rare Label Encoding")
 
-str_missName2 <- paste("<h4>", str_missName2a, "<br>",
-                      str_missName2b, "<br>",
-                      str_missName2c, "</h4>")
+ch_trans_opt_featTrans <- c("leave unchanged"="raw",
+                            "log transform"="log",
+                            "min-max scale"="mm_scale",
+                            "standardize"="standize")
+
+ch_grp_size_featCreat <- c("do not create a group size variable"="none",
+                           "ticket group size (same passenger group)"="ticket_group_size",
+                           "family size (passenger group & last name)"="family_size",
+                           "travel party size (cabin)"="travel_party_size")
+
+ch_lux_featCreat <- c("do not create a luxury expense variable"="none", 
+                      "room_service",
+                      "food_court",
+                      "shopping_mall",
+                      "spa",
+                      "vr_deck")
+
+
+## Long strings--------------------
+### missName module
+chr_1a_missName <- "Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%."
+chr_1b_missName <- "Although first names, and thus full names, will be impossible to impute from the other"
+chr_1c_missName <- "variables, last names may be populated with confidence if we assume passengers"
+chr_1d_missName <- "traveled together as families."
+
+chr_1_missName <- paste(chr_1a_missName, chr_1b_missName, chr_1c_missName, chr_1d_missName)
+
+chr_2a_missName <- "Two ways the traveling party is a family is by either..."
+
+chr_2b_missName <- "  1) purchasing tickets together (same passenger group)"
+chr_2c_missName <- "  2) staying in the same room (cabin)." 
+
+chr_2_missName <- paste("<h4>", chr_2a_missName, "<br>",
+                        chr_2b_missName, "<br>",
+                        chr_2c_missName, "</h4>")
+
+chr_2d_missName <- "Let's look at frequencies of passenger and cabin group sizes."
+
+
+
 
 
 
