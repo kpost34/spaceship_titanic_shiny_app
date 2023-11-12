@@ -35,12 +35,13 @@ missNameUI <- function(id) {
       ),
       
       mainPanel(
-        htmlOutput(ns("text_sel_exp")),
+        h3(textOutput(ns("text_sel_exp"))),
         DTOutput(ns("tab_sel_exp")),
         br(),
-        htmlOutput(ns("text_rad_grpVar")),
-        plotOutput(ns("plot_rad_grpVar")),
+        h3(textOutput(ns("text_rad_grpVar"))),
+        plotOutput(ns("plot_rad_grpVar"))
         # tableOutput(ns("test_table")),
+        # tableOutput(ns("test_table2"))
       )
     )
   )
@@ -58,12 +59,12 @@ missNameServer <- function(id) {
     
     ## Exploring missing names--------------------
     ### Text outputs
-    output$text_sel_exp <- renderUI({
+    output$text_sel_exp <- renderText({
       #here switch() can be used with all four choices to display the appropriate name
       switch(input$sel_exp,
-        miss_samp=h3(paste("Sample of Passengers with Missing Names")),
-        nmiss_samp=h3(paste("Sample of Passengers with Names")),
-        sum_tab=h3(paste("Summary of Missing Names"))
+        miss_samp=paste("Sample of Passengers with Missing Names"),
+        nmiss_samp=paste("Sample of Passengers with Names"),
+        sum_tab=paste("Summary of Missing Names")
       )
     })
     
@@ -99,11 +100,11 @@ missNameServer <- function(id) {
     
     ## Understanding name missingness conditioned on other variables--------------------
     ### Text outputs
-    output$text_rad_grpVar <- renderUI({
+    output$text_rad_grpVar <- renderText({
       req(input$rad_grpVar)
       switch(input$rad_grpVar,
-        passenger_group=h3(paste("Summary of Missing Names by Size of Passenger Groups")),
-        cabin=h3(paste("Summary of Missing Names by Cabin Occupancy"))
+        passenger_group=paste("Summary of Missing Names by Size of Passenger Groups"),
+        cabin=paste("Summary of Missing Names by Cabin Occupancy")
       )
     })
     
@@ -148,8 +149,31 @@ missNameServer <- function(id) {
       )
     })
     
-    #### Create new data frame object after name imputation or col/row removal
-    df_train_nI_tmp <- reactive({
+    
+    
+    ### Trigger toast notifications
+    observeEvent(input$btn_impOpt, {
+      if(input$sel_impOpt %in% namMis03_impOptVec) {
+        show_toast(
+          title="Name imputation",
+          type="success",
+          text=impute_name_msg(input$sel_impOpt),
+          position="center",
+          timer=3000
+        )} else{
+          show_toast(
+            title="Name imputation",
+            type="error",
+            text="Please select an action",
+            position="center",
+            timer=2000
+          )
+        }
+    })
+    
+    
+    ### Create new data frame object after name imputation or col/row removal
+    df_train_nvI_tmp <- eventReactive(input$btn_impOpt, {
       #requires selection from drop-down menu
       req(input$sel_impOpt)
       #dplyr code if drop_cols selected
@@ -170,45 +194,22 @@ missNameServer <- function(id) {
       }
     })
     
+    
     #### Test whether code above is working
-    output$test_table<-renderTable({
-      head(df_train_nI()) 
-    })
-    
-    #### Select how to handle missing names
-    eventReactive(input$btn_impOpt, {
-      req(input$sel_impOpt)
-      df_train_nI_tmp()
-    })
-    
-    observeEvent(input$btn_impOpt, {
-      if(input$sel_impOpt %in% namMis03_impOptVec) {
-        show_toast(
-          title="Name imputation",
-          type="success",
-          text=impute_name_msg(input$sel_impOpt),
-          position="center",
-          timer=3000
-        )} else{
-          show_toast(
-            title="Name imputation",
-            type="error",
-            text="Please select an action",
-            position="center",
-            timer=2000
-          )
-        }
-    })
+    # output$test_table<-renderTable({
+    #   head(df_train_nI_tmp(), n=20) 
+    # })
     
     #### Temporary code--to update name of DF
     # reactive({
-    #   df_train_nI()
+    #   df_train_nI_tmp()
     # })
     
     #### Test whether code directly above is working
     # output$test_table2<-renderTable({
-    #   head(df_train_nvI()) 
+    #   head(df_train_nvI_tmp(), n=20)
     # })
+    
     
   })
 }

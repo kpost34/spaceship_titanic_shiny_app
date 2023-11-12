@@ -8,7 +8,7 @@ missOtherUI <- function(id) {
   tabPanel(title="Explore Missingness",
     titlePanel("Exploring Other Missing Data"),
     sidebarLayout(
-      sidebarPanel(
+      sidebarPanel(width=3,
         h4("Let's visualize missingness in all non-character variables."),
         selectInput01(ID=ns("sel_exp_nchrMis03"),label="",choices=nchrMis03_expVec),
         br(),
@@ -18,11 +18,11 @@ missOtherUI <- function(id) {
         br(),
         #selectInput01(id="sel_imp_nchrMis03",label="",choices=)
       ),
-      mainPanel(
-        htmlOutput(ns("text_sel_exp_nchrMis03")),
+      mainPanel(width=9,
+        h3(textOutput(ns("text_sel_exp_nchrMis03"))),
         plotOutput(ns("plot_sel_exp_nchrMis03")),
         br(),
-        htmlOutput(ns("text_sel_compare_nchrMis03")),
+        h3(textOutput(ns("text_sel_compare_nchrMis03"))),
         DTOutput(ns("tab_sel_compare_nchrMis03"))
       )
     )
@@ -36,12 +36,12 @@ missOtherServer <- function(id, df_train_nvI) {
     
     ## Exploration
     ### Text output
-    output$text_sel_exp_nchrMis03<-renderUI({
+    output$text_sel_exp_nchrMis03<-renderText({
       switch(input$sel_exp_nchrMis03,
-             miss_occur=h3(paste("Missing Values Occurrences Plot")),
-             miss_var=h3(paste("Missing Values per Variable Plot")),
-             miss_obs=h3(paste("Missing Values per Observation Plot")),
-             miss_patt=h3(paste("Missing Pattern Plot"))
+             miss_occur=paste("Missing Values Occurrences Plot"),
+             miss_var=paste("Missing Values per Variable Plot"),
+             miss_obs=paste("Missing Values per Observation Plot"),
+             miss_patt=paste("Missing Pattern Plot")
       )
     })
     
@@ -58,9 +58,9 @@ missOtherServer <- function(id, df_train_nvI) {
     
     ## Statistical comparisons
     ### Text output
-    output$text_sel_compare_nchrMis03<-renderUI({
+    output$text_sel_compare_nchrMis03<-renderText({
       req(input$sel_compare_nchrMis03)
-      h3(paste("Missing Data Analysis of",input$sel_compare_nchrMis03))
+      paste("Missing Data Analysis of",input$sel_compare_nchrMis03)
     })
     
     

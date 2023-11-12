@@ -67,7 +67,7 @@ spaceTitanicApp <- function() {
     
     #missingness
     df_train_nvI <- missNameServer("dat1")
-    missOtherServer("dat2", trainDF_nvI)
+    missOtherServer("dat2", df_train_nvI)
     
     # featureServer("input")
   }
@@ -86,11 +86,11 @@ spaceTitanicApp()
 
 # LAST PUSHED COMMENT(S)
 #missName
-  #updated mis_name_tabler() & col_plotter() so that group sizes are temporarily classified
-    #as chr type when plotting only
-  #resolved server code for third viz
-  #created a reactive obj that gets exported
-  #added toast notification for name imputation that displays via conditional logic
+  #switched renderUI/htmlOutput to text for two outputs by moving h3() to UI
+
+#missOther
+  #successfully moved reactive obj between modules
+  #made sidebarPanel narrower
 
 
 ## IN PROGRESS
@@ -101,55 +101,67 @@ spaceTitanicApp()
 
 
 ## TO DO 
+#general (new)
+  #add variable type in dropdowns when selecting variable
+  #Note: use ggiraph for EDA and all plots--make them interactive
+  #simplify obj names--this and all modules
+  #add a backward/forward arrows for users to navigate pages in sequence
+
 #missName
   #Use accordion text for the description in the middle
+  #Indicate somehow (red box?) that the last step must be completed to continue
+
+#missOther
+  #this tab/page (and all of them after) should be hidden until user submits a name imputation method
+  #make side panel narrower
+  #re-think the types of missingness plots that we should use
+  #re-think how to assess testing for MAR
+    #--> for both bullets, look at the marsh analysis that I started
+
+
+
+
+
 
 
 
 
 ### OLD COMMENTS ###-----------------
-#General (new)
-  #add variable type in dropdowns when selecting variable
-  #Note: use ggiraph for EDA and all plots--make them interactive
-  #simplify obj names--this and all modules
-
-
 #general/unknown
-#add table titles--perhaps to correlation table
-#ability to bin choices? (vars into factor, logical, etc)
-#add modals for imputation options that are risky
-#conditionally display subset of main tabs based on where user is
-#fix group size plots not in descending order of frequency
-#from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
-#need a title page where variables are defined--perhaps some type of accordion presentation
-#rename objs..no need for df_train for all of them
+  #add table titles--perhaps to correlation table
+  #ability to bin choices? (vars into factor, logical, etc)
+  #add modals for imputation options that are risky
+  
+  #fix group size plots not in descending order of frequency
+  #from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
+  #need a title page where variables are defined--perhaps some type of accordion presentation
+
 
 #missingness
-#output of missing names submenu/tab is a new DF object...thus a user can skip to, but not past, this section
-#perhaps add an option to compare before/after datasets re imputation using vis_compare()
-#in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
-  #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
+  #perhaps add an option to compare before/after datasets re imputation using vis_compare()
+  #in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
+   #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
 
 
 #functions
-#make selectizeInput functions more flexible (and change edaTabBuilder)
-#convert larger server 'patterns' to functions
-#update functions so that they don't carry so many extraneous cols/vars
-#consider making group size variable switch code a function
-# create another function script with a server suffix (for more 'structural' functions) & create functions
-#update edaTabBuilder code to make dt outputs optional (to adjust for mult)
+  #make selectizeInput functions more flexible (and change edaTabBuilder)
+  #convert larger server 'patterns' to functions & populate into separate script
+  #update functions so that they don't carry so many extraneous cols/vars
+  #consider making group size variable switch code a function
+
+
 
 
 
 #feature engineering
-#feature scaling plots--axis labels and plot types (e.g., density, qq)
-#in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
-  #type of hyperlink or colored text where you hover over to get a more thorough defintion
-#discretization first plot--log scale y axis as option (and thus update formula)
-# add ggtitles to rare label encoding(?)
-#make the feature extraction-discretization plot interactive so a user can pull values for breaks
-#user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
-  #variable
+  #feature scaling plots--axis labels and plot types (e.g., density, qq)
+  #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
+    #type of hyperlink or colored text where you hover over to get a more thorough defintion
+  #discretization first plot--log scale y axis as option (and thus update formula)
+  # add ggtitles to rare label encoding(?)
+  #make the feature extraction-discretization plot interactive so a user can pull values for breaks
+  #user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
+    #variable
 
 
 #------------------------------------------------
