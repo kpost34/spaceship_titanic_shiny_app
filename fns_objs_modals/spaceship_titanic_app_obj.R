@@ -23,7 +23,7 @@ df_train %>% select(where(is.character)) %>% names() -> chrVars
 ### All cols but character
 df_train %>% select(!where(is.character)) %>% names() -> nchrVars
 #excluding dep var
-df_train_nchrVars[df_train_nchrVars!="transported"] -> nchrPreds
+nchrVars[nchrVars!="transported"] -> nchrPreds
 
 ### All logical and factor cols
 df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> catVars

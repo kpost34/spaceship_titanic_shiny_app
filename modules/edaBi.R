@@ -9,7 +9,7 @@ edaBiUI <- function(id) {
                   # tabID="biEDA02",
                   varID=c("var1ab", "var2ab"),
                   # varID=c("var12","var34"),
-                  options=df_train_nchrVars,
+                  options=nchrVars,
                   fn=selectizeInput01)
   )
 }
@@ -26,7 +26,7 @@ edaBiServer <- function(id) {
     dat1<-reactive({
       req(length(input$sel_var1ab)==2)
       #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
-      if(sum(input$sel_var1ab %in% df_train_catVars)==2) {
+      if(sum(input$sel_var1ab %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var1ab=="num") ==1)
             mutate(.,
@@ -34,15 +34,15 @@ edaBiServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           tabylize(input$sel_var1ab)
       }
-      else if(sum(input$sel_var1ab %in% df_train_catVars)==1) {
+      else if(sum(input$sel_var1ab %in% catVars)==1) {
         df_train %>%
           {if(sum(input$sel_var1ab=="num") ==1)
             mutate(.,
                    num=as.numeric(num),
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
-          summaryize(input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% df_train_catVars])
+          summaryize(input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% catVars])
       }
-      else if(sum(input$sel_var1ab %in% df_train_numVars)==2) {
+      else if(sum(input$sel_var1ab %in% numVars)==2) {
         corrtester(df_train,input$sel_var1ab)
       }
     })
@@ -51,7 +51,7 @@ edaBiServer <- function(id) {
     dat2<-reactive({
       req(length(input$sel_var2ab)==2)
       #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
-      if(sum(input$sel_var2ab %in% df_train_catVars)==2) {
+      if(sum(input$sel_var2ab %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var2ab=="num") ==1)
             mutate(.,
@@ -59,15 +59,15 @@ edaBiServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           tabylize(input$sel_var2ab)
       }
-      else if(sum(input$sel_var2ab %in% df_train_catVars)==1) {
+      else if(sum(input$sel_var2ab %in% catVars)==1) {
         df_train %>%
           {if(sum(input$sel_var2ab=="num") ==1)
             mutate(.,
                    num=as.numeric(num),
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
-          summaryize(input$sel_var2ab,input$sel_var2ab[input$sel_var2ab %in% df_train_catVars])
+          summaryize(input$sel_var2ab,input$sel_var2ab[input$sel_var2ab %in% catVars])
       }
-      else if(sum(input$sel_var2ab %in% df_train_numVars)==2) {
+      else if(sum(input$sel_var2ab %in% numVars)==2) {
         corrtester(df_train,input$sel_var2ab)
       }
     })
@@ -104,7 +104,7 @@ edaBiServer <- function(id) {
       #must select two inputs first
       req(length(input$sel_var1ab)==2)
       #if both categorical, then bar plot
-      if(sum(input$sel_var1ab %in% df_train_catVars)==2) {
+      if(sum(input$sel_var1ab %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var1ab=="num") ==1)
             mutate(.,
@@ -113,7 +113,7 @@ edaBiServer <- function(id) {
         barplotter(input$sel_var1ab)
       }
       #if 1 cat & 1 num then boxplot
-      else if(sum(input$sel_var1ab %in% df_train_catVars)==1) {
+      else if(sum(input$sel_var1ab %in% catVars)==1) {
         df_train %>%
           {if(sum(input$sel_var1ab=="num") ==1)
             mutate(.,
@@ -122,14 +122,14 @@ edaBiServer <- function(id) {
           boxplotter(input$sel_var1ab)
       }
       #if two num then scatterplot
-      else if(sum(input$sel_var1ab %in% df_train_catVars)==0) {
+      else if(sum(input$sel_var1ab %in% catVars)==0) {
         scatterplotter(df_train,input$sel_var1ab)
       }
     })
     
     output$plot_sel_var2ab<-renderPlot({
       req(length(input$sel_var2ab)==2)
-      if(sum(input$sel_var2ab %in% df_train_catVars)==2) {
+      if(sum(input$sel_var2ab %in% catVars)==2) {
         df_train %>%
           {if(sum(input$sel_var2ab=="num") ==1)
             mutate(.,
@@ -137,7 +137,7 @@ edaBiServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
         barplotter(input$sel_var2ab)
       }
-      else if(sum(input$sel_var2ab %in% df_train_catVars)==1) {
+      else if(sum(input$sel_var2ab %in% catVars)==1) {
         df_train %>%
           {if(sum(input$sel_var2ab=="num") ==1)
             mutate(.,
@@ -145,7 +145,7 @@ edaBiServer <- function(id) {
                    num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           boxplotter(input$sel_var2ab)
       }
-      else if(sum(input$sel_var2ab %in% df_train_catVars)==0) {
+      else if(sum(input$sel_var2ab %in% catVars)==0) {
         scatterplotter(df_train,input$sel_var2ab)
       }
     })

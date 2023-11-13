@@ -50,12 +50,12 @@ spaceTitanicApp <- function() {
     navbarMenu(title="Missingness", menuName="Mis03",
       missNameUI("dat1"),
       missOtherUI("dat2")
-      )
-    # navbarMenu(title="Feature Engineering", menuName="Fea04",
-    #   featTransUI("df1")
+      ),
+    navbarMenu(title="Feature Engineering", menuName="Fea04",
+      featTransUI("df1")
       # featCreatUI("df2")
       # featSelUI("df3")
-      # )
+    )
   )
   
   server <- function(input, output, session) {
@@ -77,7 +77,7 @@ spaceTitanicApp <- function() {
     #   req(input$rad_trnsFea04)
     #   checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
     # })
-    # featTransServer("df1")
+    featTransServer("df1", df_train_nvI)
     # featCreatServer("df2")
     # featSelServer("df3")
     
@@ -97,7 +97,13 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-# updated remaining object names
+# simplified obj names for edaBi module (& in obj script)--missed before previous commit
+
+#featTrans
+  #added ns() where necessary
+  #simplified names (removed suffixes)
+  #used naming conventions consistent with other modules (e.g., df_train vs trainDF)
+  #got feature scaling, discretization, ordinal encoding, & rare label encoding code to run (to display plots)
 
 
 ## IN PROGRESS
@@ -108,15 +114,63 @@ spaceTitanicApp()
 
 
 ## TO DO 
-#general (new)
-  #add variable type in dropdowns when selecting variable
-  #Note: use ggiraph for EDA and all plots--make them interactive
-  #simplify obj names--this and all modules
-  #add a backward/forward arrows for users to navigate pages in sequence
+#feature engineering- transform
+  #feature scaling
+    #pre-load figures--perhaps they are created (as reactives?) when tab is selected then button 
+      #just displays them
+    #plots need larger text
+    #plots may need log10 scales
+    #plots need to be labeled better
+    #sidebar should be narrower
+    #when the scaling type is selected and confirmed, there needs to be feedback
+      #1) toast notification
+      #2) textOutput: "x has been selected"
+
+    #discretization
+      #reduce number of default bins (from 30 to 10?)
+      #plots need titles
+      #caption text is too small
+      #align confirm buttons with text
+      #need feedback after confirmation
+        #1) toast notificaiton
+        #2) some type of text output
+      #for user cuts (bin boundaries)
+        #set it up such that 0 (or negative values) are not possible
+      #why are there NAs with user-defined boundaries but not R
+      #use different color scheme for bottom graph
+
+
+    #ordinal encoding
+
+
+    #rare label encoding
+      #should add option for log10 y scale for both plots
+      #plots need titles
+      #confirmation should yield feedback
+        #1) toast notification selected
+        #2) some type of text
+
+    #whole module
+      #all transforms need to be completed to move on
+        #next tab won't display
+        #some sort of modal should appear that lists remaining items
+      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
+      #turn renderUIs/uiOutput to updateXXXXX instead (where possible)
+      #turn lists of outputs to purrr::map with tagList
+      #move that first renderUI/uiOutput to outside of the module (if possible)
+
+
+
+#feature engineering- feature creation
+  #add ns() where applicable
+  #remove extraneous suffixes of inputs/outputs
+  #get code to run
+
 
 #missName
   #Use accordion text for the description in the middle
   #Indicate somehow (red box?) that the last step must be completed to continue
+
 
 #missOther
   #this tab/page (and all of them after) should be hidden until user submits a name imputation method
@@ -127,7 +181,10 @@ spaceTitanicApp()
     #--> for both bullets, look at the marsh analysis that I started
 
 
-
+#general (new)
+  #add variable type in dropdowns when selecting variable
+  #Note: use ggiraph for EDA and all plots--make them interactive
+  #add a backward/forward arrows for users to navigate pages in sequence
 
 
 

@@ -86,10 +86,10 @@ edaTabBuilder<-function(id, name, varID, options, fn){
 
 # Batch output====================================================================
 ## Many uiOutput
-split_chk_sel_builder<-function(lab){
+split_chk_sel_builder<-function(lab, fn){
   splitLayout(cellWidths=c("30%","70%"),cellArgs=list(style="vertical-align: middle"),
-    uiOutput(paste0("ui_chk_ordEnc",lab,"_trnsFea04")),
-    uiOutput(paste0("ui_sel_ordEnc",lab,"_trnsFea04")),
+    uiOutput(fn(paste0("ui_chk_ordEnc",lab))),
+    uiOutput(fn(paste0("ui_sel_ordEnc",lab))),
     #SO: parent div of dropdown menu has an overflow style, blocking dropdown menu; 
     #this changes it to visible
     tags$head(tags$style(HTML(".shiny-split-layout > div {overflow: visible;}")))
@@ -100,7 +100,7 @@ split_chk_sel_builder<-function(lab){
 labs<-paste0(rep(2,5),letters[1:5])
 
 #run vector through function
-ui_splits<-map(labs,split_chk_sel_builder)
+# ui_splits<-map(labs, split_chk_sel_builder, fn=ns)
 
 
 

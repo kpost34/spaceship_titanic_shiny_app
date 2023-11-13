@@ -12,126 +12,127 @@ featTransUI <- function(id) {
     #fluidRow with column helps to align radio buttons
     fluidRow(
       column(6,align="center",offset=3,
-        radioButtons(inputId="rad_trnsFea04",label="",choices=ch_trans_featTrans,selected=character(0),
+        radioButtons(inputId=ns("rad_trans"),label="",choices=ch_trans_featTrans,selected=character(0),
                      inline=TRUE,width="100%"),
-        # uiOutput("ui_chk_trnsFea04")
+        uiOutput("ui_chk_trans")
       )
     ),
     #selector for the discretization panels
     # fluidRow(
-    #   uiOutput("ui_sel_dis1_trnsFea04")
+    #   uiOutput("ui_sel_dis1")
     # ),
     sidebarLayout(
       sidebarPanel(
         #create invisible panel that can be updated
-        tabsetPanel(id="sidebar_tab_trnsFea04",type="hidden",
+        tabsetPanel(id=ns("sidebar_tab"),type="hidden",
           #feature scaling
           tabPanelBody("Feature Scaling",
-            uiOutput("ui_sel_scale1_trnsFea04"),
+            uiOutput(ns("ui_sel_scale1")),
             br(),
-            uiOutput("ui_sel_scale2_trnsFea04"),
-            uiOutput("ui_btn_scale_trnsFea04")
+            uiOutput(ns("ui_sel_scale2")),
+            uiOutput(ns("ui_btn_scale"))
           ),
           #discretization
           tabPanelBody("Discretization",
-            uiOutput("ui_sel_dis1_trnsFea04"),
-            uiOutput("ui_rad_dis1_trnsFea04"),
-            uiOutput("ui_num_dis1_trnsFea04"),
+            uiOutput(ns("ui_sel_dis1")),
+            uiOutput(ns("ui_rad_dis1")),
+            uiOutput(ns("ui_num_dis1")),
             br(),
             fluidRow(
               column(9,
-                htmlOutput("text_dis3a_trnsFea04")
+                htmlOutput(ns("text_dis3a"))
               ),
               column(3,
-                uiOutput("ui_btn_dis3a_trnsFea04")
+                uiOutput(ns("ui_btn_dis3a"))
               )
             ),
-            tags$style(type="text/css", "#ui_btn_dis3a_trnsFea04 {width: 100%; margin-top: 25px;}"),
+            tags$style(type="text/css", "#ui_btn_dis3a {width: 100%; margin-top: 25px;}"),
             br(),
-            htmlOutput("text_dis2_trnsFea04"),
-            uiOutput("ui_rad_dis2a_trnsFea04"),
-            uiOutput("ui_num_dis2a_trnsFea04"),
-            uiOutput("ui_rad_dis2b_trnsFea04"),
-            uiOutput("ui_num_dis2b_trnsFea04"),
+            htmlOutput(ns("text_dis2")),
+            uiOutput(ns("ui_rad_dis2a")),
+            uiOutput(ns("ui_num_dis2a")),
+            uiOutput(ns("ui_rad_dis2b")),
+            uiOutput(ns("ui_num_dis2b")),
             fluidRow(
               column(9,
-                htmlOutput("text_dis3b_trnsFea04")
+                htmlOutput(ns("text_dis3b"))
               ),
               column(3,
-                uiOutput("ui_btn_dis3b_trnsFea04")
+                uiOutput(ns("ui_btn_dis3b"))
               )
             ),
-            tags$style(type="text/css", "#ui_btn_dis3b_trnsFea04 {width: 100%; margin-top: 25px;}")
+            tags$style(type="text/css", "#ui_btn_dis3b {width: 100%; margin-top: 25px;}")
           ),           
           #ordinal encoding
           tabPanelBody("Ordinal Encoding",
-            uiOutput("ui_sel_ordEnc1_trnsFea04"),
+            uiOutput(ns("ui_sel_ordEnc1")),
             linebreaks(2),
-            radioButtons(inputId="rad_ordEnc_trnsFea04",label="Would you like to perform ordinal encoding on any of
+            radioButtons(inputId=ns("rad_ordEnc"),label="Would you like to perform ordinal encoding on any of
                          the variables?",choices=c("Yes","No"),selected=character(0)),
             linebreaks(2),
-            htmlOutput("text_ordEnc_trnsFea04"),
+            htmlOutput(ns("text_ordEnc")),
             #produces a list of checkboxes and selectors
-            ui_splits,
-            uiOutput("ui_btn_ordEnc2_trnsFea04")
+            map(labs, split_chk_sel_builder, fn=ns),
+            # ui_splits,
+            uiOutput(ns("ui_btn_ordEnc2"))
           ),
           #rare label encoding
           tabPanelBody("Rare Label Encoding",
-            uiOutput("ui_sel_rareEnc1a_trnsFea04"),
-            uiOutput("ui_sel_rareEnc1b_trnsFea04"),
+            uiOutput(ns("ui_sel_rareEnc1a")),
+            uiOutput(ns("ui_sel_rareEnc1b")),
             linebreaks(5),
-            uiOutput("ui_sel_rareEnc2a_trnsFea04"),
-            uiOutput("ui_sel_rareEnc2b_trnsFea04"),
-            uiOutput("ui_btn_rareEnc_trnsFea04")
+            uiOutput(ns("ui_sel_rareEnc2a")),
+            uiOutput(ns("ui_sel_rareEnc2b")),
+            uiOutput(ns("ui_btn_rareEnc"))
           )
         )
       ),
       mainPanel(
         #set this to dynamically produce tabs
-        tabsetPanel(id="main_tab_trnsFea04",type="hidden",
+        tabsetPanel(id=ns("main_tab"),type="hidden",
           #feature scaling
           tabPanelBody("Feature Scaling",
-            plotOutput("plot_sel_scale1_trnsFea04",height="1000px"),
-            tableOutput("DT1")
+            plotOutput(ns("plot_sel_scale1"),height="1000px"),
+            tableOutput(ns("DT1"))
           ),
           #discretization
           tabPanelBody("Discretization",
-            plotOutput("plot_sel_dis1_trnsFea04"),
-            plotOutput("plot_sel_dis2_trnsFea04"),
-            tableOutput("temp_table_dis1_trnsFea04"),
-            tableOutput("temp_table_dis2_trnsFea04"),
-            tableOutput("temp_table_dis3_trnsFea04"),
-            tableOutput("temp_table_dis4_trnsFea04"),
-            tableOutput("temp_table_dis5_trnsFea04"),
-            tableOutput("temp_table_dis6_trnsFea04"),
-            tableOutput("temp_table_dis7_trnsFea04"),
-            tableOutput("temp_table_dis8_trnsFea04")
+            plotOutput(ns("plot_sel_dis1")),
+            plotOutput(ns("plot_sel_dis2")),
+            tableOutput(ns("temp_table_dis1")),
+            tableOutput(ns("temp_table_dis2")),
+            tableOutput(ns("temp_table_dis3")),
+            tableOutput(ns("temp_table_dis4")),
+            tableOutput(ns("temp_table_dis5")),
+            tableOutput(ns("temp_table_dis6")),
+            tableOutput(ns("temp_table_dis7")),
+            tableOutput(ns("temp_table_dis8"))
           ),
           #ordinal encoding
           tabPanelBody("Ordinal Encoding",
-            plotOutput("plot_sel_ordEnc1_trnsFea04"),
+            plotOutput(ns("plot_sel_ordEnc1")),
             linebreaks(2),
-            htmlOutput("text_sel_ordEnc1_trnsFea04"),
-            tableOutput("temp_tab_trnsFea04")
+            htmlOutput(ns("text_sel_ordEnc1")),
+            tableOutput(ns("temp_tab"))
           ),
           #rare label encoding
           tabPanelBody("Rare Label Encoding",
             fluidRow(
               column(6,
-                plotOutput("plot_sel_rareEnc1a_trnsFea04",height="250px")
+                plotOutput(ns("plot_sel_rareEnc1a"),height="250px")
               ),
               column(6,
-                plotOutput("plot_sel_rareEnc1b_trnsFea04",height="250px")
+                plotOutput(ns("plot_sel_rareEnc1b"),height="250px")
               )
             ),
             linebreaks(2),
             fluidRow(
               column (6,
-                plotOutput("plot_sel_rareEnc2a_trnsFea04",height="250px")
+                plotOutput(ns("plot_sel_rareEnc2a"),height="250px")
               ),
               column(6,
-                plotOutput("plot_sel_rareEnc2b_trnsFea04",height="250px"),
-                tableOutput("temp_table_rareEnc_trnsFea04")
+                plotOutput(ns("plot_sel_rareEnc2b"),height="250px"),
+                tableOutput(ns("temp_table_rareEnc"))
               )
             )
           )
@@ -143,26 +144,28 @@ featTransUI <- function(id) {
 
 
 # Server============================================================================================
-featTransServer <- function(id) {
+featTransServer <- function(id, df_train_nvI) {
   moduleServer(id, function(input, output, session) {
     
+    ns <- session$ns
     
-    output$ui_chk_trnsFea04<-renderUI({   
+    
+    output$ui_chk_trans <- renderUI({   
     #update req() statement--should reflect that all four confirmations selected
-    req(input$rad_trnsFea04)
-    checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
+    req(input$rad_trans)
+    checkboxInput(inputId=ns("chk_trns"),label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
   })
   
     ## Conditional tabsets----------------------------------------
     ### Conditional UI for displaying 'main' sidebar tabset panel
-    observeEvent(input$rad_trnsFea04, {
-      updateTabsetPanel(inputId="sidebar_tab_trnsFea04",selected=input$rad_trnsFea04)
+    observeEvent(input$rad_trans, {
+      updateTabsetPanel(inputId="sidebar_tab",selected=input$rad_trans)
     })
     
     
     ### Conditional UI for displaying main tabset panel for larger categories
-    observeEvent(input$rad_trnsFea04, {
-      updateTabsetPanel(inputId="main_tab_trnsFea04",selected=input$rad_trnsFea04)
+    observeEvent(input$rad_trans, {
+      updateTabsetPanel(inputId="main_tab",selected=input$rad_trans)
     })
     
     
@@ -178,42 +181,42 @@ featTransServer <- function(id) {
     
     ### Normalization/standardization--------------------
     #### Input to select var to visualize, either unscaled or scaled
-    output$ui_sel_scale1_trnsFea04<-renderUI({
-      req(input$rad_trnsFea04)
-      selectInput01(id="sel_scale1_trnsFea04",label=varViz_feat,
+    output$ui_sel_scale1<-renderUI({
+      req(input$rad_trans)
+      selectInput01(ID=ns("sel_scale1"),label=varViz_feat,
                     #dynamically select numeric vars (NOTE: will need to update data object later)
-                    choices=trainDF_nvI() %>% select(where(is.numeric)) %>% names())
+                    choices=df_train_nvI() %>% select(where(is.numeric)) %>% names())
     })
     
     
     ### Input to select how to transform/scale selected variables
-    output$ui_sel_scale2_trnsFea04<-renderUI({
-      req(input$sel_scale1_trnsFea04)
-      selectInput01(id="sel_scale2_trnsFea04",label=scaleOpt_feat,
+    output$ui_sel_scale2<-renderUI({
+      req(input$sel_scale1)
+      selectInput01(ID=ns("sel_scale2"),label=scaleOpt_feat,
                     choices=ch_trans_opt_featTrans)
     })
     
     #### Button to confirm selection
-    output$ui_btn_scale_trnsFea04<-renderUI({
-      req(input$rad_trnsFea04,input$sel_scale1_trnsFea04,input$sel_scale2_trnsFea04)
-      actionButton(inputId="btn_scale_trnsFea04",label="Confirm your selection") 
+    output$ui_btn_scale<-renderUI({
+      req(input$rad_trans,input$sel_scale1,input$sel_scale2)
+      actionButton(inputId=ns("btn_scale"),label="Confirm your selection") 
     })
     
     #### Button to confirm scaling selections and create new columns/variables
-    trainDF_nvI_s<-eventReactive(input$btn_scale_trnsFea04, {
-      switch(input$sel_scale2_trnsFea04,
+    df_train_nvI_s<-eventReactive(input$btn_scale, {
+      switch(input$sel_scale2,
              #raw = unchanged
-             raw=trainDF_nvI(),
+             raw=df_train_nvI(),
              #log = log-transform + identifier
-             log=trainDF_nvI() %>% 
+             log=df_train_nvI() %>% 
                mutate(across(where(is.numeric),~log(.x),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")),
              #mm_scale = min-max scale + identifier
-             mm_scale=trainDF_nvI() %>%
+             mm_scale=df_train_nvI() %>%
                mutate(across(where(is.numeric),~min_max_scaler(.x),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")), 
              #standize = standardized + identifier
-             standize=trainDF_nvI() %>%
+             standize=df_train_nvI() %>%
                mutate(across(where(is.numeric),~standardizer(.x),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")) 
       )
@@ -221,63 +224,63 @@ featTransServer <- function(id) {
     
     #Temporary table--proof that above code is working
     output$DT1<-renderTable({
-      head(trainDF_nvI_s())
+      head(df_train_nvI_s())
     })
     
     
   
     ### Discretization--------------------
     #### Input to select var to visualize as histogram (for discretization)
-    output$ui_sel_dis1_trnsFea04<-renderUI({
-      req(input$rad_trnsFea04=="Discretization")
-      selectInput01(id="sel_dis1_trnsFea04",label=varViz_feat,
+    output$ui_sel_dis1<-renderUI({
+      req(input$rad_trans=="Discretization")
+      selectInput01(ID=ns("sel_dis1"),label=varViz_feat,
                     #dynamically select numerical variables and num 
-                    choices=trainDF_disVars)
+                    choices=disVars)
     })
     
     #### Input to choose whether to log10-transform x-axis
-    output$ui_rad_dis1_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04)
-      radioButtons(inputId="rad_dis1_trnsFea04",
+    output$ui_rad_dis1<-renderUI({
+      req(input$sel_dis1)
+      radioButtons(inputId=ns("rad_dis1"),
                    label="Choose whether to log10-scale the x-axis",
                    choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
     })
     
     #### Input to choose number of bins for histogram
-    output$ui_num_dis1_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04)
-      numericInput(inputId="num_dis1_trnsFea04",
+    output$ui_num_dis1<-renderUI({
+      req(input$sel_dis1)
+      numericInput(inputId=ns("num_dis1"),
                    label="Select the number of bins for the histogram (2-100)",
                    value=30,min=2,max=100)
     })
     
     #### Output to display text for next set of inputs
-    output$text_dis2_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
+    output$text_dis2<-renderUI({
+      req(input$sel_dis1,input$rad_dis1)
       h4("Visualization of binned data")
     })
     
     
     #### Input to select a log10-transformed y-axis
-    output$ui_rad_dis2a_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
-      radioButtons(inputId="rad_dis2a_trnsFea04",
+    output$ui_rad_dis2a<-renderUI({
+      req(input$sel_dis1,input$rad_dis1)
+      radioButtons(inputId=ns("rad_dis2a"),
                    label="Choose whether to log10-scale the y-axis",
                    choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
     })
     
     #### Input to choose number of breaks
-    output$ui_num_dis2a_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
-      numericInput(inputId="num_dis2a_trnsFea04",
+    output$ui_num_dis2a<-renderUI({
+      req(input$sel_dis1,input$rad_dis1)
+      numericInput(inputId=ns("num_dis2a"),
                    label="Select the number of breaks to create data bins (1-5)",
                    value=2,min=1,max=5)
     })
     
     #### Input to choose whether to have R or user-selected bin boundaries
-    output$ui_rad_dis2b_trnsFea04<-renderUI({
-      req(input$sel_dis1_trnsFea04,input$rad_dis1_trnsFea04)
-      radioButtons(inputId="rad_dis2b_trnsFea04",
+    output$ui_rad_dis2b<-renderUI({
+      req(input$sel_dis1,input$rad_dis1)
+      radioButtons(inputId=ns("rad_dis2b"),
                    label="Choose who selects the bin boundaries",
                    choices=c("R","me"),selected=character(0),inline=TRUE)
     })
@@ -287,11 +290,11 @@ featTransServer <- function(id) {
     
     
     #### Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
-    output$ui_num_dis2b_trnsFea04<-renderUI({
-      req(input$rad_dis2a_trnsFea04,input$rad_dis2b_trnsFea04=="me")
+    output$ui_num_dis2b<-renderUI({
+      req(input$rad_dis2a,input$rad_dis2b=="me")
       tags_num<-tagList()
-      for(i in seq_len(input$num_dis2a_trnsFea04)){
-        tags_num[[i]]<-numericInput(paste0("n",i),paste0("Break",i),min=0,value=NULL)
+      for(i in seq_len(input$num_dis2a)){
+        tags_num[[i]]<-numericInput(ns(paste0("n",i)),paste0("Break",i),min=0,value=NULL)
       }
       tags_num
     })
@@ -300,45 +303,45 @@ featTransServer <- function(id) {
   
     #### Dynamically display action button (and associated text) to discretize variable 
     #display text for action buttons
-    output$text_dis3a_trnsFea04<-renderUI({
-      req(!is.na(input$rad_dis1_trnsFea04))
-      h4(paste0("I am not interested in discretizing ",input$sel_dis1_trnsFea04,"."))
+    output$text_dis3a<-renderUI({
+      req(!is.na(input$rad_dis1))
+      h4(paste0("I am not interested in discretizing ",input$sel_dis1,"."))
     })
     
-    output$text_dis3b_trnsFea04<-renderUI({
+    output$text_dis3b<-renderUI({
       #either "R" is selected or "me" is selected and the number and every break point input is populated
-      req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
-         (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+      req((!is.na(input$rad_dis2a) & input$rad_dis2b=="R")|
+         (input$rad_dis2b=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a)
       )
-      h4(paste("Click confirm to discretize",input$sel_dis1_trnsFea04, "using these settings."))
+      h4(paste("Click confirm to discretize",input$sel_dis1, "using these settings."))
     })
     
     #display buttons
-    output$ui_btn_dis3a_trnsFea04<-renderUI({
-      req(!is.na(input$rad_dis1_trnsFea04))
-      switch(input$sel_dis1_trnsFea04,
-        age=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        room_service=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        food_court=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        shopping_mall=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        spa=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        vr_deck=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        num=actionButton(paste("btn_dis3a",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
+    output$ui_btn_dis3a<-renderUI({
+      req(!is.na(input$rad_dis1))
+      switch(input$sel_dis1,
+        age=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        room_service=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        food_court=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        shopping_mall=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        spa=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        vr_deck=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm"),
+        num=actionButton(ns(paste("btn_dis3a",input$sel_dis1,sep="_")),label="Confirm")
       )
     })
     
-    output$ui_btn_dis3b_trnsFea04<-renderUI({
-      req((!is.na(input$rad_dis2a_trnsFea04) & input$rad_dis2b_trnsFea04=="R")|
-            (input$rad_dis2b_trnsFea04=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a_trnsFea04)
+    output$ui_btn_dis3b<-renderUI({
+      req((!is.na(input$rad_dis2a) & input$rad_dis2b=="R")|
+            (input$rad_dis2b=="me" &  sum(!is.na(user_cuts()))==input$num_dis2a)
       )
-      switch(input$sel_dis1_trnsFea04,
-        age=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        room_service=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        food_court=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        shopping_mall=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        spa=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        vr_deck=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm"),
-        num=actionButton(paste("btn_dis3b",input$sel_dis1_trnsFea04,sep="_"),label="Confirm")
+      switch(input$sel_dis1,
+        age=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        room_service=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        food_court=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        shopping_mall=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        spa=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        vr_deck=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm"),
+        num=actionButton(ns(paste("btn_dis3b",input$sel_dis1,sep="_")),label="Confirm")
       )
     })
     
@@ -347,151 +350,151 @@ featTransServer <- function(id) {
     
     ### Ordinal Encoding--------------------
     #### Select variable to visualize
-    output$ui_sel_ordEnc1_trnsFea04<-renderUI({
-      selectInput01(id="sel_ordEnc1_trnsFea04",label=varViz_feat,
+    output$ui_sel_ordEnc1<-renderUI({
+      selectInput01(ID=ns("sel_ordEnc1"),label=varViz_feat,
                     #dynamically select factors 
-                    choices=trainDF_nvI() %>% select(where(is.factor),-num) %>% names())
+                    choices=df_train_nvI() %>% select(where(is.factor),-num) %>% names())
     })
     
     # Dynamically display text above checkboxes below
-    output$text_ordEnc_trnsFea04<-renderUI({
-      req(input$rad_ordEnc_trnsFea04=="Yes") 
+    output$text_ordEnc<-renderUI({
+      req(input$rad_ordEnc=="Yes") 
       h4("Check each variable for ordinal encoding and rank the categories from least to most important")
     })
     
     
     #### Dynamically create checkboxes to choose variables for ordinal encoding
-      output$ui_chk_ordEnc2a_trnsFea04<-renderUI({
-        req(input$rad_ordEnc_trnsFea04=="Yes") 
-        checkboxInput(inputId="chk_ordEnc2a_trnsFea04",label="ticket",value=FALSE)
+      output$ui_chk_ordEnc2a<-renderUI({
+        req(input$rad_ordEnc=="Yes") 
+        checkboxInput(inputId=ns("chk_ordEnc2a"),label="ticket",value=FALSE)
       })
-      output$ui_chk_ordEnc2b_trnsFea04<-renderUI({
-        req(input$rad_ordEnc_trnsFea04=="Yes") 
-        checkboxInput(inputId="chk_ordEnc2b_trnsFea04",label="home_planet",value=FALSE)
+      output$ui_chk_ordEnc2b<-renderUI({
+        req(input$rad_ordEnc=="Yes") 
+        checkboxInput(inputId=ns("chk_ordEnc2b"),label="home_planet",value=FALSE)
       })
-      output$ui_chk_ordEnc2c_trnsFea04<-renderUI({
-        req(input$rad_ordEnc_trnsFea04=="Yes") 
-        checkboxInput(inputId="chk_ordEnc2c_trnsFea04",label="deck",value=FALSE)
+      output$ui_chk_ordEnc2c<-renderUI({
+        req(input$rad_ordEnc=="Yes") 
+        checkboxInput(inputId=ns("chk_ordEnc2c"),label="deck",value=FALSE)
       })
-      output$ui_chk_ordEnc2d_trnsFea04<-renderUI({
-        req(input$rad_ordEnc_trnsFea04=="Yes") 
-        checkboxInput(inputId="chk_ordEnc2d_trnsFea04",label="side",value=FALSE)
+      output$ui_chk_ordEnc2d<-renderUI({
+        req(input$rad_ordEnc=="Yes") 
+        checkboxInput(inputId=ns("chk_ordEnc2d"),label="side",value=FALSE)
       })
-      output$ui_chk_ordEnc2e_trnsFea04<-renderUI({
-        req(input$rad_ordEnc_trnsFea04=="Yes") 
-        checkboxInput(inputId="chk_ordEnc2e_trnsFea04",label="destination",value=FALSE)
+      output$ui_chk_ordEnc2e<-renderUI({
+        req(input$rad_ordEnc=="Yes") 
+        checkboxInput(inputId=ns("chk_ordEnc2e"),label="destination",value=FALSE)
       })
   
       
     #### Dynamically create selectors for ordinal encoding
-    output$ui_sel_ordEnc2a_trnsFea04<-renderUI({
-      req(input$chk_ordEnc2a_trnsFea04)
-      selectizeInput(inputId="sel_ordEnc2a_trnsFea04",label="", multiple=TRUE,
+    output$ui_sel_ordEnc2a<-renderUI({
+      req(input$chk_ordEnc2a)
+      selectizeInput(inputId=ns("sel_ordEnc2a"),label="", multiple=TRUE,
                     choices=c(varSelOrd_feat,
-                            trainDF_nvI()[["ticket"]] %>% levels()))
+                            df_train_nvI()[["ticket"]] %>% levels()))
     })
     
-    output$ui_sel_ordEnc2b_trnsFea04<-renderUI({
-      req(input$chk_ordEnc2b_trnsFea04)
-      selectizeInput(inputId="sel_ordEnc2b_trnsFea04",label="", multiple=TRUE,
+    output$ui_sel_ordEnc2b<-renderUI({
+      req(input$chk_ordEnc2b)
+      selectizeInput(inputId=ns("sel_ordEnc2b"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               trainDF_nvI()[["home_planet"]] %>% levels()))
+                               df_train_nvI()[["home_planet"]] %>% levels()))
     })
     
-    output$ui_sel_ordEnc2c_trnsFea04<-renderUI({
-      req(input$chk_ordEnc2c_trnsFea04)
-      selectizeInput(inputId="sel_ordEnc2c_trnsFea04",label="", multiple=TRUE,
+    output$ui_sel_ordEnc2c<-renderUI({
+      req(input$chk_ordEnc2c)
+      selectizeInput(inputId=ns("sel_ordEnc2c"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               trainDF_nvI()[["deck"]] %>% levels()))
+                               df_train_nvI()[["deck"]] %>% levels()))
     })
     
-    output$ui_sel_ordEnc2d_trnsFea04<-renderUI({
-      req(input$chk_ordEnc2d_trnsFea04)
-      selectizeInput(inputId="sel_ordEnc2d_trnsFea04",label="", multiple=TRUE,
+    output$ui_sel_ordEnc2d<-renderUI({
+      req(input$chk_ordEnc2d)
+      selectizeInput(inputId=ns("sel_ordEnc2d"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               trainDF_nvI()[["side"]] %>% levels()))
+                               df_train_nvI()[["side"]] %>% levels()))
     })
     
-    output$ui_sel_ordEnc2e_trnsFea04<-renderUI({
-      req(input$chk_ordEnc2e_trnsFea04)
-      selectizeInput(inputId="sel_ordEnc2e_trnsFea04",label="", multiple=TRUE,
+    output$ui_sel_ordEnc2e<-renderUI({
+      req(input$chk_ordEnc2e)
+      selectizeInput(inputId=ns("sel_ordEnc2e"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               trainDF_nvI()[["destination"]] %>% levels()))
+                               df_train_nvI()[["destination"]] %>% levels()))
     })
     
     
     #### Dynamically display button
-    output$ui_btn_ordEnc2_trnsFea04<-renderUI({
-      n_ticket<-nlevels(trainDF_nvI()[["ticket"]])
-      n_home_planet<-nlevels(trainDF_nvI()[["home_planet"]])
-      n_deck<-nlevels(trainDF_nvI()[["deck"]])
-      n_side<-nlevels(trainDF_nvI()[["side"]])
-      n_destination<-nlevels(trainDF_nvI()[["destination"]])
+    output$ui_btn_ordEnc2<-renderUI({
+      n_ticket<-nlevels(df_train_nvI()[["ticket"]])
+      n_home_planet<-nlevels(df_train_nvI()[["home_planet"]])
+      n_deck<-nlevels(df_train_nvI()[["deck"]])
+      n_side<-nlevels(df_train_nvI()[["side"]])
+      n_destination<-nlevels(df_train_nvI()[["destination"]])
       
       #button displays if 1) "No" selected in radio button; 2) at least one box is checked AND for each var either
         #1) box unchecked or all categories selected 
-      req(input$rad_ordEnc_trnsFea04=="No"|(
-        sum(length(input$sel_ordEnc2a_trnsFea04)==n_ticket,
-            length(input$sel_ordEnc2b_trnsFea04)==n_home_planet, 
-            length(input$sel_ordEnc2c_trnsFea04)==n_deck,
-            length(input$sel_ordEnc2d_trnsFea04)==n_side,
-            length(input$sel_ordEnc2e_trnsFea04)==n_destination) > 0 & (
-        (length(input$sel_ordEnc2a_trnsFea04)==n_ticket|input$chk_ordEnc2a_trnsFea04==FALSE) &
-        (length(input$sel_ordEnc2b_trnsFea04)==n_home_planet|input$chk_ordEnc2b_trnsFea04==FALSE) &
-        (length(input$sel_ordEnc2c_trnsFea04)==n_deck|input$chk_ordEnc2c_trnsFea04==FALSE) &
-        (length(input$sel_ordEnc2d_trnsFea04)==n_side|input$chk_ordEnc2d_trnsFea04==FALSE) &
-        (length(input$sel_ordEnc2e_trnsFea04)==n_destination|input$chk_ordEnc2e_trnsFea04==FALSE)
+      req(input$rad_ordEnc=="No"|(
+        sum(length(input$sel_ordEnc2a)==n_ticket,
+            length(input$sel_ordEnc2b)==n_home_planet, 
+            length(input$sel_ordEnc2c)==n_deck,
+            length(input$sel_ordEnc2d)==n_side,
+            length(input$sel_ordEnc2e)==n_destination) > 0 & (
+        (length(input$sel_ordEnc2a)==n_ticket|input$chk_ordEnc2a==FALSE) &
+        (length(input$sel_ordEnc2b)==n_home_planet|input$chk_ordEnc2b==FALSE) &
+        (length(input$sel_ordEnc2c)==n_deck|input$chk_ordEnc2c==FALSE) &
+        (length(input$sel_ordEnc2d)==n_side|input$chk_ordEnc2d==FALSE) &
+        (length(input$sel_ordEnc2e)==n_destination|input$chk_ordEnc2e==FALSE)
         )
         )
       )
-      actionButton(inputId="btn_ordEnc2_trnsFea04",label="Confirm all ordinal encoding selections")
+      actionButton(inputId=ns("btn_ordEnc2"),label="Confirm all ordinal encoding selections")
     })
     
   
     ### Rare Label Encoding--------------------
     #### Input to select var to visualize as a barplot
-    output$ui_sel_rareEnc1a_trnsFea04<-renderUI({
-      selectInput01(id="sel_rareEnc1a_trnsFea04",label=varViz_feat,
+    output$ui_sel_rareEnc1a<-renderUI({
+      selectInput01(ID=ns("sel_rareEnc1a"),label=varViz_feat,
                     #dynamically ticket and deck 
-                    choices=trainDF_nvI() %>% select(deck,ticket) %>% names())
+                    choices=df_train_nvI() %>% select(deck,ticket) %>% names())
     })
     
     # Input to select levels to combine as a category and visualize in a new barplot (NAs are off limits)
-    output$ui_sel_rareEnc1b_trnsFea04<-renderUI({
-      req(input$sel_rareEnc1a_trnsFea04)
-      selectizeInput(inputId="sel_rareEnc1b_trnsFea04",label="",multiple=TRUE,
+    output$ui_sel_rareEnc1b<-renderUI({
+      req(input$sel_rareEnc1a)
+      selectizeInput(inputId=ns("sel_rareEnc1b"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
-                               trainDF_nvI() %>% 
-                                 pull(input$sel_rareEnc1a_trnsFea04) %>% 
+                               df_train_nvI() %>% 
+                                 pull(input$sel_rareEnc1a) %>% 
                                  unique() %>%
                                  sort() %>%
                                  as.character()))
     })
     
     #### Input to select other var to visualize as a barplot
-    output$ui_sel_rareEnc2a_trnsFea04<-renderUI({
-      req(length(input$sel_rareEnc1b_trnsFea04)>1)
-      selectInput01(id="sel_rareEnc2a_trnsFea04",label=varViz_feat,
+    output$ui_sel_rareEnc2a<-renderUI({
+      req(length(input$sel_rareEnc1b)>1)
+      selectInput01(ID=ns("sel_rareEnc2a"),label=varViz_feat,
                     #dynamically ticket and deck 
-                    choices=trainDF_nvI() %>% select(deck,ticket,-input$sel_rareEnc1a_trnsFea04) %>% names())
+                    choices=df_train_nvI() %>% select(deck,ticket,-input$sel_rareEnc1a) %>% names())
     })
     
     #### Input to select levels to combine as a category and visualize in a new barplot
-    output$ui_sel_rareEnc2b_trnsFea04<-renderUI({
-      req(input$sel_rareEnc2a_trnsFea04)
-      selectizeInput(inputId="sel_rareEnc2b_trnsFea04",label="",multiple=TRUE,
+    output$ui_sel_rareEnc2b<-renderUI({
+      req(input$sel_rareEnc2a)
+      selectizeInput(inputId=ns("sel_rareEnc2b"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
-                               trainDF_nvI() %>% 
-                                 pull(input$sel_rareEnc2a_trnsFea04) %>% 
+                               df_train_nvI() %>% 
+                                 pull(input$sel_rareEnc2a) %>% 
                                  unique() %>%
                                  sort() %>%
                                  as.character()))
     })
     
     #### Button to confirm selections
-    output$ui_btn_rareEnc_trnsFea04<-renderUI({
-      req(input$sel_rareEnc1a_trnsFea04)
-      actionButton(inputId="btn_rareEnc_trnsFea04",label="Confirm selections")
+    output$ui_btn_rareEnc<-renderUI({
+      req(input$sel_rareEnc1a)
+      actionButton(inputId=ns("btn_rareEnc"),label="Confirm selections")
     })
   
     
@@ -501,31 +504,31 @@ featTransServer <- function(id) {
     ## Conditional output for feature extraction----------------------------------------
     ### Normalization/standardization--------------------
     #### Display set of plots
-    output$plot_sel_scale1_trnsFea04<-renderPlot({
-      req(input$sel_scale1_trnsFea04)
-      cowplotter(trainDF_nvI(),input$sel_scale1_trnsFea04)
+    output$plot_sel_scale1<-renderPlot({
+      req(input$sel_scale1)
+      cowplotter(df_train_nvI(),input$sel_scale1)
     })
   
     
     ### Discretization--------------------
     #### Plot raw data with fill=transported as histogram
-    output$plot_sel_dis1_trnsFea04<-renderPlot({
-      req(input$rad_dis1_trnsFea04)
-      switch(input$sel_dis1_trnsFea04,
-        age=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        room_service=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        food_court=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        shopping_mall=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        spa=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        vr_deck=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04),
-        num=histogrammer2(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,
-          n.bins=input$num_dis1_trnsFea04,x.log.scale=input$rad_dis1_trnsFea04)
+    output$plot_sel_dis1<-renderPlot({
+      req(input$rad_dis1)
+      switch(input$sel_dis1,
+        age=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        room_service=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        food_court=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        shopping_mall=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        spa=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        vr_deck=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1),
+        num=histogrammer2(dat=df_train_nvI(),col=input$sel_dis1,
+          n.bins=input$num_dis1,x.log.scale=input$rad_dis1)
       )
     })
     
@@ -537,224 +540,224 @@ featTransServer <- function(id) {
     })
     
     R_cuts<-reactive({
-      layer_scales(plot_dis_trnsFea04())$x$breaks
+      layer_scales(plot_dis())$x$breaks
     })
     
   
     
     #use switch to create plot object
-    plot_dis_trnsFea04<-reactive({
-      req(input$rad_dis2a_trnsFea04, input$rad_dis2b_trnsFea04)
-      switch(input$rad_dis2b_trnsFea04,
-             R=bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,num.breaks=input$num_dis2a_trnsFea04,
-                           y.log.scale=input$rad_dis2a_trnsFea04),
-             me=user_bin_plotter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts(),
-                                 y.log.scale=input$rad_dis2a_trnsFea04)
+    plot_dis<-reactive({
+      req(input$rad_dis2a, input$rad_dis2b)
+      switch(input$rad_dis2b,
+             R=bin_plotter(dat=df_train_nvI(),col=input$sel_dis1,num.breaks=input$num_dis2a,
+                           y.log.scale=input$rad_dis2a),
+             me=user_bin_plotter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts(),
+                                 y.log.scale=input$rad_dis2a)
       )
     })
     
     #plot the plot object
-    output$plot_sel_dis2_trnsFea04<-renderPlot({
-      plot_dis_trnsFea04()
+    output$plot_sel_dis2<-renderPlot({
+      plot_dis()
     })
     
     
     
     #### Create reactiveValues object and initialize with NULL values
-    #trainDF_dis_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,vr_deck=NULL,num=NULL)
-    # trainDF_dis_list<-reactiveValues()
-    trainDF_dis_list<-vector(mode="list")
+    #df_train_dis_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,vr_deck=NULL,num=NULL)
+    # df_train_dis_list<-reactiveValues()
+    df_train_dis_list<-vector(mode="list")
   
    
     
     # Update reactiveValues object with passenger_id values as a tibble when selector input is used
-    # observeEvent(input$rad_trnsFea04, {
+    # observeEvent(input$rad_trans, {
     #   
     # }
     # })
     
-   # trainDF_dis_list<-reactiveValues(age=NULL)
+   # df_train_dis_list<-reactiveValues(age=NULL)
    #  
-   #  trainDF_dis_list$age<-reactive({trainDF_nvI() %>% select(passenger_id)})
+   #  df_train_dis_list$age<-reactive({df_train_nvI() %>% select(passenger_id)})
   
     # 
-    # trainDF_dis_list$room_service<-reactive({
-    #   trainDF_nvI() %>% select(passenger_id) 
+    # df_train_dis_list$room_service<-reactive({
+    #   df_train_nvI() %>% select(passenger_id) 
     # })
     # 
-    # trainDF_dis_list$food_court<-eventReactive(input$rad_trnsFea04, {
-    #   trainDF["passenger_id"]
+    # df_train_dis_list$food_court<-eventReactive(input$rad_trans, {
+    #   df_train["passenger_id"]
     # })
     # 
-    # trainDF_dis_list$shopping_mall<-eventReactive(input$rad_trnsFea04, {
-    #   trainDF["passenger_id"]
+    # df_train_dis_list$shopping_mall<-eventReactive(input$rad_trans, {
+    #   df_train["passenger_id"]
     # })
     # 
-    # trainDF_dis_list$spa<-eventReactive(input$rad_trnsFea04, {
-    #   trainDF["passenger_id"]
+    # df_train_dis_list$spa<-eventReactive(input$rad_trans, {
+    #   df_train["passenger_id"]
     # })
     # 
-    # trainDF_dis_list$vr_deck<-eventReactive(input$rad_trnsFea04, {
-    #   trainDF["passenger_id"]
+    # df_train_dis_list$vr_deck<-eventReactive(input$rad_trans, {
+    #   df_train["passenger_id"]
     # })
     # 
-    # trainDF_dis_list$num<-eventReactive(input$rad_trnsFea04, {
-    #   trainDF["passenger_id"]
+    # df_train_dis_list$num<-eventReactive(input$rad_trans, {
+    #   df_train["passenger_id"]
     # })
   
     
   
     
-    # trainDF_dis_list<-reactiveValues(age=NULL)
+    # df_train_dis_list<-reactiveValues(age=NULL)
     
-    #trainDF_dis_list$room_service<-tibble(x="test")
+    #df_train_dis_list$room_service<-tibble(x="test")
     
-   # trainDF_dis_list<-reactiveValues(age=trainDF["passenger_id"],
-   #                         room_service=trainDF["passenger_id"])
+   # df_train_dis_list<-reactiveValues(age=df_train["passenger_id"],
+   #                         room_service=df_train["passenger_id"])
    
-                           # food_court=trainDF["passenger_id"],
-                           # shopping_mall=trainDF["passenger_id"],
-                           # spa=trainDF["passenger_id"],
-                           # vr_deck=trainDF["passenger_id"],
-                           # num=trainDF["passenger_id"])
+                           # food_court=df_train["passenger_id"],
+                           # shopping_mall=df_train["passenger_id"],
+                           # spa=df_train["passenger_id"],
+                           # vr_deck=df_train["passenger_id"],
+                           # num=df_train["passenger_id"])
     
-    # trainDF_dis_list<-reactiveValues(age=NA,room_service=NA,food_court=NA,shopping_mall=NA,spa=NA,
+    # df_train_dis_list<-reactiveValues(age=NA,room_service=NA,food_court=NA,shopping_mall=NA,spa=NA,
     #                                  vr_deck=NA,num=NA)
     
     # Confirm discretization (for each variable)
     #age
-    # trainDF_dis_list$age<-eventReactive(input$btn_dis3a_age, {
-    #   trainDF_nvI() %>% select(passenger_id)
+    # df_train_dis_list$age<-eventReactive(input$btn_dis3a_age, {
+    #   df_train_nvI() %>% select(passenger_id)
     # })
     # 
     # 
-    # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     
   
-    observeEvent(input$sel_dis1_trnsFea04e, {
-      trainDF_dis_list$age<-trainDF %>% select(passenger_id)
+    observeEvent(input$sel_dis1e, {
+      df_train_dis_list$age<-df_train %>% select(passenger_id)
     })
     
     observeEvent(input$btn_dis3b_age, {
-      req(input$rad_dis2b_trnsFea04)
-      if(input$rad_dis2b_trnsFea04=="R"){
-        trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+      req(input$rad_dis2b)
+      if(input$rad_dis2b=="R"){
+        df_train_dis_list$age<-cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts())
       }
-      else if(input$rad_dis2b_trnsFea04=="me"){
-        trainDF_dis_list$age<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+      else if(input$rad_dis2b=="me"){
+        df_train_dis_list$age<-cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
       }
     })
     
     
-    observeEvent(input$sel_dis1_trnsFea04, {
-      trainDF_dis_list$room_service<-trainDF %>% select(passenger_id)
+    observeEvent(input$sel_dis1, {
+      df_train_dis_list$room_service<-df_train %>% select(passenger_id)
     })
     
     observeEvent(input$btn_dis3b_room_service, {
-      req(input$rad_dis2b_trnsFea04)
-      if(input$rad_dis2b_trnsFea04=="R"){
-        trainDF_dis_list$room_service<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+      req(input$rad_dis2b)
+      if(input$rad_dis2b=="R"){
+        df_train_dis_list$room_service<-cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts())
       }
-      else if(input$rad_dis2b_trnsFea04=="me"){
-        trainDF_dis_list$room_service<-cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+      else if(input$rad_dis2b=="me"){
+        df_train_dis_list$room_service<-cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
       }
     })
     
-    # trainDF_dis_list$age_pi<-eventReactive(input$btn_dis3a_age, {
-    #   trainDF_nvI() %>% select(passenger_id)
+    # df_train_dis_list$age_pi<-eventReactive(input$btn_dis3a_age, {
+    #   df_train_nvI() %>% select(passenger_id)
     # })
     # 
     # 
-    # trainDF_dis_list$age<-eventReactive(input$btn_dis3b_age, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$age<-eventReactive(input$btn_dis3b_age, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     
-    # trainDF_dis_list$age<-reactive({
-    #   if(input$rad_trnsFea04=="Discretization" & !exists("rad_dis2b_trnsFea")){
-    #     trainDF_nvI() %>% select(passenger_id)}
-    #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="R"){
-    #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts())
+    # df_train_dis_list$age<-reactive({
+    #   if(input$rad_trans=="Discretization" & !exists("rad_dis2b_trnsFea")){
+    #     df_train_nvI() %>% select(passenger_id)}
+    #   if(input$sel_dis1=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b=="R"){
+    #     cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts())
     #     }
-    #   if(input$sel_dis1_trnsFea04=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b_trnsFea04=="me"){
-    #     cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    #   if(input$sel_dis1=="age" & exists("rad_dis2b_trns_Fea04") && input$rad_dis2b=="me"){
+    #     cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #     }
     # })
   
     
   
     #room_service
-    # trainDF_dis_list$room_service<-eventReactive(list(input$rad_trnsFea04,input$btn_room_service), {
-    #   rs1<-trainDF["passenger_id"]
-    #   rs2<- switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$room_service<-eventReactive(list(input$rad_trans,input$btn_room_service), {
+    #   rs1<-df_train["passenger_id"]
+    #   rs2<- switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     
-    # trainDF_dis_list$room_service<-eventReactive(input$btn_room_service, {
-      # switch(input$rad_dis2b_trnsFea04,
-      #        R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-      #        me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$room_service<-eventReactive(input$btn_room_service, {
+      # switch(input$rad_dis2b,
+      #        R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+      #        me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
       # )
     # })
     
     # reax_room_service<-eventReactive(input$btn_room_service, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     
     
     # #food_court
-    # trainDF_dis_list$food_court<-eventReactive(input$btn_food_court, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$food_court<-eventReactive(input$btn_food_court, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     # 
     # #shopping_mall
-    # trainDF_dis_list$shopping_mall<-eventReactive(input$btn_shopping_mall, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$shopping_mall<-eventReactive(input$btn_shopping_mall, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     # 
     # #spa
-    # trainDF_dis_list$spa<-eventReactive(input$btn_spa, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$spa<-eventReactive(input$btn_spa, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     # 
     # #vr_deck
-    # trainDF_dis_list$vr_deck<-eventReactive(input$btn_vr_deck, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$vr_deck<-eventReactive(input$btn_vr_deck, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     # 
     # #num
-    # trainDF_dis_list$num<-eventReactive(input$btn_num, {
-    #   switch(input$rad_dis2b_trnsFea04,
-    #          R=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=R_cuts()),
-    #          me=cutter(dat=trainDF_nvI(),col=input$sel_dis1_trnsFea04,break.vals=user_cuts())
+    # df_train_dis_list$num<-eventReactive(input$btn_num, {
+    #   switch(input$rad_dis2b,
+    #          R=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=R_cuts()),
+    #          me=cutter(dat=df_train_nvI(),col=input$sel_dis1,break.vals=user_cuts())
     #   )
     # })
     
-    #train_list<-reactiveValuesToList(trainDF_dis_list)
+    #train_list<-reactiveValuesToList(df_train_dis_list)
     
     
     
@@ -762,16 +765,16 @@ featTransServer <- function(id) {
   # Combine all list elements into a new reactive DF
   
     
-    # trainDF_nvI_d<-eventReactive(input$btn_age,{
-    #   trainDF_nvI() %>%
+    # df_train_nvI_d<-eventReactive(input$btn_age,{
+    #   df_train_nvI() %>%
     #     select(passenger_id) %>%
-    #     {if(ncol(trainDF_dis_list$age())==2)(left_join(.,trainDF_dis_list$age(),by="passenger_id")) else .} #%>%
-    #     {if(ncol(trainDF_dis_list$room_service())==2)(left_join(.,trainDF_dis_list$room_service(),by="passenger_id")) else .} %>%
-    #     {if(ncol(trainDF_dis_list$food_court())==2)(left_join(.,trainDF_dis_list$food_court(),by="passenger_id")) else .} #%>%
-    # #     # {if(input$btn_shopping_mall==1)(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} %>%
-    # #     # {if(input$btn_spa==1)(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
-    # #     # {if(input$btn_vr_deck==1)(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
-    # #     # {if(input$btn_num==1)(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+    #     {if(ncol(df_train_dis_list$age())==2)(left_join(.,df_train_dis_list$age(),by="passenger_id")) else .} #%>%
+    #     {if(ncol(df_train_dis_list$room_service())==2)(left_join(.,df_train_dis_list$room_service(),by="passenger_id")) else .} %>%
+    #     {if(ncol(df_train_dis_list$food_court())==2)(left_join(.,df_train_dis_list$food_court(),by="passenger_id")) else .} #%>%
+    # #     # {if(input$btn_shopping_mall==1)(left_join(.,df_train_dis_list$shopping_mall(),by="passenger_id")) else .} %>%
+    # #     # {if(input$btn_spa==1)(left_join(.,df_train_dis_list$spa(),by="passenger_id")) else .} %>%
+    # #     # {if(input$btn_vr_deck==1)(left_join(.,df_train_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+    # #     # {if(input$btn_num==1)(left_join(.,df_train_dis_list$num(),by="passenger_id")) else .}
     # })
     
   
@@ -779,41 +782,41 @@ featTransServer <- function(id) {
   
     
     
-    # trainDF_nvI_d<-reactive({
-    #   reduce(list(trainDF_dis_list$age,
-    #               trainDF_dis_list$room_service),
-    # # # #               # trainDF_dis_list$food_court(),
-    # # # #               # trainDF_dis_list$shopping_mall(),
-    # # # #               # trainDF_dis_list$spa(),
-    # # # #               # trainDF_dis_list$vr_deck(),
-    # # #               # trainDF_dis_list$num()),
+    # df_train_nvI_d<-reactive({
+    #   reduce(list(df_train_dis_list$age,
+    #               df_train_dis_list$room_service),
+    # # # #               # df_train_dis_list$food_court(),
+    # # # #               # df_train_dis_list$shopping_mall(),
+    # # # #               # df_train_dis_list$spa(),
+    # # # #               # df_train_dis_list$vr_deck(),
+    # # #               # df_train_dis_list$num()),
     #          left_join,by="passenger_id")
     # })
     
     
   
     
-    # trainDF_nvI_d<-reactive({
-    #   reduce(trainDF_dis_list,left_join,by="passenger_id")
+    # df_train_nvI_d<-reactive({
+    #   reduce(df_train_dis_list,left_join,by="passenger_id")
     # })
       
-    # trainDF_nvI_d<-reactive({
-    #     trainDF_dis_list$age %>%
-    #     left_join(trainDF_dis_list$room_service,by="passenger_id") #%>%
-    #     # left_join(trainDF_dis_list$food_court,by="passenger_id") %>%
-    #     # left_join(trainDF_dis_list$shopping_mall,by="passenger_id") %>%
-    #     # left_join(trainDF_dis_list$spa,by="passenger_id") %>%
-    #     # left_join(trainDF_dis_list$vr_deck,by="passenger_id") %>%
-    #     # left_join(trainDF_dis_list$num,by="passenger_id")
+    # df_train_nvI_d<-reactive({
+    #     df_train_dis_list$age %>%
+    #     left_join(df_train_dis_list$room_service,by="passenger_id") #%>%
+    #     # left_join(df_train_dis_list$food_court,by="passenger_id") %>%
+    #     # left_join(df_train_dis_list$shopping_mall,by="passenger_id") %>%
+    #     # left_join(df_train_dis_list$spa,by="passenger_id") %>%
+    #     # left_join(df_train_dis_list$vr_deck,by="passenger_id") %>%
+    #     # left_join(df_train_dis_list$num,by="passenger_id")
     # })
       
-        #purrr::when(sum(!is.na(trainDF_dis_list$age()))>0 ~left_join(.,trainDF_dis_list$age(),by="passenger_id"), ~.) %>%
-        #purrr::when(sum(!is.na(trainDF_dis_list$room_service()))>0 ~left_join(.,trainDF_dis_list$room_service(),by="passenger_id"), ~.) %>%
-        #purrr::when(sum(!is.na(trainDF_dis_list$food_court()))>0 ~left_join(.,trainDF_dis_list$food_court(),by="passenger_id"), ~.) #%>%
-        #{if(!is.na(trainDF_list$shopping_mall))(left_join(.,trainDF_dis_list$shopping_mall(),by="passenger_id")) else .} #%>%
-      # {if(!is.null(trainDF_dis_list$spa()))(left_join(.,trainDF_dis_list$spa(),by="passenger_id")) else .} %>%
-      # {if(!is.null(trainDF_dis_list$vr_deck()))(left_join(.,trainDF_dis_list$vr_deck(),by="passenger_id")) else .} %>%
-      # {if(!is.null(trainDF_dis_list$num()))(left_join(.,trainDF_dis_list$num(),by="passenger_id")) else .}
+        #purrr::when(sum(!is.na(df_train_dis_list$age()))>0 ~left_join(.,df_train_dis_list$age(),by="passenger_id"), ~.) %>%
+        #purrr::when(sum(!is.na(df_train_dis_list$room_service()))>0 ~left_join(.,df_train_dis_list$room_service(),by="passenger_id"), ~.) %>%
+        #purrr::when(sum(!is.na(df_train_dis_list$food_court()))>0 ~left_join(.,df_train_dis_list$food_court(),by="passenger_id"), ~.) #%>%
+        #{if(!is.na(df_train_list$shopping_mall))(left_join(.,df_train_dis_list$shopping_mall(),by="passenger_id")) else .} #%>%
+      # {if(!is.null(df_train_dis_list$spa()))(left_join(.,df_train_dis_list$spa(),by="passenger_id")) else .} %>%
+      # {if(!is.null(df_train_dis_list$vr_deck()))(left_join(.,df_train_dis_list$vr_deck(),by="passenger_id")) else .} %>%
+      # {if(!is.null(df_train_dis_list$num()))(left_join(.,df_train_dis_list$num(),by="passenger_id")) else .}
     #})
     
     
@@ -821,78 +824,78 @@ featTransServer <- function(id) {
     #                   c               vr_deck=NULL,num=NULL)
     
     # 
-    # trainDF %>%
+    # df_train %>%
     #   select(passenger_id) %>%
-    #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
-    #   {if(is.null(samp))(left_join(.,trainDF[c("passenger_id","age")],by="passenger_id")) else .} %>%
-    #   {if(is.null(dog))(left_join(.,trainDF[c("passenger_id","spa")],by="passenger_id")) else .}
+    #   #left_join(df_train[c("passenger_id","age")],by="passenger_id")
+    #   {if(is.null(samp))(left_join(.,df_train[c("passenger_id","age")],by="passenger_id")) else .} %>%
+    #   {if(is.null(dog))(left_join(.,df_train[c("passenger_id","spa")],by="passenger_id")) else .}
     # 
-    # trainDF %>%
+    # df_train %>%
     #   select(passenger_id) %>%
-    #   #left_join(trainDF[c("passenger_id","age")],by="passenger_id")
-    #   purrr::when(is.null(samp) ~left_join(.,trainDF[c("passenger_id","age")],by="passenger_id"), ~.)
+    #   #left_join(df_train[c("passenger_id","age")],by="passenger_id")
+    #   purrr::when(is.null(samp) ~left_join(.,df_train[c("passenger_id","age")],by="passenger_id"), ~.)
     
     #Convert reactiveValues to list
-    #trainDF_dis_list<-reactiveValuesToList(trainDF_dis_list)
+    #df_train_dis_list<-reactiveValuesToList(df_train_dis_list)
     
     
     
     # Check whether results working (by variable)
     #age
-    output$temp_table_dis1_trnsFea04<-renderTable({
-      trainDF_dis_list$age %>% head()
+    output$temp_table_dis1<-renderTable({
+      df_train_dis_list$age %>% head()
     })
   
     # # #room_service
-    output$temp_table_dis2_trnsFea04<-renderTable({
-      trainDF_dis_list$room_service %>% head()
+    output$temp_table_dis2<-renderTable({
+      df_train_dis_list$room_service %>% head()
     })
     # 
     # 
     # # #food_court
-    # output$temp_table_dis3_trnsFea04<-renderTable({
-    #   trainDF_dis_list$food_court() %>% head()
+    # output$temp_table_dis3<-renderTable({
+    #   df_train_dis_list$food_court() %>% head()
     # })
     # 
     # # #shopping_mall
-    # output$temp_table_dis4_trnsFea04<-renderTable({
-    #   trainDF_dis_list$shopping_mall() %>% head()
+    # output$temp_table_dis4<-renderTable({
+    #   df_train_dis_list$shopping_mall() %>% head()
     # })
     # 
     # #spa
-    # output$temp_table_dis5_trnsFea04<-renderTable({
-    #   trainDF_dis_list$spa() %>% head()
+    # output$temp_table_dis5<-renderTable({
+    #   df_train_dis_list$spa() %>% head()
     # })
     # 
     # #vr_deck
-    # output$temp_table_dis6_trnsFea04<-renderTable({
-    #   trainDF_dis_list$vr_deck() %>% head()
+    # output$temp_table_dis6<-renderTable({
+    #   df_train_dis_list$vr_deck() %>% head()
     # })
     # 
     # #num
-    # output$temp_table_dis7_trnsFea04<-renderTable({
-    #   trainDF_dis_list$num() %>% head()
+    # output$temp_table_dis7<-renderTable({
+    #   df_train_dis_list$num() %>% head()
     # })
     
-    # output$temp_table_dis8_trnsFea04<-renderTable({
-    #   trainDF_nvI_d() %>% head()
+    # output$temp_table_dis8<-renderTable({
+    #   df_train_nvI_d() %>% head()
     # })
   
     
     # Connect reactive DFs together
-    #list_dis_trnsFea04<-vector(mode="list",length=7)
-    # list_dis_trnsFea04<-reactiveValuesToList(c(trainDF_nvI_da(),trainDF_nvI_dr(),trainDF_nvI_df(),trainDF_nvI_dm(),
-    #                                          trainDF_nvI_ds(),trainDF_nvI_dv(),trainDF_nvI_dn()))
+    #list_dis<-vector(mode="list",length=7)
+    # list_dis<-reactiveValuesToList(c(df_train_nvI_da(),df_train_nvI_dr(),df_train_nvI_df(),df_train_nvI_dm(),
+    #                                          df_train_nvI_ds(),df_train_nvI_dv(),df_train_nvI_dn()))
     # 
     
-   # trainDF_nvI_d<-reactive({
-   #   trainDF_nvI_da() %>%
-   #   left_join(trainDF_nvI_dr(),by=passenger_id) %>%
-   #     left_join(trainDF_nvI_df(),by=passenger_id) %>%
-   #     left_join(trainDF_nvI_dm(),by=passenger_id) %>%
-   #     left_join(trainDF_nvI_ds(),by=passenger_id) %>%
-   #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
-   #     left_join(trainDF_nvI_dv(),by=passenger_id) %>%
+   # df_train_nvI_d<-reactive({
+   #   df_train_nvI_da() %>%
+   #   left_join(df_train_nvI_dr(),by=passenger_id) %>%
+   #     left_join(df_train_nvI_df(),by=passenger_id) %>%
+   #     left_join(df_train_nvI_dm(),by=passenger_id) %>%
+   #     left_join(df_train_nvI_ds(),by=passenger_id) %>%
+   #     left_join(df_train_nvI_dv(),by=passenger_id) %>%
+   #     left_join(df_train_nvI_dv(),by=passenger_id) %>%
    #     select(passenger_id,ends_with("dis"))
    # })
     
@@ -911,16 +914,16 @@ featTransServer <- function(id) {
     
     ### Ordinal Encoding--------------------
     #### Display plot
-    output$plot_sel_ordEnc1_trnsFea04<-renderPlot({
-      req(input$sel_ordEnc1_trnsFea04)
-      barplotter(trainDF_nvI(),input$sel_ordEnc1_trnsFea04)
+    output$plot_sel_ordEnc1<-renderPlot({
+      req(input$sel_ordEnc1)
+      barplotter(df_train_nvI(),input$sel_ordEnc1)
     })
     
     
     #### Display text associated with each variable 
-    output$text_sel_ordEnc1_trnsFea04<-renderUI({
-      req(input$sel_ordEnc1_trnsFea04)
-      switch(input$sel_ordEnc1_trnsFea04,
+    output$text_sel_ordEnc1<-renderUI({
+      req(input$sel_ordEnc1)
+      switch(input$sel_ordEnc1,
         ticket=HTML("<i>passenger_id</i> is broken into two parts: <i>passenger_group</i> (the first four digits) and 
           <i>ticket</i> (the last two digits). The 'ticket' component indicates the number/position within a passenger group."),
         home_planet=HTML("<i>home_planet</i> represents the planet that the passenger left, which is often where they live. 
@@ -944,33 +947,33 @@ featTransServer <- function(id) {
     
     
     #### Create reactive data frame
-    trainDF_nvI_o<-eventReactive(input$btn_ordEnc2_trnsFea04, {
-        trainDF_nvI() %>%
+    df_train_nvI_o<-eventReactive(input$btn_ordEnc2, {
+        df_train_nvI() %>%
           #choose all factors except num
-          mutate(across(.cols=trainDF_fct_nonumVars,~as.ordered(.x))) %>%
+          mutate(across(.cols=df_train_fct_nonumVars,~as.ordered(.x))) %>%
             #if...else statements for whether to change factor level order based on if checkbox checked
-            {if(input$chk_ordEnc2a_trnsFea04==TRUE)
-              mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a_trnsFea04))
+            {if(input$chk_ordEnc2a==TRUE)
+              mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a))
               else .} %>%
-            {if(input$chk_ordEnc2b_trnsFea04==TRUE)
-              mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b_trnsFea04))
+            {if(input$chk_ordEnc2b==TRUE)
+              mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b))
               else .} %>%
-            {if(input$chk_ordEnc2c_trnsFea04==TRUE)
-              mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c_trnsFea04))
+            {if(input$chk_ordEnc2c==TRUE)
+              mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c))
               else .} %>%
-            {if(input$chk_ordEnc2d_trnsFea04==TRUE)
-              mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d_trnsFea04))
+            {if(input$chk_ordEnc2d==TRUE)
+              mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d))
               else .} %>%
-             {if(input$chk_ordEnc2e_trnsFea04==TRUE)
-              mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e_trnsFea04))
+             {if(input$chk_ordEnc2e==TRUE)
+              mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e))
               else .} %>%
           #retain passenger_id and mutated cols
           select(passenger_id,ends_with("_ord"))
       })
     
     #### Print temp table as a check
-    output$temp_table_trnsFea04<-renderTable({
-      trainDF_nvI_o() %>% head()
+    output$temp_table<-renderTable({
+      df_train_nvI_o() %>% head()
     })
   
     
@@ -978,52 +981,52 @@ featTransServer <- function(id) {
     ### Rare Label Encoding--------------------
     #### Display plots
     #var1-raw
-    output$plot_sel_rareEnc1a_trnsFea04<-renderPlot({
-      req(input$sel_rareEnc1a_trnsFea04)
-      rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc1a_trnsFea04)
+    output$plot_sel_rareEnc1a<-renderPlot({
+      req(input$sel_rareEnc1a)
+      rare_enc_barplotter(df_train_nvI(),input$sel_rareEnc1a)
     })
     
     #var1-combined categories
-    output$plot_sel_rareEnc1b_trnsFea04<-renderPlot({
-      req(length(input$sel_rareEnc1b_trnsFea04)>1)
-      rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc1a_trnsFea04,cats=input$sel_rareEnc1b_trnsFea04)
+    output$plot_sel_rareEnc1b<-renderPlot({
+      req(length(input$sel_rareEnc1b)>1)
+      rare_enc_barplotter(df_train_nvI(),var=input$sel_rareEnc1a,cats=input$sel_rareEnc1b)
     })
     
     #var2-raw
-    output$plot_sel_rareEnc2a_trnsFea04<-renderPlot({
-      req(input$sel_rareEnc2a_trnsFea04)
-      rare_enc_barplotter(trainDF_nvI(),input$sel_rareEnc2a_trnsFea04)
+    output$plot_sel_rareEnc2a<-renderPlot({
+      req(input$sel_rareEnc2a)
+      rare_enc_barplotter(df_train_nvI(),input$sel_rareEnc2a)
     })
     
     #var2-combined categories
-    output$plot_sel_rareEnc2b_trnsFea04<-renderPlot({
-      req(length(input$sel_rareEnc2b_trnsFea04)>1)
-      rare_enc_barplotter(trainDF_nvI(),var=input$sel_rareEnc2a_trnsFea04,cats=input$sel_rareEnc2b_trnsFea04)
+    output$plot_sel_rareEnc2b<-renderPlot({
+      req(length(input$sel_rareEnc2b)>1)
+      rare_enc_barplotter(df_train_nvI(),var=input$sel_rareEnc2a,cats=input$sel_rareEnc2b)
     })
     
     # Extract features via rare label encoding
-    trainDF_nvI_r<-eventReactive(input$btn_rareEnc_trnsFea04, {
-      trainDF_nvI() %>%
-        {if(length(input$sel_rareEnc1b_trnsFea04)>=2) 
+    df_train_nvI_r<-eventReactive(input$btn_rareEnc, {
+      df_train_nvI() %>%
+        {if(length(input$sel_rareEnc1b)>=2) 
           #paste variable name using !! and :=
-          mutate(.,!!paste0(input$sel_rareEnc1a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc1a_trnsFea04),
-                                                                                other=input$sel_rareEnc1b_trnsFea04))
+          mutate(.,!!paste0(input$sel_rareEnc1a,"_rare") := fct_collapse(!!sym(input$sel_rareEnc1a),
+                                                                                other=input$sel_rareEnc1b))
           else .} %>%
-        {if(length(input$sel_rareEnc2b_trnsFea04)>=2)
-          mutate(.,!!paste0(input$sel_rareEnc2a_trnsFea04,"_rare") := fct_collapse(!!sym(input$sel_rareEnc2a_trnsFea04),
-                                                                                other=input$sel_rareEnc2b_trnsFea04))
+        {if(length(input$sel_rareEnc2b)>=2)
+          mutate(.,!!paste0(input$sel_rareEnc2a,"_rare") := fct_collapse(!!sym(input$sel_rareEnc2a),
+                                                                                other=input$sel_rareEnc2b))
           else .} %>%
         #retain cols of interest
         select(passenger_id,ends_with("_rare")) 
     })
     
     #### Output temp table
-    output$temp_table_rareEnc_trnsFea04<-renderTable({
-      trainDF_nvI_r() %>% head()
+    output$temp_table_rareEnc<-renderTable({
+      df_train_nvI_r() %>% head()
     })
   
     # ### Update data frame
-    # trainDF_nvI_eF<-reactive({
+    # df_train_nvI_eF<-reactive({
     #   req(input$chk_tranFea04)
     #   #insert joins here
     # })
