@@ -123,6 +123,12 @@ chr_2d_missName <- "Let's look at frequencies of passenger and cabin group sizes
 
 
 
+## Strings for selector labels--------------------
+varViz_feat<-"Please select a variable to visualize"
+varSel_feat<-"Please select which variables for ordinal encoding"
+varSelOrd_feat<-c("Rank all from least to most important"="")
+scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
+
 
 
 

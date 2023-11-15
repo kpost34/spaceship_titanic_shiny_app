@@ -1,14 +1,4 @@
-# library(here)
-# 
-# source(here("ui.R"))
-# source(here("server.R"))
-# 
-# shinyApp(ui,server)
-
-
-
-
-
+# Spaceship Titanic Shiny App
 
 # Modularized structure
 ## Load packages
@@ -16,8 +6,11 @@ pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfi
                naniar,mice,cowplot,GGally, ggiraph, shinyWidgets)
 
 #address conflicts
-conflict_prefer("filter","dplyr")
-conflict_prefer("chisq.test","stats")
+# conflict_prefer("filter","dplyr")
+# conflict_prefer("chisq.test","stats")
+
+filter <- dplyr::filter
+chisq.test <- stats::chisq.test
 
 
 ## Source files
@@ -35,8 +28,9 @@ here("modules") %>%
 
 
 
-## App
+# App
 spaceTitanicApp <- function() {
+  ## UI
   ui <- navbarPage(title="Spaceship Titanic Shiny App", id="mainTab", #posiiton="static-top",
     useShinyjs(),
     tabPanel(title="Data Check",
@@ -52,12 +46,14 @@ spaceTitanicApp <- function() {
       missOtherUI("dat2")
       ),
     navbarMenu(title="Feature Engineering", menuName="Fea04",
-      featTransUI("df1")
+      featTrans_mainUI("df0")
+      # featTransUI("df1")
       # featCreatUI("df2")
       # featSelUI("df3")
     )
   )
   
+  ## Server
   server <- function(input, output, session) {
     #data checking
     dataCheckServer("df")
@@ -77,7 +73,8 @@ spaceTitanicApp <- function() {
     #   req(input$rad_trnsFea04)
     #   checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
     # })
-    featTransServer("df1", df_train_nvI)
+    featTrans_mainServer("df0", df_train_nvI)
+    # featTransServer("df1", df_train_nvI)
     # featCreatServer("df2")
     # featSelServer("df3")
     
@@ -97,7 +94,8 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-# simplified obj names for edaBi module (& in obj script)--missed before previous commit
+# Created module featTrans_main and submodules..._scale, _dis, _ordEnc, and _rareEnc
+# Moved code over from original featTrans module & got system of modules to function
 
 #featTrans
   #added ns() where necessary
@@ -115,6 +113,22 @@ spaceTitanicApp()
 
 ## TO DO 
 #feature engineering- transform
+  #whole module
+    #turn each transformation into a separate module & pass result of radio button to each one?
+      #may not need 'ui_chk_trns' & instead just have a modal/toast notification display to let
+        #user know that the next tab has been opened up
+    #all transforms need to be completed to move on
+      #next tab won't display (i.e., feature creation tab won't display)
+      #some sort of modal should appear that lists remaining items
+
+    #for new 'submodules'
+      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
+      #turn renderUIs/uiOutput to updateXXXXX instead (where possible)
+      #turn lists of outputs to purrr::map with tagList
+      #there should be an option to 'skip' scaling/extraction (this will make debugging quicker too)
+
+
+
   #feature scaling
     #pre-load figures--perhaps they are created (as reactives?) when tab is selected then button 
       #just displays them
@@ -141,23 +155,23 @@ spaceTitanicApp()
 
 
     #ordinal encoding
+      #add plot title: include variable name in it
+      #add horizontal line before "check each variable..."
+      #feedback following button pressing
+        #1) toast notification
+        #2) some type of text
 
 
     #rare label encoding
+      #switch to grouped bars
       #should add option for log10 y scale for both plots
       #plots need titles
       #confirmation should yield feedback
         #1) toast notification selected
         #2) some type of text
 
-    #whole module
-      #all transforms need to be completed to move on
-        #next tab won't display
-        #some sort of modal should appear that lists remaining items
-      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-      #turn renderUIs/uiOutput to updateXXXXX instead (where possible)
-      #turn lists of outputs to purrr::map with tagList
-      #move that first renderUI/uiOutput to outside of the module (if possible)
+
+    
 
 
 
