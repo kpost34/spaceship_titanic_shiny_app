@@ -5,37 +5,35 @@
 featTrans_rareEncUI <- function(id) {
   ns <- NS(id)
   
-  # tabPanelBody("Rare Label Encoding",
-    sidebarLayout(
-      sidebarPanel(
-        uiOutput(ns("ui_sel_rareEnc1a")),
-        uiOutput(ns("ui_sel_rareEnc1b")),
-        linebreaks(5),
-        uiOutput(ns("ui_sel_rareEnc2a")),
-        uiOutput(ns("ui_sel_rareEnc2b")),
-        uiOutput(ns("ui_btn_rareEnc"))
-      ),
-      mainPanel(
-        fluidRow(
-          column(6,
-            plotOutput(ns("plot_sel_rareEnc1a"),height="250px")
-          ),
-          column(6,
-            plotOutput(ns("plot_sel_rareEnc1b"),height="250px")
-          )
+  sidebarLayout(
+    sidebarPanel(
+      uiOutput(ns("ui_sel_rareEnc1a")),
+      uiOutput(ns("ui_sel_rareEnc1b")),
+      linebreaks(5),
+      uiOutput(ns("ui_sel_rareEnc2a")),
+      uiOutput(ns("ui_sel_rareEnc2b")),
+      uiOutput(ns("ui_btn_rareEnc"))
+    ),
+    mainPanel(
+      fluidRow(
+        column(6,
+          plotOutput(ns("plot_sel_rareEnc1a"),height="250px")
         ),
-        linebreaks(2),
-        fluidRow(
-          column (6,
-            plotOutput(ns("plot_sel_rareEnc2a"),height="250px")
-          ),
-          column(6,
-            plotOutput(ns("plot_sel_rareEnc2b"),height="250px"),
-            tableOutput(ns("temp_table_rareEnc")))
+        column(6,
+          plotOutput(ns("plot_sel_rareEnc1b"),height="250px")
         )
+      ),
+      linebreaks(2),
+      fluidRow(
+        column (6,
+          plotOutput(ns("plot_sel_rareEnc2a"),height="250px")
+        ),
+        column(6,
+          plotOutput(ns("plot_sel_rareEnc2b"),height="250px"),
+          tableOutput(ns("temp_table_rareEnc")))
       )
     )
-  # )
+  )
 }
 
 

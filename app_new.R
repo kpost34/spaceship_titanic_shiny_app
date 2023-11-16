@@ -5,10 +5,7 @@
 pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
                naniar,mice,cowplot,GGally, ggiraph, shinyWidgets)
 
-#address conflicts
-# conflict_prefer("filter","dplyr")
-# conflict_prefer("chisq.test","stats")
-
+#address potential conflicts
 filter <- dplyr::filter
 chisq.test <- stats::chisq.test
 
@@ -68,13 +65,7 @@ spaceTitanicApp <- function() {
     missOtherServer("dat2", df_train_nvI)
     
     #feature engineering
-    # output$ui_chk_trnsFea04<-renderUI({   
-    #   #update req() statement--should reflect that all four confirmations selected
-    #   req(input$rad_trnsFea04)
-    #   checkboxInput(inputId="chk_trnsFea04",label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
-    # })
     featTrans_mainServer("df0", df_train_nvI)
-    # featTransServer("df1", df_train_nvI)
     # featCreatServer("df2")
     # featSelServer("df3")
     
@@ -94,8 +85,10 @@ spaceTitanicApp()
   
 
 # LAST PUSHED COMMENT(S)
-# Created module featTrans_main and submodules..._scale, _dis, _ordEnc, and _rareEnc
-# Moved code over from original featTrans module & got system of modules to function
+#featTrans module & submodules
+  #remove input$rad_trans in submodules
+  #created blank tab for tabsetPanel to start on
+  #updated scaling submodule from log to log + 1 transform
 
 #featTrans
   #added ns() where necessary
@@ -114,12 +107,10 @@ spaceTitanicApp()
 ## TO DO 
 #feature engineering- transform
   #whole module
-    #turn each transformation into a separate module & pass result of radio button to each one?
-      #may not need 'ui_chk_trns' & instead just have a modal/toast notification display to let
-        #user know that the next tab has been opened up
     #all transforms need to be completed to move on
       #next tab won't display (i.e., feature creation tab won't display)
       #some sort of modal should appear that lists remaining items
+        #or some other feedback system
 
     #for new 'submodules'
       #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)

@@ -4,52 +4,50 @@
 featTrans_disUI <- function(id) {
   ns <- NS(id)
   
-  # tabPanelBody("Discretization",
-    sidebarLayout(
-      sidebarPanel(
-        uiOutput(ns("ui_sel_dis1")),
-        uiOutput(ns("ui_rad_dis1")),
-        uiOutput(ns("ui_num_dis1")),
-        br(),
-        fluidRow(
-          column(9,
-            htmlOutput(ns("text_dis3a"))
-          ),
-          column(3,
-            uiOutput(ns("ui_btn_dis3a"))
-          )
+  sidebarLayout(
+    sidebarPanel(
+      uiOutput(ns("ui_sel_dis1")),
+      uiOutput(ns("ui_rad_dis1")),
+      uiOutput(ns("ui_num_dis1")),
+      br(),
+      fluidRow(
+        column(9,
+          htmlOutput(ns("text_dis3a"))
         ),
-        tags$style(type="text/css", "#ui_btn_dis3a {width: 100%; margin-top: 25px;}"),
-        br(),
-        htmlOutput(ns("text_dis2")),
-        uiOutput(ns("ui_rad_dis2a")),
-        uiOutput(ns("ui_num_dis2a")),
-        uiOutput(ns("ui_rad_dis2b")),
-        uiOutput(ns("ui_num_dis2b")),
-        fluidRow(
-          column(9,
-            htmlOutput(ns("text_dis3b"))
-          ),
-          column(3,
-            uiOutput(ns("ui_btn_dis3b"))
-          )
-        ),
-        tags$style(type="text/css", "#ui_btn_dis3b {width: 100%; margin-top: 25px;}")
+        column(3,
+          uiOutput(ns("ui_btn_dis3a"))
+        )
       ),
-      mainPanel(
-        plotOutput(ns("plot_sel_dis1")),
-        plotOutput(ns("plot_sel_dis2")),
-        tableOutput(ns("temp_table_dis1")),
-        tableOutput(ns("temp_table_dis2")),
-        tableOutput(ns("temp_table_dis3")),
-        tableOutput(ns("temp_table_dis4")),
-        tableOutput(ns("temp_table_dis5")),
-        tableOutput(ns("temp_table_dis6")),
-        tableOutput(ns("temp_table_dis7")),
-        tableOutput(ns("temp_table_dis8"))
-      )
+      tags$style(type="text/css", "#ui_btn_dis3a {width: 100%; margin-top: 25px;}"),
+      br(),
+      htmlOutput(ns("text_dis2")),
+      uiOutput(ns("ui_rad_dis2a")),
+      uiOutput(ns("ui_num_dis2a")),
+      uiOutput(ns("ui_rad_dis2b")),
+      uiOutput(ns("ui_num_dis2b")),
+      fluidRow(
+        column(9,
+          htmlOutput(ns("text_dis3b"))
+        ),
+        column(3,
+          uiOutput(ns("ui_btn_dis3b"))
+        )
+      ),
+      tags$style(type="text/css", "#ui_btn_dis3b {width: 100%; margin-top: 25px;}")
+    ),
+    mainPanel(
+      plotOutput(ns("plot_sel_dis1")),
+      plotOutput(ns("plot_sel_dis2")),
+      tableOutput(ns("temp_table_dis1")),
+      tableOutput(ns("temp_table_dis2")),
+      tableOutput(ns("temp_table_dis3")),
+      tableOutput(ns("temp_table_dis4")),
+      tableOutput(ns("temp_table_dis5")),
+      tableOutput(ns("temp_table_dis6")),
+      tableOutput(ns("temp_table_dis7")),
+      tableOutput(ns("temp_table_dis8"))
     )
-  # )
+  )
 }
 
 
@@ -63,7 +61,6 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ## Inputs
     ### Input to select var to visualize as histogram (for discretization)
     output$ui_sel_dis1<-renderUI({
-      # req(input$rad_trans=="Discretization")
       selectInput01(ID=ns("sel_dis1"),label=varViz_feat,
                     #dynamically select numerical variables and num 
                     choices=disVars)

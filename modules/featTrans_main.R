@@ -6,18 +6,21 @@ featTrans_mainUI <- function(id) {
   
   tabPanel(title="Transformations",
     titlePanel("Feature Scaling and Extraction"),
-    h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, bin numerical (or 
-      character or factor variables) into (smaller) groups,perform ordinal encoding, and group rare categories
-      together. What would you like to begin with?"),
-    #fluidRow with column helps to align radio buttons
+    
+    h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, bin 
+       numerical (or character or factor variables) into (smaller) groups,perform ordinal encoding, 
+       and group rare categories together. What would you like to begin with?"),
     fluidRow(
       column(6,align="center",offset=3,
         radioButtons(inputId=ns("rad_trans"),label="",choices=ch_trans_featTrans,selected=character(0),
                      inline=TRUE,width="100%"),
-        uiOutput("ui_chk_trans") #is this necessary?
+        #placeholder
+        uiOutput("ui_chk_trans") #is this necessary? perhaps we need a new system
       )
     ),
+    #UIs of each submodule
     tabsetPanel(id=ns("featTrans_tab"), type="hidden",
+      tabPanelBody("blank"),
       tabPanelBody("Feature Scaling",
         featTrans_scaleUI(ns("df1"))
       ),
@@ -39,28 +42,21 @@ featTrans_mainUI <- function(id) {
 featTrans_mainServer <- function(id, df_train_nvI) {
   moduleServer(id, function(input, output, session) {
     
-    # ns <- session$ns
     
-    
+  #placeholder--we should develop a system of feedback that indicates a transformation type
+    #has been completed/skipped
   #   output$ui_chk_trans <- renderUI({   
   #   #update req() statement--should reflect that all four confirmations selected
   #   req(input$rad_trans)
   #   checkboxInput(inputId=ns("chk_trns"),label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
   # })
-  
-    ## Conditional tabsets----------------------------------------
-    ### Conditional UI for displaying tab of tabset panel
+
+    # Conditionally display tabs
     observeEvent(input$rad_trans, {
       updateTabsetPanel(inputId="featTrans_tab",selected=input$rad_trans)
     })
     
-    
-    ### Conditional UI for displaying main tabset panel for larger categories
-    # observeEvent(input$rad_trans, {
-    #   updateTabsetPanel(inputId="main_tab",selected=input$rad_trans)
-    # })
-    
-    #source/run server submodules
+    # Source/run server submodules
     featTrans_scaleServer("df1", df_train_nvI)
     featTrans_disServer("df2", df_train_nvI)
     featTrans_ordEncServer("df3", df_train_nvI)

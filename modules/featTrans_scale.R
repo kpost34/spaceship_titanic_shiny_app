@@ -4,27 +4,19 @@
 featTrans_scaleUI <- function(id) {
   ns <- NS(id)
   
-  # tabPanelBody("Feature Scaling",
-    sidebarLayout(
-      sidebarPanel(
-        uiOutput(ns("ui_sel_scale1")),
-        br(),
-        uiOutput(ns("ui_sel_scale2")),
-        uiOutput(ns("ui_btn_scale"))
-      ),
-      mainPanel(
-        plotOutput(ns("plot_sel_scale1"),height="1000px"),
-        tableOutput(ns("DT1"))
-      )
+  sidebarLayout(
+    sidebarPanel(
+      uiOutput(ns("ui_sel_scale1")),
+      br(),
+      uiOutput(ns("ui_sel_scale2")),
+      uiOutput(ns("ui_btn_scale"))
+    ),
+    mainPanel(
+      plotOutput(ns("plot_sel_scale1"),height="1000px"),
+      tableOutput(ns("DT1"))
     )
-  # )
+  )
 }
-
-
-
-
-
-
 
 
 
@@ -39,7 +31,6 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     ## Inputs
     ### Input to select var to visualize, either unscaled or scaled
     output$ui_sel_scale1<-renderUI({
-      # req(input$rad_trans)
       selectInput01(ID=ns("sel_scale1"),label=varViz_feat,
                     #dynamically select numeric vars (NOTE: will need to update data object later)
                     choices=df_train_nvI() %>% select(where(is.numeric)) %>% names())
@@ -55,7 +46,7 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     
     ### Button to confirm selection
     output$ui_btn_scale<-renderUI({
-      req(input$rad_trans,input$sel_scale1,input$sel_scale2)
+      req(input$sel_scale1,input$sel_scale2)
       actionButton(inputId=ns("btn_scale"),label="Confirm your selection") 
     })
     
@@ -66,7 +57,7 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
              raw=df_train_nvI(),
              #log = log-transform + identifier
              log=df_train_nvI() %>% 
-               mutate(across(where(is.numeric),~log(.x),.names="{.col}_scale")) %>%
+               mutate(across(where(is.numeric),~log(.x + 1),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")),
              #mm_scale = min-max scale + identifier
              mm_scale=df_train_nvI() %>%

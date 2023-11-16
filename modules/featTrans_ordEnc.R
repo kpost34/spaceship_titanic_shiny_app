@@ -5,28 +5,26 @@
 featTrans_ordEncUI <- function(id) {
   ns <- NS(id)
   
-  # tabPanelBody("Ordinal Encoding",
-    sidebarLayout(
-      sidebarPanel( 
-        uiOutput(ns("ui_sel_ordEnc1")),
-        linebreaks(2),
-        radioButtons(inputId=ns("rad_ordEnc"),label="Would you like to perform ordinal encoding on any of
-                     the variables?",choices=c("Yes","No"),selected=character(0)),
-        linebreaks(2),
-        htmlOutput(ns("text_ordEnc")),
-        #produces a list of checkboxes and selectors
-        map(labs, split_chk_sel_builder, fn=ns),
-        # ui_splits,
-        uiOutput(ns("ui_btn_ordEnc2"))
-      ),
-      mainPanel(
-        plotOutput(ns("plot_sel_ordEnc1")),
-        linebreaks(2),
-        htmlOutput(ns("text_sel_ordEnc1")),
-        tableOutput(ns("temp_tab"))
-      )
+  sidebarLayout(
+    sidebarPanel( 
+      uiOutput(ns("ui_sel_ordEnc1")),
+      linebreaks(2),
+      radioButtons(inputId=ns("rad_ordEnc"),label="Would you like to perform ordinal encoding on any of
+                   the variables?",choices=c("Yes","No"),selected=character(0)),
+      linebreaks(2),
+      htmlOutput(ns("text_ordEnc")),
+      #produces a list of checkboxes and selectors
+      map(labs, split_chk_sel_builder, fn=ns),
+      # ui_splits,
+      uiOutput(ns("ui_btn_ordEnc2"))
+    ),
+    mainPanel(
+      plotOutput(ns("plot_sel_ordEnc1")),
+      linebreaks(2),
+      htmlOutput(ns("text_sel_ordEnc1")),
+      tableOutput(ns("temp_tab"))
     )
-  # )
+  )
 }
 
 
