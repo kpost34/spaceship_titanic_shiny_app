@@ -88,16 +88,16 @@ histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
     scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
     scale_fill_viridis_d() +
     xlab(col) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13)) -> p
+    ggtitle(paste("Histogram of", col)) +
+    theme_bw(base_size=18) -> p
+
   
   if(x.log.scale==TRUE){
     p + 
       #use log10 scale for x-axis if arg=TRUE
       scale_x_log10() +
       theme(plot.caption=element_text(hjust=0)) +
-      labs(caption="0s converted to 0.001 for log10 scale") -> p
+      labs(caption="- 0s converted to 0.001 for log10 scale") -> p
   }
   p
 }
@@ -113,9 +113,8 @@ bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
     scale_x_binned(n.breaks=num.breaks,nice.breaks=FALSE) +
     scale_fill_viridis_d() +
     xlab(col) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13)) -> p1
+    ggtitle(paste("Barplot of", col, "with R-Defined Boundaries")) +
+    theme_bw(base_size=18) -> p1
   
   if(y.log.scale==FALSE){
     p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
@@ -171,9 +170,8 @@ user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
     geom_bar(aes(fill=transported)) +
     scale_fill_viridis_d() +
     xlab(col) +
-    theme_bw() +
-    theme(axis.text=element_text(size=12),
-          axis.title=element_text(size=13)) -> p1
+    ggtitle(paste("Barplot of", col, "with User-Defined Boundaries")) +
+    theme_bw(base_size=18) -> p1
 
   if(y.log.scale==FALSE){
     p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))

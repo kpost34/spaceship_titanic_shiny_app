@@ -22,7 +22,7 @@ featTrans_ordEncUI <- function(id) {
       plotOutput(ns("plot_sel_ordEnc1")),
       linebreaks(2),
       htmlOutput(ns("text_sel_ordEnc1")),
-      tableOutput(ns("temp_tab"))
+      tableOutput(ns("temp_table"))
     )
   )
 }
@@ -35,7 +35,7 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
     
     ns <- session$ns
     
-    ## Inputs
+    ## Inputs--------------------
     ### Select variable to visualize
     output$ui_sel_ordEnc1<-renderUI({
       selectInput01(ID=ns("sel_ordEnc1"),label=varViz_feat,
@@ -43,7 +43,8 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
                     choices=df_train_nvI() %>% select(where(is.factor),-num) %>% names())
     })
     
-    #### Dynamically display text above checkboxes below
+    
+    ### Dynamically display text above checkboxes below
     output$text_ordEnc<-renderUI({
       req(input$rad_ordEnc=="Yes") 
       h4("Check each variable for ordinal encoding and rank the categories from least to most important")
@@ -138,7 +139,7 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
     })
     
     
-    ## Outputs
+    ## Outputs--------------------
     ### Display plot
     output$plot_sel_ordEnc1<-renderPlot({
       req(input$sel_ordEnc1)
@@ -172,11 +173,12 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
     })
     
     
+    ## Export--------------------
     ### Create reactive data frame
     df_train_nvI_o<-eventReactive(input$btn_ordEnc2, {
       df_train_nvI() %>%
         #choose all factors except num
-        mutate(across(.cols=df_train_fct_nonumVars,~as.ordered(.x))) %>%
+        mutate(across(.cols=all_of(fct_nonumVars), ~as.ordered(.x))) %>%
           #if...else statements for whether to change factor level order based on if checkbox checked
           {if(input$chk_ordEnc2a==TRUE)
             mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a))
@@ -197,10 +199,15 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
         select(passenger_id,ends_with("_ord"))
     })
     
+    
     ### Print temp table as a check
     output$temp_table<-renderTable({
       df_train_nvI_o() %>% head()
     })
+    
+    
+    ### Return obj
+    return(df_train_nvI_o)
 
 
     

@@ -82,19 +82,16 @@ spaceTitanicApp()
 
 ## DONE
 
+
   
 
 # LAST PUSHED COMMENT(S)
-#featTrans module & submodules
-  #remove input$rad_trans in submodules
-  #created blank tab for tabsetPanel to start on
-  #updated scaling submodule from log to log + 1 transform
+#featTrans_dis
+  #changed code & text of nbins from 2-100 with default of 30 to 2-50 & 10
+  #increased font size of caption (and all text) on plot
+  #added titles to plots
 
-#featTrans
-  #added ns() where necessary
-  #simplified names (removed suffixes)
-  #used naming conventions consistent with other modules (e.g., df_train vs trainDF)
-  #got feature scaling, discretization, ordinal encoding, & rare label encoding code to run (to display plots)
+#set up featTrans_main & submodules to return DFs with transformed/extracted features
 
 
 ## IN PROGRESS
@@ -105,6 +102,14 @@ spaceTitanicApp()
 
 
 ## TO DO 
+#priorities
+  #use simplistic set of transformations & see if we can get server code to form a new DF
+    #scaling option is applied to all options
+    #discretization defaults to none but is overridden if user chooses so--which must be confirmed
+    #same with ordinal encoding and rare label encoding
+
+
+
 #feature engineering- transform
   #whole module
     #all transforms need to be completed to move on
@@ -131,18 +136,20 @@ spaceTitanicApp()
       #1) toast notification
       #2) textOutput: "x has been selected"
 
-    #discretization
-      #reduce number of default bins (from 30 to 10?)
-      #plots need titles
-      #caption text is too small
-      #align confirm buttons with text
+
+    #discretization 
       #need feedback after confirmation
-        #1) toast notificaiton
-        #2) some type of text output
+        #1) toast notificaton
+        #2) some type of text output [that stays]
       #for user cuts (bin boundaries)
         #set it up such that 0 (or negative values) are not possible
       #why are there NAs with user-defined boundaries but not R
-      #use different color scheme for bottom graph
+
+      #specialized updates
+        #change select option from 'me' to 'user'
+        #use different color scheme for bottom graph
+        #vertically align confirm buttons with text
+        #make info below expandable via accordion
 
 
     #ordinal encoding

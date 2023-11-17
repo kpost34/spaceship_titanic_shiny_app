@@ -37,6 +37,7 @@ featTrans_disUI <- function(id) {
     ),
     mainPanel(
       plotOutput(ns("plot_sel_dis1")),
+      linebreaks(2),
       plotOutput(ns("plot_sel_dis2")),
       tableOutput(ns("temp_table_dis1")),
       tableOutput(ns("temp_table_dis2")),
@@ -58,7 +59,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     ns <- session$ns
 
-    ## Inputs
+    ## Inputs--------------------
     ### Input to select var to visualize as histogram (for discretization)
     output$ui_sel_dis1<-renderUI({
       selectInput01(ID=ns("sel_dis1"),label=varViz_feat,
@@ -78,8 +79,8 @@ featTrans_disServer <- function(id, df_train_nvI) {
     output$ui_num_dis1<-renderUI({
       req(input$sel_dis1)
       numericInput(inputId=ns("num_dis1"),
-                   label="Select the number of bins for the histogram (2-100)",
-                   value=30,min=2,max=100)
+                   label="Select the number of bins for the histogram (2-50)",
+                   value=10,min=2,max=50)
     })
     
     ### Output to display text for next set of inputs
@@ -174,7 +175,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     })
     
     
-    ## Ouptuts
+    ## Outputs--------------------
     ### Plot raw data with fill=transported as histogram
     output$plot_sel_dis1<-renderPlot({
       req(input$rad_dis1)
@@ -224,6 +225,9 @@ featTrans_disServer <- function(id, df_train_nvI) {
     output$plot_sel_dis2<-renderPlot({
       plot_dis()
     })
+    
+  
+    
     
     
     

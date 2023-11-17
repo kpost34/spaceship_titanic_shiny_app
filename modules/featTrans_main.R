@@ -57,10 +57,10 @@ featTrans_mainServer <- function(id, df_train_nvI) {
     })
     
     # Source/run server submodules
-    featTrans_scaleServer("df1", df_train_nvI)
+    df_train_nvI_s <- featTrans_scaleServer("df1", df_train_nvI)
     featTrans_disServer("df2", df_train_nvI)
-    featTrans_ordEncServer("df3", df_train_nvI)
-    featTrans_rareEncServer("df4", df_train_nvI)
+    df_train_nvI_o <- featTrans_ordEncServer("df3", df_train_nvI)
+    df_train_nvI_r <- featTrans_rareEncServer("df4", df_train_nvI)
     
     
     

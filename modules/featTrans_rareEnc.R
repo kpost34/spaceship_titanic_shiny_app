@@ -44,7 +44,7 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     
     ns <- session$ns
     
-    ## Inputs
+    ## Inputs--------------------
     ### Input to select var to visualize as a barplot
     output$ui_sel_rareEnc1a<-renderUI({
       selectInput01(ID=ns("sel_rareEnc1a"),label=varViz_feat,
@@ -91,7 +91,7 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     })
   
   
-    ## Display plots
+    ## Outputs--------------------
     #var1-raw
     output$plot_sel_rareEnc1a<-renderPlot({
       req(input$sel_rareEnc1a)
@@ -117,7 +117,8 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     })
     
     
-    ## Extract features via rare label encoding
+    ## Export--------------------
+    ### Extract features via rare label encoding
     df_train_nvI_r<-eventReactive(input$btn_rareEnc, {
       df_train_nvI() %>%
         {if(length(input$sel_rareEnc1b)>=2) 
@@ -134,10 +135,12 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     })
     
     
-    ## Output temp table
+    ### Output temp table
     output$temp_table_rareEnc<-renderTable({
       df_train_nvI_r() %>% head()
     })
+    
+    return(df_train_nvI_r)
   
     # ### Update data frame
     # df_train_nvI_eF<-reactive({
