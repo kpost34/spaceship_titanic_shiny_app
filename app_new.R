@@ -80,16 +80,14 @@ spaceTitanicApp()
   
 
 
+#----------------------
 ## DONE
-
-
   
 
 # LAST PUSHED COMMENT(S)
 #featTrans_dis
-  #changed code & text of nbins from 2-100 with default of 30 to 2-50 & 10
-  #increased font size of caption (and all text) on plot
-  #added titles to plots
+  #changed all ids to make them interpretable
+  #simplified code by removing switches in three places
 
 #set up featTrans_main & submodules to return DFs with transformed/extracted features
 
@@ -107,6 +105,27 @@ spaceTitanicApp()
     #scaling option is applied to all options
     #discretization defaults to none but is overridden if user chooses so--which must be confirmed
     #same with ordinal encoding and rare label encoding
+
+  #discretization
+    #default to no discretization...but that means that no variable has "_dis" suffix
+    #but if settings are made and the confirm to use these settings button is pressed, then
+      #a "x_dis" is generated
+    #if the user then hits the 'not interested in discretizing var' button, then that "x_dis"
+      #var is removed
+    #there needs to be some sort of checkbox that indicates "discretization is complete"
+      #then that matched with actual completion of the other three (through simple confirm buttons)
+        #would indicate that the user can move on (and feature creation tab would open up)
+
+    #update:
+      #code workflow is weird with how vars are discretize so recommend the following:
+        #1) archive existing code in module and in func_03 and comment out (clearly)
+        #2) have second or third selector change from "R" (selected/defined) to one or two
+          #options in cut
+        #3) generate a reactive DF using the cut that is applied
+        #4) use/adapt the custom function to plot it--make sure that transported is kept in
+          #process
+        #5) when confirm is hit then the reactive DF is turned into anothe reactive DF...or maybe
+          #reactive values play a role here
 
 
 
@@ -128,6 +147,7 @@ spaceTitanicApp()
   #feature scaling
     #pre-load figures--perhaps they are created (as reactives?) when tab is selected then button 
       #just displays them
+    #user intepretable ids
     #plots need larger text
     #plots may need log10 scales
     #plots need to be labeled better
@@ -153,6 +173,7 @@ spaceTitanicApp()
 
 
     #ordinal encoding
+      #user interpretable ids
       #add plot title: include variable name in it
       #add horizontal line before "check each variable..."
       #feedback following button pressing
@@ -161,6 +182,7 @@ spaceTitanicApp()
 
 
     #rare label encoding
+      #user interpretable ids
       #switch to grouped bars
       #should add option for log10 y scale for both plots
       #plots need titles
