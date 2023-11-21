@@ -6,10 +6,10 @@
 #Load packages
 pacman::p_load(tidyverse,cowplot)
 
-#### Data transformation and feature extraction=========================================================================
-### Feature Scaling
-## Function to build cowplot of density and qqplots for various transforms
-# Individual ggplot functions
+# Data transformation and feature extraction=========================================================================
+## Feature Scaling
+### Function to build cowplot of density and qqplots for various transforms
+#### Individual ggplot functions
 dens_plotter<-function(dat,var,label=""){
   dat %>%
     ggplot(aes(x={{var}})) +
@@ -37,7 +37,7 @@ standardizer<-function(x){
 }
 
 
-# Plotting the full grid
+#### Plotting the full grid
 cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled","standardized")){
   #convert var
   var<-sym(var)
@@ -68,8 +68,8 @@ cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled
   plot_grid(plotlist=list_plot,nrow=4)
 }
 
-### Discretization
-## Function to make histograms of a numerical var filled by transported with options to adjust bins & use log x scale
+## Discretization
+### Function to make histograms of a numerical var filled by transported with options to adjust bins & use log x scale
 histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
@@ -102,8 +102,8 @@ histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
   p
 }
 
-## Functions to bin and plot numerical var filled by transported 
-# R decides bins
+### Functions to bin numerical var & retain transported
+#### R decides bins
 bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
@@ -126,19 +126,69 @@ bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
 }
 
 
-# Create user-defined bins
-cutter<-function(dat,col,break.vals=NA){
+#### Create user-defined bins
+user_cutter <- function(dat, col, break.vals=NA){
   dat %>%
     #ensure that col is numeric
     mutate(var= as.numeric(!!sym(col)),
       #cut variable using breaks...use := to retain naming
-      !!paste0(col,"_dis") := cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
+      !!paste0(col,"_dis") := cut(var,breaks=c(min(var,na.rm=TRUE), break.vals, max(var,na.rm=TRUE)),
               include.lowest=TRUE)) %>%
     #retain id, new col, and y
-    select(passenger_id,!!paste0(col,"_dis"))
+    select(passenger_id,!!paste0(col,"_dis"), transported) #updated to retain RV
 }
 
-# Make bar plot after creating user-defined bins
+
+#### Create bins with equal intervals
+equal_cutter <- function(dat, col, n.breaks=NA){
+  dat %>%
+    #ensure that col is numeric
+    mutate(var= as.numeric(!!sym(col)),
+      #cut variable using breaks...use := to retain naming
+      !!paste0(col,"_dis") := cut_interval(var, n.breaks)) %>%
+    #retain id, new col, and y
+    select(passenger_id, !!paste0(col,"_dis"), transported) #updated to retain RV
+}
+
+
+
+
+
+# Make bar plot after creating bins
+bin_plotter <- function(dat, col, type, log_val) {
+  
+  title_val <- if(type=="cut_int") {
+    "bins with equal ranges"
+  
+  } else if(type=="user") {
+    "bins defined by user"
+  }
+
+  #plotting code 
+  dat %>%
+    ggplot(aes(!!sym(paste0(col, "_dis")))) +
+    geom_bar(aes(fill=transported)) +
+    scale_fill_viridis_d() +
+    xlab(col) +
+    ggtitle(paste(col, title_val)) +
+    theme_bw(base_size=18) -> p1
+
+    if(log_val=="No"){
+      p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
+    }
+
+    else if(log_val=="Yes"){
+      p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
+    }
+}
+  
+  
+  
+  
+  
+  
+  
+  
 # user_bin_plotter<-function(dat,col,y.log.scale=TRUE){
 #   dat %>%
 #     ggplot(aes({{col}})) +
@@ -147,18 +197,18 @@ cutter<-function(dat,col,break.vals=NA){
 #       theme_bw() +
 #       theme(axis.text=element_text(size=12),
 #             axis.title=element_text(size=13)) -> p1
-#     
+# 
 #     if(y.log.scale==FALSE){
 #       p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
 #     }
-#     
+# 
 #     else if(y.log.scale==TRUE){
 #       p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
 #     }
 # }
 
 
-# Make bar plot after creating user-defined bins
+#### Make bar plot after creating user-defined bins
 user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
@@ -210,8 +260,8 @@ user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
 
 
 
-### Rare Label Encoding
-## Function to make barplots of counts filled by transported and to combine different factor levels
+## Rare Label Encoding
+### Function to make barplots of counts filled by transported and to combine different factor levels
 rare_enc_barplotter<-function(dat,var,cats){
   #convert quoted input to symbol
   var<-sym(var)
@@ -241,9 +291,9 @@ rare_enc_barplotter<-function(dat,var,cats){
 }
       
 
-#### Feature Creation==================================================================================
-### Plotting functions for luxury expense variable
-## Function to mutate input variables to create luxury expense variable
+# Feature Creation==================================================================================
+## Plotting functions for luxury expense variable
+### Function to mutate input variables to create luxury expense variable
 lux_builder<-function(dat,vars){
   vars<-syms(vars)
   
@@ -253,7 +303,7 @@ lux_builder<-function(dat,vars){
     ungroup()
 }
 
-## Function to make heat map
+### Function to make heat map
 heatmapper<-function(dat,vars){
   
 dat %>%
@@ -262,7 +312,7 @@ dat %>%
 }
 
 
-## Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
+### Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
 boxplotter2<-function(dat){
   dat %>%
     ggplot() +

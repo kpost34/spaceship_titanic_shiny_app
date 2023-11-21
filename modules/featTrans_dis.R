@@ -70,6 +70,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Input to choose whether to log10-transform x-axis
     output$ui_rad_log_hist<-renderUI({
       req(input$sel_var_hist)
+      
       radioButtons(inputId=ns("rad_log_hist"),
                    label="Choose whether to log10-scale the x-axis",
                    choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
@@ -78,6 +79,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Input to choose number of bins for histogram
     output$ui_num_bin_hist<-renderUI({
       req(input$sel_var_hist)
+      
       numericInput(inputId=ns("num_bin_hist"),
                    label="Select the number of bins for the histogram (2-50)",
                    value=10,min=2,max=50)
@@ -86,6 +88,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Output to display text for next set of inputs
     output$text_bar<-renderUI({
       req(input$sel_var_hist,input$rad_log_hist)
+      
       h4("Visualization of binned data")
     })
     
@@ -93,14 +96,16 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Input to select a log10-transformed y-axis
     output$ui_rad_log_bar<-renderUI({
       req(input$sel_var_hist,input$rad_log_hist)
+      
       radioButtons(inputId=ns("rad_log_bar"),
                    label="Choose whether to log10-scale the y-axis",
-                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+                   choices=c("Yes", "No"), selected=character(0),inline=TRUE)
     })
     
     ### Input to choose number of breaks
     output$ui_num_brk_bar<-renderUI({
       req(input$sel_var_hist,input$rad_log_hist)
+      
       numericInput(inputId=ns("num_brk_bar"),
                    label="Select the number of breaks to create data bins (1-5)",
                    value=2,min=1,max=5)
@@ -109,22 +114,25 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Input to choose whether to have R or user-selected bin boundaries
     output$ui_rad_bdry_bar<-renderUI({
       req(input$sel_var_hist,input$rad_log_hist)
+      
       radioButtons(inputId=ns("rad_bdry_bar"),
-                   label="Choose who selects the bin boundaries",
-                   choices=c("R","me"),selected=character(0),inline=TRUE)
+                   label="How should data be binned?",
+                   choices=ch_bin_opt_featTrans,
+                   selected=character(0),inline=TRUE)
     })
     
     
   
-    
-    
     ### Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
     output$ui_num_bdry_bar<-renderUI({
-      req(input$rad_log_bar,input$rad_bdry_bar=="me")
+      req(input$rad_log_bar,input$rad_bdry_bar=="user")
+      
       tags_num<-tagList()
+      
       for(i in seq_len(input$num_brk_bar)){
-        tags_num[[i]]<-numericInput(ns(paste0("n",i)),paste0("Break",i),min=0,value=NULL)
+        tags_num[[i]] <- numericInput(ns(paste0("n",i)), paste0("Break",i), min=0, value=NULL)
       }
+      
       tags_num
     })
     
@@ -132,16 +140,18 @@ featTrans_disServer <- function(id, df_train_nvI) {
   
     ### Dynamically displays action buttons (and associated text) to discretize/not discretize variable 
     #display text for action buttons
-    output$text_not_dis<-renderUI({
+    output$text_not_dis <- renderUI({
       req(!is.na(input$rad_log_hist))
+      
       h4(paste0("I am not interested in discretizing ",input$sel_var_hist,"."))
     })
     
-    output$text_dis<-renderUI({
+    output$text_dis <- renderUI({
       #either "R" is selected or "me" is selected and the number and every break point input is populated
-      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="R")|
-         (input$rad_bdry_bar=="me" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
+      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
+         (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
+      
       h4(paste("Click confirm to discretize",input$sel_var_hist, "using these settings."))
     })
     
@@ -151,35 +161,15 @@ featTrans_disServer <- function(id, df_train_nvI) {
       
       #simplify button-generating code
       actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm")
-      # switch(input$sel_var_hist,
-      #   age=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   room_service=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   food_court=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   shopping_mall=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   spa=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   vr_deck=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   num=actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm")
-      # )
     })
     
     output$ui_btn_dis<-renderUI({
-      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="R")|
-            (input$rad_bdry_bar=="me" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
+      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
+            (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
       #simplify button-generating code
       actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm")
-      # switch(input$sel_var_hist,
-      #   age=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   room_service=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   food_court=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   shopping_mall=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   spa=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   vr_deck=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm"),
-      #   num=actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm")
-      # )
-      
-      
     })
     
     
@@ -191,57 +181,43 @@ featTrans_disServer <- function(id, df_train_nvI) {
       #simplify code
       histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
           n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist)
-      
-      # switch(input$sel_var_hist,
-      #   age=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   room_service=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   food_court=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   shopping_mall=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   spa=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   vr_deck=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist),
-      #   num=histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
-      #     n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist)
-      # )
     })
     
     
-    ### Plot numerical var in bins filled by transported either using R or user specified break values
-    #create reactive vectors of cut locations
+    ### Create reactive using cut options
+    #### Define cuts [will remove later]
     user_cuts<-reactive({
       c(input$n1,input$n2,input$n3,input$n4,input$n5)
     })
+
     
-    R_cuts<-reactive({
-      layer_scales(plot_dis())$x$breaks
-    })
-    
-  
-    
-    #use switch to create plot object
-    plot_dis<-reactive({
-      req(input$rad_log_bar, input$rad_bdry_bar)
-      switch(input$rad_bdry_bar,
-             R=bin_plotter(dat=df_train_nvI(),col=input$sel_var_hist,num.breaks=input$num_brk_bar,
-                           y.log.scale=input$rad_log_bar),
-             me=user_bin_plotter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts(),
-                                 y.log.scale=input$rad_log_bar)
-      )
-    })
-    
-    #plot the plot object
-    output$plot_sel_dis2<-renderPlot({
-      plot_dis()
+    ### Generate DF
+    df_cut <- reactive({
+      req(input$rad_bdry_bar, input$rad_log_bar)
+      
+      if(input$rad_bdry_bar=="cut_int") {
+        equal_cutter(dat=df_train_nvI(), col=input$sel_var_hist, n.breaks=input$num_brk_bar)
+      
+      } else if(input$rad_bdry_bar=="user") {
+        user_cutter(dat=df_train_nvI(), col=input$sel_var_hist, break.vals=user_cuts())
+        
+      }
     })
     
     
+    ### Generate plot
+    output$plot_sel_dis2 <- renderPlot({
+      req(df_cut())
+      
+      bin_plotter(dat=df_cut(), 
+                  col=input$sel_var_hist, 
+                  type=input$rad_bdry_bar, 
+                  log_val=input$rad_log_bar)
+    })
+      
     
-    ## Export--------------------
+    
+    ## Export-------------------- [will want to uncomment this code]
     ## Create a single df from one var discretized
     # df_train_nvI_d <- eventReactive(input[[paste("btn_dis", input$sel_var_hist, sep="_")]], {
     #   df_train_nvI %>%
@@ -255,7 +231,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Create reactiveValues object and initialize with NULL values
     #df_train_dis_list<-reactiveValues(age=NULL,room_service=NULL,food_court=NULL,shopping_mall=NULL,spa=NULL,vr_deck=NULL,num=NULL)
     # df_train_dis_list<-reactiveValues()
-    df_train_dis_list<-vector(mode="list")
+    # df_train_dis_list<-vector(mode="list")
   
    
     
@@ -322,40 +298,40 @@ featTrans_disServer <- function(id, df_train_nvI) {
     # 
     # df_train_dis_list$age<-eventReactive(input$btn_dis_age, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     
   
-    observeEvent(input$sel_var_histe, {
-      df_train_dis_list$age<-df_train %>% select(passenger_id)
-    })
-    
-    observeEvent(input$btn_dis_age, {
-      req(input$rad_bdry_bar)
-      if(input$rad_bdry_bar=="R"){
-        df_train_dis_list$age<-cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
-      }
-      else if(input$rad_bdry_bar=="me"){
-        df_train_dis_list$age<-cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
-      }
-    })
-    
-    
-    observeEvent(input$sel_var_hist, {
-      df_train_dis_list$room_service<-df_train %>% select(passenger_id)
-    })
-    
-    observeEvent(input$btn_dis_room_service, {
-      req(input$rad_bdry_bar)
-      if(input$rad_bdry_bar=="R"){
-        df_train_dis_list$room_service<-cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
-      }
-      else if(input$rad_bdry_bar=="me"){
-        df_train_dis_list$room_service<-cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
-      }
-    })
+    # observeEvent(input$sel_var_histe, {
+    #   df_train_dis_list$age<-df_train %>% select(passenger_id)
+    # })
+    # 
+    # observeEvent(input$btn_dis_age, {
+    #   req(input$rad_bdry_bar)
+    #   if(input$rad_bdry_bar=="R"){
+    #     df_train_dis_list$age<-user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
+    #   }
+    #   else if(input$rad_bdry_bar=="me"){
+    #     df_train_dis_list$age<-user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #   }
+    # })
+    # 
+    # 
+    # observeEvent(input$sel_var_hist, {
+    #   df_train_dis_list$room_service<-df_train %>% select(passenger_id)
+    # })
+    # 
+    # observeEvent(input$btn_dis_room_service, {
+    #   req(input$rad_bdry_bar)
+    #   if(input$rad_bdry_bar=="R"){
+    #     df_train_dis_list$room_service<-user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
+    #   }
+    #   else if(input$rad_bdry_bar=="me"){
+    #     df_train_dis_list$room_service<-user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #   }
+    # })
     
     # df_train_dis_list$age_pi<-eventReactive(input$btn_not_dis_age, {
     #   df_train_nvI() %>% select(passenger_id)
@@ -364,8 +340,8 @@ featTrans_disServer <- function(id, df_train_nvI) {
     # 
     # df_train_dis_list$age<-eventReactive(input$btn_dis_age, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     
@@ -373,10 +349,10 @@ featTrans_disServer <- function(id, df_train_nvI) {
     #   if(input$rad_trans=="Discretization" & !exists("rad_bdry_bar_trnsFea")){
     #     df_train_nvI() %>% select(passenger_id)}
     #   if(input$sel_var_hist=="age" & exists("rad_bdry_bar_trns_Fea04") && input$rad_bdry_bar=="R"){
-    #     cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
+    #     user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts())
     #     }
     #   if(input$sel_var_hist=="age" & exists("rad_bdry_bar_trns_Fea04") && input$rad_bdry_bar=="me"){
-    #     cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #     user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #     }
     # })
   
@@ -386,22 +362,22 @@ featTrans_disServer <- function(id, df_train_nvI) {
     # df_train_dis_list$room_service<-eventReactive(list(input$rad_trans,input$btn_room_service), {
     #   rs1<-df_train["passenger_id"]
     #   rs2<- switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     
     # df_train_dis_list$room_service<-eventReactive(input$btn_room_service, {
       # switch(input$rad_bdry_bar,
-      #        R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-      #        me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+      #        R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+      #        me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
       # )
     # })
     
     # reax_room_service<-eventReactive(input$btn_room_service, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     
@@ -409,40 +385,40 @@ featTrans_disServer <- function(id, df_train_nvI) {
     # #food_court
     # df_train_dis_list$food_court<-eventReactive(input$btn_food_court, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     # 
     # #shopping_mall
     # df_train_dis_list$shopping_mall<-eventReactive(input$btn_shopping_mall, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     # 
     # #spa
     # df_train_dis_list$spa<-eventReactive(input$btn_spa, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     # 
     # #vr_deck
     # df_train_dis_list$vr_deck<-eventReactive(input$btn_vr_deck, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     # 
     # #num
     # df_train_dis_list$num<-eventReactive(input$btn_num, {
     #   switch(input$rad_bdry_bar,
-    #          R=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
-    #          me=cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
+    #          R=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=R_cuts()),
+    #          me=user_cutter(dat=df_train_nvI(),col=input$sel_var_hist,break.vals=user_cuts())
     #   )
     # })
     
@@ -531,14 +507,14 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     # Check whether results working (by variable)
     #age
-    output$temp_table_hist<-renderTable({
-      df_train_dis_list$age %>% head()
-    })
-  
-    # # #room_service
-    output$temp_table_dis2<-renderTable({
-      df_train_dis_list$room_service %>% head()
-    })
+    # output$temp_table_hist<-renderTable({
+    #   df_train_dis_list$age %>% head()
+    # })
+    # 
+    # # # #room_service
+    # output$temp_table_dis2<-renderTable({
+    #   df_train_dis_list$room_service %>% head()
+    # })
     # 
     # 
     # # #food_court

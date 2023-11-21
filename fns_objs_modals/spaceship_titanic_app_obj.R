@@ -50,8 +50,8 @@ depVar<-"transported"
 
 ## Choices vectors--------------------
 ch_quick_dataCheck <- c("dimensions"="dim",
-                             "data sample"="dat_samp",
-                             "missingness"="miss")
+                         "data sample"="dat_samp",
+                         "missingness"="miss")
 
 
 ch_summ_dataCheck <- c("character"="chr",
@@ -87,6 +87,9 @@ ch_trans_opt_featTrans <- c("leave unchanged"="raw",
                             "log transform"="log",
                             "min-max scale"="mm_scale",
                             "standardize"="standize")
+
+ch_bin_opt_featTrans <- c("Equal intervals"="cut_int", 
+                           "User specifications"="user")
 
 ch_grp_size_featCreat <- c("do not create a group size variable"="none",
                            "ticket group size (same passenger group)"="ticket_group_size",

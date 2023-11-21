@@ -82,14 +82,18 @@ spaceTitanicApp()
 
 #----------------------
 ## DONE
-  
+
+
 
 # LAST PUSHED COMMENT(S)
 #featTrans_dis
-  #changed all ids to make them interpretable
-  #simplified code by removing switches in three places
-
-#set up featTrans_main & submodules to return DFs with transformed/extracted features
+  #re-factored server code such that a reactive DF is created by cutting approach then that
+    #DF is fed into renderPlot()
+  #removed commented out extraneous switch() code
+  #updated code & naming such that cutting options are: user and equal intervals
+  #updated name of fn cutter() to user_cutter() & created companion equal_cutter()
+  #functionalized creating reactive DF and rendering the plot
+  #removed extraneous code
 
 
 ## IN PROGRESS
@@ -170,6 +174,7 @@ spaceTitanicApp()
         #use different color scheme for bottom graph
         #vertically align confirm buttons with text
         #make info below expandable via accordion
+        #should log radio buttons go later in UI?
 
 
     #ordinal encoding
