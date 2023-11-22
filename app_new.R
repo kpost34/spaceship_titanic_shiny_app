@@ -86,13 +86,9 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#removed extraneous functions from *_func_03.R
 #featTrans_dis
-  #added input$num_brk_bar to req() to generate df
-  #vertically aligned text with buttons
-  #turned renderUIs with htmlOutput to simply renderText and textOutput 
-  #updated bin_plotter() so that lower plot has different color scheme than above plot
-  #using grouped bars on lower plot
+  #removed a lot of the logic so that most inputs are displayed on loading (i.e., removed many
+    #of the renderUIs)
 
 
 ## IN PROGRESS
@@ -148,11 +144,6 @@ spaceTitanicApp()
 
 
     #discretization 
-      #remove a lot of the UI logic by having everything available except for...
-          #1) button to confirm discretize using these settings
-          #2) user-defined boundaries
-          #...and move 'do not discretize
-
       #need feedback after confirmation
         #1) toast notificaton
         #2) some type of text output [that stays]

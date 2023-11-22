@@ -7,39 +7,59 @@ featTrans_disUI <- function(id) {
   sidebarLayout(
     sidebarPanel(
       #ui for histogram
-      uiOutput(ns("ui_sel_var_hist")),
-        uiOutput(ns("ui_rad_log_hist")),
-        uiOutput(ns("ui_num_bin_hist")),
-        br(),
-        fluidRow(
-          column(9,
-            h5(strong(textOutput(ns("text_not_dis"))))
-          ),
-          column(3, 
-            div(style="margin-bottom: 15px;",
-                uiOutput(ns("ui_btn_not_dis"))
-            )
-          )
+      h4("Histogram of raw data"),
+      selectInput01(ID=ns("sel_var_hist"), label=varViz_feat, choices=disVars),
+      # uiOutput(ns("ui_sel_var_hist")),
+      radioButtons(inputId=ns("rad_log_hist"),
+                   label="Choose whether to log10-scale the x-axis",
+                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE),
+      # uiOutput(ns("ui_rad_log_hist")),
+      numericInput(inputId=ns("num_bin_hist"),
+                   label="Select the number of bins for the histogram (2-50)",
+                   value=10,min=2,max=50),
+      # uiOutput(ns("ui_num_bin_hist")),
+      br(),
+      fluidRow(
+        column(9,
+          # h5(strong("Do not discretize this variable"))
+          h5(strong(textOutput(ns("text_not_dis"))))
         ),
+        column(3, 
+          div(style="margin-bottom: 15px;",
+              uiOutput(ns("ui_btn_not_dis"))
+          )
+        )
+      ),
       
       br(),
       
       #ui for barplot (by discretizing numerical variable)
-      h4(textOutput(ns("text_bar"))),
-        uiOutput(ns("ui_rad_log_bar")),
-        uiOutput(ns("ui_num_brk_bar")),
-        uiOutput(ns("ui_rad_bdry_bar")),
-        uiOutput(ns("ui_num_bdry_bar")),
-        fluidRow(
-          column(9,
-            h5(strong(textOutput(ns("text_dis"))))
-          ),
-          column(3,
-            div(style="margin-bottom: 15px;",
-                uiOutput(ns("ui_btn_dis"))
-            )
-          )
+      h4("Visualization of binned data"),
+      # h4(textOutput(ns("text_bar"))),
+      radioButtons(inputId=ns("rad_log_bar"),
+                   label="Choose whether to log10-scale the y-axis",
+                   choices=c("Yes", "No"), selected=character(0), inline=TRUE),
+      # uiOutput(ns("ui_rad_log_bar")),
+      numericInput(inputId=ns("num_brk_bar"),
+                   label="Select the number of breaks to create data bins (1-5)",
+                   value=2, min=1, max=5),
+      # uiOutput(ns("ui_num_brk_bar")),
+      radioButtons(inputId=ns("rad_bdry_bar"),
+                   label="How should data be binned?",
+                   choices=ch_bin_opt_featTrans,
+                   selected=character(0), inline=TRUE),
+      # uiOutput(ns("ui_rad_bdry_bar")),
+      uiOutput(ns("ui_num_bdry_bar")),
+      fluidRow(
+        column(9,
+          h5(strong(textOutput(ns("text_dis"))))
+        ),
+        column(3,
+          # div(style="margin-bottom: 15px;",
+              uiOutput(ns("ui_btn_dis"))
+          # )
         )
+      )
     ),
     
     mainPanel(
@@ -73,71 +93,72 @@ featTrans_disServer <- function(id, df_train_nvI) {
 
     ## Inputs--------------------
     ### Input to select var to visualize as histogram (for discretization)
-    output$ui_sel_var_hist<-renderUI({
-      selectInput01(ID=ns("sel_var_hist"),label=varViz_feat,
-                    #dynamically select numerical variables and num 
-                    choices=disVars)
-    })
+    # output$ui_sel_var_hist<-renderUI({
+    #   selectInput01(ID=ns("sel_var_hist"),label=varViz_feat,
+    #                 #dynamically select numerical variables and num 
+    #                 choices=disVars)
+    # })
     
     ### Input to choose whether to log10-transform x-axis
-    output$ui_rad_log_hist<-renderUI({
-      req(input$sel_var_hist)
-      
-      radioButtons(inputId=ns("rad_log_hist"),
-                   label="Choose whether to log10-scale the x-axis",
-                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
-    })
+    # output$ui_rad_log_hist<-renderUI({
+    #   req(input$sel_var_hist)
+    #   
+    #   radioButtons(inputId=ns("rad_log_hist"),
+    #                label="Choose whether to log10-scale the x-axis",
+    #                choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE)
+    # })
     
     ### Input to choose number of bins for histogram
-    output$ui_num_bin_hist<-renderUI({
-      req(input$sel_var_hist)
-      
-      numericInput(inputId=ns("num_bin_hist"),
-                   label="Select the number of bins for the histogram (2-50)",
-                   value=10,min=2,max=50)
-    })
+    # output$ui_num_bin_hist<-renderUI({
+    #   req(input$sel_var_hist)
+    #   
+    #   # numericInput(inputId=ns("num_bin_hist"),
+    #   #              label="Select the number of bins for the histogram (2-50)",
+    #   #              value=10,min=2,max=50)
+    # })
     
     ### Output to display text for next set of inputs
-    output$text_bar<-renderText({
-      req(input$sel_var_hist,input$rad_log_hist)
-      
-      paste("Visualization of binned data")
-    })
+    # output$text_bar<-renderText({
+    #   req(input$sel_var_hist,input$rad_log_hist)
+    #   
+    #   paste("Visualization of binned data")
+    # })
     
     
     ### Input to select a log10-transformed y-axis
-    output$ui_rad_log_bar<-renderUI({
-      req(input$sel_var_hist,input$rad_log_hist)
-      
-      radioButtons(inputId=ns("rad_log_bar"),
-                   label="Choose whether to log10-scale the y-axis",
-                   choices=c("Yes", "No"), selected=character(0),inline=TRUE)
-    })
+    # output$ui_rad_log_bar<-renderUI({
+    #   req(input$sel_var_hist,input$rad_log_hist)
+    #   
+    #   radioButtons(inputId=ns("rad_log_bar"),
+    #                label="Choose whether to log10-scale the y-axis",
+    #                choices=c("Yes", "No"), selected=character(0),inline=TRUE)
+    # })
     
     ### Input to choose number of breaks
-    output$ui_num_brk_bar<-renderUI({
-      req(input$sel_var_hist,input$rad_log_hist)
-      
-      numericInput(inputId=ns("num_brk_bar"),
-                   label="Select the number of breaks to create data bins (1-5)",
-                   value=2,min=1,max=5)
-    })
+    # output$ui_num_brk_bar<-renderUI({
+    #   req(input$sel_var_hist,input$rad_log_hist)
+    #   
+    #   numericInput(inputId=ns("num_brk_bar"),
+    #                label="Select the number of breaks to create data bins (1-5)",
+    #                value=2,min=1,max=5)
+    # })
     
     ### Input to choose whether to have R or user-selected bin boundaries
-    output$ui_rad_bdry_bar<-renderUI({
-      req(input$sel_var_hist,input$rad_log_hist)
-      
-      radioButtons(inputId=ns("rad_bdry_bar"),
-                   label="How should data be binned?",
-                   choices=ch_bin_opt_featTrans,
-                   selected=character(0),inline=TRUE)
-    })
+    # output$ui_rad_bdry_bar<-renderUI({
+    #   req(input$sel_var_hist,input$rad_log_hist)
+    #   
+    #   radioButtons(inputId=ns("rad_bdry_bar"),
+    #                label="How should data be binned?",
+    #                choices=ch_bin_opt_featTrans,
+    #                selected=character(0),inline=TRUE)
+    # })
     
     
   
     ### Dynamically create numericInput UIs based on n.breaks entry and if bin boundaries set to "me"
     output$ui_num_bdry_bar<-renderUI({
-      req(input$rad_log_bar,input$rad_bdry_bar=="user")
+      req(input$rad_bdry_bar=="user")
+      # req(input$rad_log_bar, input$rad_bdry_bar=="user")
       
       tags_num<-tagList()
       
@@ -153,15 +174,18 @@ featTrans_disServer <- function(id, df_train_nvI) {
     ### Dynamically displays action buttons (and associated text) to discretize/not discretize variable 
     #display text for action buttons
     output$text_not_dis <- renderText({
-      req(!is.na(input$rad_log_hist))
-      
+      req(input$sel_var_hist %in% disVars)
+      # req(!is.na(input$rad_log_hist))
+
       paste0("Do not discretize ", input$sel_var_hist,".")
     })
     
     output$text_dis <- renderText({
-      #either "R" is selected or "me" is selected and the number and every break point input is populated
-      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
-         (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
+      #either "Equal Intervals" is selected or "User specifications" is selected and the number and 
+        #every break point input is populated
+      req(input$sel_var_hist %in% disVars,
+            (!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
+              (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
       paste("Discretize",input$sel_var_hist, "using these settings.")
@@ -169,14 +193,20 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     #display buttons
     output$ui_btn_not_dis<-renderUI({
-      req(!is.na(input$rad_log_hist))
+      req(input$sel_var_hist %in% disVars)
+      # req(!is.na(input$sel_var_hist))
+      # req(!is.na(input$rad_log_hist))
       
       #simplify button-generating code
-      actionButton(ns(paste("btn_not_dis",input$sel_var_hist,sep="_")),label="Confirm")
+      actionButton(ns(paste("btn_not_dis",
+                            input$sel_var_hist,
+                            sep="_")),
+                   label="Confirm")
     })
     
     output$ui_btn_dis<-renderUI({
-      req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
+      req(input$sel_var_hist %in% disVars,
+          (!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
             (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
@@ -197,7 +227,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     
     ### Create reactive using cut options
-    #### Define cuts [will remove later]
+    #### Define cuts 
     user_cuts<-reactive({
       c(input$n1,input$n2,input$n3,input$n4,input$n5)
     })
@@ -205,7 +235,8 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     ### Generate DF
     df_cut <- reactive({
-      req(input$rad_bdry_bar, input$num_brk_bar, input$rad_log_bar)
+      req(input$sel_var_hist %in% disVars,
+          input$rad_bdry_bar, input$num_brk_bar, input$rad_log_bar)
       
       if(input$rad_bdry_bar=="cut_int") {
         equal_cutter(dat=df_train_nvI(), col=input$sel_var_hist, n.breaks=input$num_brk_bar)
