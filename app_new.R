@@ -86,14 +86,13 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
+#removed extraneous functions from *_func_03.R
 #featTrans_dis
-  #re-factored server code such that a reactive DF is created by cutting approach then that
-    #DF is fed into renderPlot()
-  #removed commented out extraneous switch() code
-  #updated code & naming such that cutting options are: user and equal intervals
-  #updated name of fn cutter() to user_cutter() & created companion equal_cutter()
-  #functionalized creating reactive DF and rendering the plot
-  #removed extraneous code
+  #added input$num_brk_bar to req() to generate df
+  #vertically aligned text with buttons
+  #turned renderUIs with htmlOutput to simply renderText and textOutput 
+  #updated bin_plotter() so that lower plot has different color scheme than above plot
+  #using grouped bars on lower plot
 
 
 ## IN PROGRESS
@@ -120,19 +119,6 @@ spaceTitanicApp()
       #then that matched with actual completion of the other three (through simple confirm buttons)
         #would indicate that the user can move on (and feature creation tab would open up)
 
-    #update:
-      #code workflow is weird with how vars are discretize so recommend the following:
-        #1) archive existing code in module and in func_03 and comment out (clearly)
-        #2) have second or third selector change from "R" (selected/defined) to one or two
-          #options in cut
-        #3) generate a reactive DF using the cut that is applied
-        #4) use/adapt the custom function to plot it--make sure that transported is kept in
-          #process
-        #5) when confirm is hit then the reactive DF is turned into anothe reactive DF...or maybe
-          #reactive values play a role here
-
-
-
 #feature engineering- transform
   #whole module
     #all transforms need to be completed to move on
@@ -141,7 +127,6 @@ spaceTitanicApp()
         #or some other feedback system
 
     #for new 'submodules'
-      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
       #turn renderUIs/uiOutput to updateXXXXX instead (where possible)
       #turn lists of outputs to purrr::map with tagList
       #there should be an option to 'skip' scaling/extraction (this will make debugging quicker too)
@@ -149,6 +134,7 @@ spaceTitanicApp()
 
 
   #feature scaling
+    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
     #pre-load figures--perhaps they are created (as reactives?) when tab is selected then button 
       #just displays them
     #user intepretable ids
@@ -162,22 +148,22 @@ spaceTitanicApp()
 
 
     #discretization 
+      #remove a lot of the UI logic by having everything available except for...
+          #1) button to confirm discretize using these settings
+          #2) user-defined boundaries
+          #...and move 'do not discretize
+
       #need feedback after confirmation
         #1) toast notificaton
         #2) some type of text output [that stays]
       #for user cuts (bin boundaries)
-        #set it up such that 0 (or negative values) are not possible
-      #why are there NAs with user-defined boundaries but not R
+        #set it up such that 0 (or negative values) are not possible--need to create user feedback here
 
-      #specialized updates
-        #change select option from 'me' to 'user'
-        #use different color scheme for bottom graph
-        #vertically align confirm buttons with text
-        #make info below expandable via accordion
-        #should log radio buttons go later in UI?
+
 
 
     #ordinal encoding
+      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
       #user interpretable ids
       #add plot title: include variable name in it
       #add horizontal line before "check each variable..."
@@ -187,6 +173,7 @@ spaceTitanicApp()
 
 
     #rare label encoding
+      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
       #user interpretable ids
       #switch to grouped bars
       #should add option for log10 y scale for both plots

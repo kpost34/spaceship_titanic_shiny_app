@@ -6,39 +6,51 @@ featTrans_disUI <- function(id) {
   
   sidebarLayout(
     sidebarPanel(
+      #ui for histogram
       uiOutput(ns("ui_sel_var_hist")),
-      uiOutput(ns("ui_rad_log_hist")),
-      uiOutput(ns("ui_num_bin_hist")),
-      br(),
-      fluidRow(
-        column(9,
-          htmlOutput(ns("text_not_dis"))
+        uiOutput(ns("ui_rad_log_hist")),
+        uiOutput(ns("ui_num_bin_hist")),
+        br(),
+        fluidRow(
+          column(9,
+            h5(strong(textOutput(ns("text_not_dis"))))
+          ),
+          column(3, 
+            div(style="margin-bottom: 15px;",
+                uiOutput(ns("ui_btn_not_dis"))
+            )
+          )
         ),
-        column(3,
-          uiOutput(ns("ui_btn_not_dis"))
-        )
-      ),
-      tags$style(type="text/css", "#ui_btn_not_dis {width: 100%; margin-top: 25px;}"),
+      
       br(),
-      htmlOutput(ns("text_bar")),
-      uiOutput(ns("ui_rad_log_bar")),
-      uiOutput(ns("ui_num_brk_bar")),
-      uiOutput(ns("ui_rad_bdry_bar")),
-      uiOutput(ns("ui_num_bdry_bar")),
-      fluidRow(
-        column(9,
-          htmlOutput(ns("text_dis"))
-        ),
-        column(3,
-          uiOutput(ns("ui_btn_dis"))
+      
+      #ui for barplot (by discretizing numerical variable)
+      h4(textOutput(ns("text_bar"))),
+        uiOutput(ns("ui_rad_log_bar")),
+        uiOutput(ns("ui_num_brk_bar")),
+        uiOutput(ns("ui_rad_bdry_bar")),
+        uiOutput(ns("ui_num_bdry_bar")),
+        fluidRow(
+          column(9,
+            h5(strong(textOutput(ns("text_dis"))))
+          ),
+          column(3,
+            div(style="margin-bottom: 15px;",
+                uiOutput(ns("ui_btn_dis"))
+            )
+          )
         )
-      ),
-      tags$style(type="text/css", "#ui_btn_dis {width: 100%; margin-top: 25px;}")
     ),
+    
     mainPanel(
+      #histogram
       plotOutput(ns("plot_sel_var_hist")),
       linebreaks(2),
+      
+      #barplot
       plotOutput(ns("plot_sel_dis2")),
+      
+      #temporary tables (to be removed)
       tableOutput(ns("temp_table_hist")),
       tableOutput(ns("temp_table_dis2")),
       tableOutput(ns("temp_table_dis3")),
@@ -86,10 +98,10 @@ featTrans_disServer <- function(id, df_train_nvI) {
     })
     
     ### Output to display text for next set of inputs
-    output$text_bar<-renderUI({
+    output$text_bar<-renderText({
       req(input$sel_var_hist,input$rad_log_hist)
       
-      h4("Visualization of binned data")
+      paste("Visualization of binned data")
     })
     
     
@@ -140,19 +152,19 @@ featTrans_disServer <- function(id, df_train_nvI) {
   
     ### Dynamically displays action buttons (and associated text) to discretize/not discretize variable 
     #display text for action buttons
-    output$text_not_dis <- renderUI({
+    output$text_not_dis <- renderText({
       req(!is.na(input$rad_log_hist))
       
-      h4(paste0("I am not interested in discretizing ",input$sel_var_hist,"."))
+      paste0("Do not discretize ", input$sel_var_hist,".")
     })
     
-    output$text_dis <- renderUI({
+    output$text_dis <- renderText({
       #either "R" is selected or "me" is selected and the number and every break point input is populated
       req((!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
          (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
-      h4(paste("Click confirm to discretize",input$sel_var_hist, "using these settings."))
+      paste("Discretize",input$sel_var_hist, "using these settings.")
     })
     
     #display buttons
@@ -193,7 +205,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     ### Generate DF
     df_cut <- reactive({
-      req(input$rad_bdry_bar, input$rad_log_bar)
+      req(input$rad_bdry_bar, input$num_brk_bar, input$rad_log_bar)
       
       if(input$rad_bdry_bar=="cut_int") {
         equal_cutter(dat=df_train_nvI(), col=input$sel_var_hist, n.breaks=input$num_brk_bar)

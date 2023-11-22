@@ -103,29 +103,6 @@ histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
 }
 
 ### Functions to bin numerical var & retain transported
-#### R decides bins
-bin_plotter<-function(dat,col,num.breaks=2,y.log.scale=TRUE){
-  dat %>%
-    #convert any categorical vars to numeric
-    mutate(var=as.numeric(!!sym(col))) %>%
-    ggplot(aes(var)) +
-    geom_bar(aes(fill=transported)) +         
-    scale_x_binned(n.breaks=num.breaks,nice.breaks=FALSE) +
-    scale_fill_viridis_d() +
-    xlab(col) +
-    ggtitle(paste("Barplot of", col, "with R-Defined Boundaries")) +
-    theme_bw(base_size=18) -> p1
-  
-  if(y.log.scale==FALSE){
-    p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
-  }
-
-  else if(y.log.scale==TRUE){
-    p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
-  }
-}
-
-
 #### Create user-defined bins
 user_cutter <- function(dat, col, break.vals=NA){
   dat %>%
@@ -153,8 +130,7 @@ equal_cutter <- function(dat, col, n.breaks=NA){
 
 
 
-
-# Make bar plot after creating bins
+### Fucntion to make bar plot after creating bins
 bin_plotter <- function(dat, col, type, log_val) {
   
   title_val <- if(type=="cut_int") {
@@ -167,8 +143,9 @@ bin_plotter <- function(dat, col, type, log_val) {
   #plotting code 
   dat %>%
     ggplot(aes(!!sym(paste0(col, "_dis")))) +
-    geom_bar(aes(fill=transported)) +
-    scale_fill_viridis_d() +
+    geom_bar(aes(fill=transported), 
+                 position="dodge") +
+    scale_fill_viridis_d(option="mako", end=0.8) +
     xlab(col) +
     ggtitle(paste(col, title_val)) +
     theme_bw(base_size=18) -> p1
@@ -183,54 +160,7 @@ bin_plotter <- function(dat, col, type, log_val) {
 }
   
   
-  
-  
-  
-  
-  
-  
-# user_bin_plotter<-function(dat,col,y.log.scale=TRUE){
-#   dat %>%
-#     ggplot(aes({{col}})) +
-#       geom_bar(aes(fill=transported)) +
-#       scale_fill_viridis_d() +
-#       theme_bw() +
-#       theme(axis.text=element_text(size=12),
-#             axis.title=element_text(size=13)) -> p1
-# 
-#     if(y.log.scale==FALSE){
-#       p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
-#     }
-# 
-#     else if(y.log.scale==TRUE){
-#       p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
-#     }
-# }
 
-
-#### Make bar plot after creating user-defined bins
-user_bin_plotter<-function(dat,col,break.vals,y.log.scale=TRUE){
-  dat %>%
-    #convert any categorical vars to numeric
-    mutate(var=as.numeric(!!sym(col)),
-    #cut variable using breaks
-      var=cut(var,breaks=c(min(var,na.rm=TRUE),break.vals,max(var,na.rm=TRUE)),
-              include.lowest=TRUE)) %>%
-    ggplot(aes(var)) +
-    geom_bar(aes(fill=transported)) +
-    scale_fill_viridis_d() +
-    xlab(col) +
-    ggtitle(paste("Barplot of", col, "with User-Defined Boundaries")) +
-    theme_bw(base_size=18) -> p1
-
-  if(y.log.scale==FALSE){
-    p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
-  }
-
-  else if(y.log.scale==TRUE){
-    p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
-  }
-}
 
 
 # Join together DFs into one by passenger_id
