@@ -87,8 +87,12 @@ spaceTitanicApp()
 
 # LAST PUSHED COMMENT(S)
 #featTrans_dis
-  #removed a lot of the logic so that most inputs are displayed on loading (i.e., removed many
-    #of the renderUIs)
+  #removed extraneous, commented out code
+  #turned selected variable into reactiveVal var
+  #created reactive_values obj, which is a reactiveValues
+  #populated above elements based on whether binning criteria are acceptable
+  #added code to join elements together
+  #added code that 'nullifies' a discretized variable
 
 
 ## IN PROGRESS
@@ -105,15 +109,6 @@ spaceTitanicApp()
     #discretization defaults to none but is overridden if user chooses so--which must be confirmed
     #same with ordinal encoding and rare label encoding
 
-  #discretization
-    #default to no discretization...but that means that no variable has "_dis" suffix
-    #but if settings are made and the confirm to use these settings button is pressed, then
-      #a "x_dis" is generated
-    #if the user then hits the 'not interested in discretizing var' button, then that "x_dis"
-      #var is removed
-    #there needs to be some sort of checkbox that indicates "discretization is complete"
-      #then that matched with actual completion of the other three (through simple confirm buttons)
-        #would indicate that the user can move on (and feature creation tab would open up)
 
 #feature engineering- transform
   #whole module
@@ -143,35 +138,35 @@ spaceTitanicApp()
       #2) textOutput: "x has been selected"
 
 
-    #discretization 
-      #need feedback after confirmation
-        #1) toast notificaton
-        #2) some type of text output [that stays]
-      #for user cuts (bin boundaries)
-        #set it up such that 0 (or negative values) are not possible--need to create user feedback here
+  #discretization 
+    #need feedback after confirmation
+      #1) toast notificaton
+      #2) some type of text output [that stays] & is dynamic so it disappears if a user confirms
+        #'no discretization'
+    #for user cuts (bin boundaries)
+      #set it up such that 0 (or negative values) are not possible--need to create user feedback here
+    
 
 
+  #ordinal encoding
+    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
+    #user interpretable ids
+    #add plot title: include variable name in it
+    #add horizontal line before "check each variable..."
+    #feedback following button pressing
+      #1) toast notification
+      #2) some type of text
 
 
-    #ordinal encoding
-      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-      #user interpretable ids
-      #add plot title: include variable name in it
-      #add horizontal line before "check each variable..."
-      #feedback following button pressing
-        #1) toast notification
-        #2) some type of text
-
-
-    #rare label encoding
-      #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-      #user interpretable ids
-      #switch to grouped bars
-      #should add option for log10 y scale for both plots
-      #plots need titles
-      #confirmation should yield feedback
-        #1) toast notification selected
-        #2) some type of text
+  #rare label encoding
+    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
+    #user interpretable ids
+    #switch to grouped bars
+    #should add option for log10 y scale for both plots
+    #plots need titles
+    #confirmation should yield feedback
+      #1) toast notification selected
+      #2) some type of text
 
 
     
