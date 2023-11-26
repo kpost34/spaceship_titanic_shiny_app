@@ -141,12 +141,6 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     })
     
     return(df_train_nvI_r)
-  
-    # ### Update data frame
-    # df_train_nvI_eF<-reactive({
-    #   req(input$chk_tranFea04)
-    #   #insert joins here
-    # })
     
   })
 }

@@ -44,9 +44,8 @@ spaceTitanicApp <- function() {
       ),
     navbarMenu(title="Feature Engineering", menuName="Fea04",
       featTrans_mainUI("df0")
-      # featTransUI("df1")
-      # featCreatUI("df2")
-      # featSelUI("df3")
+      # featCreatUI("df1")
+      # featSelUI("df2")
     )
   )
   
@@ -65,7 +64,7 @@ spaceTitanicApp <- function() {
     missOtherServer("dat2", df_train_nvI)
     
     #feature engineering
-    featTrans_mainServer("df0", df_train_nvI)
+    df_train_nvI_t <- featTrans_mainServer("df0", df_train_nvI)
     # featCreatServer("df2")
     # featSelServer("df3")
     
@@ -86,13 +85,17 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featTrans_dis
-  #removed extraneous, commented out code
-  #turned selected variable into reactiveVal var
-  #created reactive_values obj, which is a reactiveValues
-  #populated above elements based on whether binning criteria are acceptable
-  #added code to join elements together
-  #added code that 'nullifies' a discretized variable
+#featTrans_main
+  #added code to generate a 'all transformations complete' button
+  #if button is hit, then all four types of transformed DFs are joined
+  #turn renderUIs with htmlOutput to simply renderText and textOutput (in submodules)
+
+#featTrans_scale
+  #narrowed sidebarPanel (and made mainPanel slightly wider)
+  #increased text size of plots
+  #added labels to individual plots
+  #changed one input from conditional logic to a simple UI input
+  #updated IDs to make them more user-friendly
 
 
 ## IN PROGRESS
@@ -102,12 +105,20 @@ spaceTitanicApp()
 #---------------------
 
 
+
+
+
 ## TO DO 
-#priorities
-  #use simplistic set of transformations & see if we can get server code to form a new DF
-    #scaling option is applied to all options
-    #discretization defaults to none but is overridden if user chooses so--which must be confirmed
-    #same with ordinal encoding and rare label encoding
+
+#feature engineering- feature creation
+  #add ns() where applicable
+  #remove extraneous suffixes of inputs/outputs
+  #get code to run
+
+
+
+
+
 
 
 #feature engineering- transform
@@ -125,14 +136,7 @@ spaceTitanicApp()
 
 
   #feature scaling
-    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-    #pre-load figures--perhaps they are created (as reactives?) when tab is selected then button 
-      #just displays them
-    #user intepretable ids
-    #plots need larger text
-    #plots may need log10 scales
-    #plots need to be labeled better
-    #sidebar should be narrower
+    #use waiter (or equivalent package) to let user know that processing is happening
     #when the scaling type is selected and confirmed, there needs to be feedback
       #1) toast notification
       #2) textOutput: "x has been selected"
@@ -149,8 +153,7 @@ spaceTitanicApp()
 
 
   #ordinal encoding
-    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-    #user interpretable ids
+    #use interpretable ids
     #add plot title: include variable name in it
     #add horizontal line before "check each variable..."
     #feedback following button pressing
@@ -159,8 +162,7 @@ spaceTitanicApp()
 
 
   #rare label encoding
-    #turn renderUIs with htmlOutput to simply renderText and textOutput (and a h#() around it)
-    #user interpretable ids
+    #use interpretable ids
     #switch to grouped bars
     #should add option for log10 y scale for both plots
     #plots need titles
@@ -173,10 +175,6 @@ spaceTitanicApp()
 
 
 
-#feature engineering- feature creation
-  #add ns() where applicable
-  #remove extraneous suffixes of inputs/outputs
-  #get code to run
 
 
 #missName
@@ -197,7 +195,8 @@ spaceTitanicApp()
   #add variable type in dropdowns when selecting variable
   #Note: use ggiraph for EDA and all plots--make them interactive
   #add a backward/forward arrows for users to navigate pages in sequence
-
+  #feature engineering (all tabs) can only be available after missingness tabs dealt with
+    #same goes for next set of tabs
 
 
 

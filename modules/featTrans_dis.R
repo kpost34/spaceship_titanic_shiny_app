@@ -62,18 +62,9 @@ featTrans_disUI <- function(id) {
       #barplot
       plotOutput(ns("plot_sel_bar")),
       
-      #temporary tables (to be removed)
+      #temporary outputs (to be removed)
       tableOutput(ns("temp_table_hist")),
       verbatimTextOutput(ns("check_rv"))
-      
-      # tableOutput(ns("temp_table_dis1")),
-      # tableOutput(ns("temp_table_dis2")),
-      # tableOutput(ns("temp_table_dis3")),
-      # tableOutput(ns("temp_table_dis4")),
-      # tableOutput(ns("temp_table_dis5")),
-      # tableOutput(ns("temp_table_dis6")),
-      # tableOutput(ns("temp_table_dis7")),
-      # tableOutput(ns("temp_table_dis8"))
     )
   )
 }
@@ -211,7 +202,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     
     ### Convert rv_dis to df_dis by running an inner_join
-    df_dis <- eventReactive(input$btn_dis_complete, {
+    df_train_nvI_d <- eventReactive(input$btn_dis_complete, {
         
       print("Button Clicked - Inside eventReactive")
         
@@ -221,24 +212,24 @@ featTrans_disServer <- function(id, df_train_nvI) {
         relocate(transported, .after=last_col()) 
       
     })
-
-      
-
     
-    ## Checking-------------------- 
-    ### Check creation of rv_dis
+    ### Checks
+    #### Check creation of rv_dis
     output$check_rv <- renderPrint({
       rv_dis %>%
         reactiveValuesToList()
     })
     
-    ### Check creation of reactiveValues & joining within elements
+    #### Check creation of reactiveValues & joining within elements
     output$temp_table_hist <- renderTable({
       
-      df_dis() %>%
+      df_train_nvI_d() %>%
         head()
       
       })
+    
+    ### Return obj
+    return(df_train_nvI_d)
   })
 }
   

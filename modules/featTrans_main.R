@@ -11,13 +11,16 @@ featTrans_mainUI <- function(id) {
        numerical (or character or factor variables) into (smaller) groups,perform ordinal encoding, 
        and group rare categories together. What would you like to begin with?"),
     fluidRow(
-      column(6,align="center",offset=3,
+      column(6,align="center",
         radioButtons(inputId=ns("rad_trans"),label="",choices=ch_trans_featTrans,selected=character(0),
-                     inline=TRUE,width="100%"),
+                     inline=TRUE,width="100%")
+      ),
+      column(6, align="center",
         #placeholder
-        uiOutput("ui_chk_trans") #is this necessary? perhaps we need a new system
+        uiOutput(ns("ui_btn_trans_complete"))
       )
     ),
+    
     #UIs of each submodule
     tabsetPanel(id=ns("featTrans_tab"), type="hidden",
       tabPanelBody("blank"),
@@ -39,30 +42,41 @@ featTrans_mainUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_mainServer <- function(id, df_train_nvI) {
+featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_d, df_train_nvI_o, df_train_nvI_r) {
   moduleServer(id, function(input, output, session) {
     
-    
-  #placeholder--we should develop a system of feedback that indicates a transformation type
-    #has been completed/skipped
-  #   output$ui_chk_trans <- renderUI({   
-  #   #update req() statement--should reflect that all four confirmations selected
-  #   req(input$rad_trans)
-  #   checkboxInput(inputId=ns("chk_trns"),label="CONFIRM ALL DATA TRANSFORMATIONS SELECTED",value=FALSE)
-  # })
+    ns <- session$ns
+  
 
     # Conditionally display tabs
     observeEvent(input$rad_trans, {
       updateTabsetPanel(inputId="featTrans_tab",selected=input$rad_trans)
     })
     
+    output$ui_btn_trans_complete <- renderUI({
+      req(df_train_nvI_s(), df_train_nvI_d(), df_train_nvI_o(), df_train_nvI_r())
+      
+      actionButton(ns("btn_trans_complete"), "All transformations complete")
+    })
+    
     # Source/run server submodules
     df_train_nvI_s <- featTrans_scaleServer("df1", df_train_nvI)
-    featTrans_disServer("df2", df_train_nvI)
+    df_train_nvI_d <- featTrans_disServer("df2", df_train_nvI)
     df_train_nvI_o <- featTrans_ordEncServer("df3", df_train_nvI)
     df_train_nvI_r <- featTrans_rareEncServer("df4", df_train_nvI)
     
+    # Join DFs
+    df_train_nvI_t <- eventReactive(input$btn_trans_complete, {
+      
+      df_train_nvI_s() %>%
+        left_join(df_train_nvI_d()) %>%
+        left_join(df_train_nvI_o()) %>%
+        left_join(df_train_nvI_r())
+      
+    })
     
+    # Return DF
+    return(df_train_nvI_t)
     
   })
 

@@ -12,7 +12,7 @@ featTrans_ordEncUI <- function(id) {
       radioButtons(inputId=ns("rad_ordEnc"),label="Would you like to perform ordinal encoding on any of
                    the variables?",choices=c("Yes","No"),selected=character(0)),
       linebreaks(2),
-      htmlOutput(ns("text_ordEnc")),
+      h4(textOutput(ns("text_ordEnc"))),
       #produces a list of checkboxes and selectors
       map(labs, split_chk_sel_builder, fn=ns),
       # ui_splits,
@@ -45,9 +45,10 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
     
     
     ### Dynamically display text above checkboxes below
-    output$text_ordEnc<-renderUI({
+    output$text_ordEnc<-renderText({
       req(input$rad_ordEnc=="Yes") 
-      h4("Check each variable for ordinal encoding and rank the categories from least to most important")
+      
+      paste("Check each variable for ordinal encoding and rank the categories from least to most important")
     })
     
     
@@ -175,7 +176,7 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
     
     ## Export--------------------
     ### Create reactive data frame
-    df_train_nvI_o<-eventReactive(input$btn_ordEnc2, {
+    df_train_nvI_o <- eventReactive(input$btn_ordEnc2, {
       df_train_nvI() %>%
         #choose all factors except num
         mutate(across(.cols=all_of(fct_nonumVars), ~as.ordered(.x))) %>%

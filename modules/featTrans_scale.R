@@ -5,15 +5,16 @@ featTrans_scaleUI <- function(id) {
   ns <- NS(id)
   
   sidebarLayout(
-    sidebarPanel(
-      uiOutput(ns("ui_sel_scale1")),
+    sidebarPanel(width=3,
+      selectInput01(ID=ns("sel_var_viz"), label=varViz_feat,
+                    choices=numVars),
       br(),
-      uiOutput(ns("ui_sel_scale2")),
-      uiOutput(ns("ui_btn_scale"))
+      uiOutput(ns("ui_type_scale")),
+      uiOutput(ns("ui_btn_scale_complete"))
     ),
-    mainPanel(
-      plotOutput(ns("plot_sel_scale1"),height="1000px"),
-      tableOutput(ns("DT1"))
+    mainPanel(width=9,
+      plotOutput(ns("plot_sel_var_viz"), height="1000px"),
+      tableOutput(ns("temp_table"))
     )
   )
 }
@@ -27,44 +28,38 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     ns <- session$ns
     
    
-    
     ## Inputs--------------------
-    ### Input to select var to visualize, either unscaled or scaled
-    output$ui_sel_scale1<-renderUI({
-      selectInput01(ID=ns("sel_scale1"),label=varViz_feat,
-                    #dynamically select numeric vars (NOTE: will need to update data object later)
-                    choices=df_train_nvI() %>% select(where(is.numeric)) %>% names())
-    })
-    
-    
     ### Input to select how to transform/scale selected variables
-    output$ui_sel_scale2<-renderUI({
-      req(input$sel_scale1)
-      selectInput01(ID=ns("sel_scale2"),label=scaleOpt_feat,
+    output$ui_type_scale<-renderUI({
+      req(input$sel_var_viz)
+      
+      selectInput01(ID=ns("type_scale"),
+                    label=scaleOpt_feat,
                     choices=ch_trans_opt_featTrans)
     })
     
     ### Button to confirm selection
-    output$ui_btn_scale<-renderUI({
-      req(input$sel_scale1,input$sel_scale2)
-      actionButton(inputId=ns("btn_scale"),label="Confirm your selection") 
+    output$ui_btn_scale_complete <- renderUI({
+      req(input$sel_var_viz, input$type_scale)
+      actionButton(inputId=ns("btn_scale_complete"), label="Confirm your selection") 
     })
   
     
     
     ## Output--------------------
     ### Display set of plots
-    output$plot_sel_scale1<-renderPlot({
-      req(input$sel_scale1)
-      cowplotter(df_train_nvI(),input$sel_scale1)
+    output$plot_sel_var_viz<-renderPlot({
+      req(input$sel_var_viz)
+      
+      cowplotter(df_train_nvI(), input$sel_var_viz)
     })
     
     
     
     ## Export--------------------
     ### Create new DF with scaled columns/variables
-    df_train_nvI_s<-eventReactive(input$btn_scale, {
-      switch(input$sel_scale2,
+    df_train_nvI_s<-eventReactive(input$btn_scale_complete, {
+      switch(input$type_scale,
              #raw = unchanged
              raw=df_train_nvI(),
              #log = log-transform + identifier
@@ -83,7 +78,7 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     })
     
     ### Temporary table--proof that above code is working
-    output$DT1<-renderTable({
+    output$temp_table <- renderTable({
       head(df_train_nvI_s())
     })
     

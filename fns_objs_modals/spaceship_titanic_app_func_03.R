@@ -10,12 +10,12 @@ pacman::p_load(tidyverse,cowplot)
 ## Feature Scaling
 ### Function to build cowplot of density and qqplots for various transforms
 #### Individual ggplot functions
-dens_plotter<-function(dat,var,label=""){
+dens_plotter<-function(dat, var, label=""){
   dat %>%
     ggplot(aes(x={{var}})) +
     ggtitle(label) +
     geom_density() +
-    theme_bw()
+    theme_bw(base_size=16)
 }
 
 qq_plotter<-function(dat,var){
@@ -24,21 +24,21 @@ qq_plotter<-function(dat,var){
     ggtitle("") +
     geom_qq(color="darkblue") +
     geom_qq_line() +
-    theme_bw()
+    theme_bw(base_size=16)
 }
 
 # Mathematical functions
 min_max_scaler<-function(x){
-  (x-min(x,na.rm=TRUE))/(max(x,na.rm=TRUE)-min(x,na.rm=TRUE))
+  (x-min(x, na.rm=TRUE))/(max(x, na.rm=TRUE)-min(x, na.rm=TRUE))
 }
 
 standardizer<-function(x){
-  (x-mean(x,na.rm=TRUE))/sd(x,na.rm=TRUE)
+  (x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)
 }
 
 
 #### Plotting the full grid
-cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled","standardized")){
+cowplotter<-function(dat, var, label_vec=c("raw", "log-transformed", "min-max scaled", "standardized")){
   #convert var
   var<-sym(var)
   
@@ -46,7 +46,7 @@ cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled
   dat %>%
     mutate(log=log(!!var),
           mm=min_max_scaler(!!var),
-          stdize=standardizer(!!var),.keep="used") -> dat_new
+          stdize=standardizer(!!var), .keep="used") -> dat_new
   
   #create chr vec of col names
   cols<-names(dat_new)
@@ -57,15 +57,19 @@ cowplotter<-function(dat,var,label_vec=c("raw","log-transformed","min-max scaled
   #set up for loop
   for(i in 0:3){
     #use !!sym() to unquote and evaluate col names and output to objects
-    dens_plotter(dat_new,!!sym(cols[i+1]),label_vec[i+1]) -> plot_x
-    qq_plotter(dat_new,!!sym(cols[i+1])) -> plot_y
+    dens_plotter(dat_new, !!sym(cols[i+1]), label_vec[i+1]) -> plot_x
+    qq_plotter(dat_new, !!sym(cols[i+1])) -> plot_y
     
     #store plots into list_plot
-    list_plot[2*i+1]<-list(plot_x)
-    list_plot[2*i+2]<-list(plot_y)
+    list_plot[2*i+1] <- list(plot_x)
+    list_plot[2*i+2] <- list(plot_y)
   }
   #plot list of plots
-  plot_grid(plotlist=list_plot,nrow=4)
+  plot_grid(plotlist=list_plot,
+            labels=rep(c("density plot", "qq plot"), 4), 
+            label_x=rep(c(.75, .85), 4),
+            label_y=.95,
+            nrow=4)
 }
 
 ## Discretization
@@ -130,7 +134,7 @@ equal_cutter <- function(dat, col, n.breaks=NA){
 
 
 
-### Fucntion to make bar plot after creating bins
+### Function to make bar plot after creating bins
 bin_plotter <- function(dat, col, type, log_val) {
   
   title_val <- if(type=="cut_int") {
@@ -158,35 +162,6 @@ bin_plotter <- function(dat, col, type, log_val) {
       p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
     }
 }
-  
-  
-
-
-
-# Join together DFs into one by passenger_id
-# dis_joiner<-function(dat,j1,j2,j3,j4,j5,j6,j7){
-#   df_list<-vector(mode="list",length=8)
-#   
-#   
-#   
-#   
-#   dat %>%
-#     {if(!missing(j1))(left_join(.,j1,by="passenger_id")) else .} %>%
-#     {if(!missing(j2))(left_join(.,j2,by="passenger_id")) else .} %>%
-#     {if(!missing(j3))(left_join(.,j3,by="passenger_id")) else .} %>%
-#     {if(!missing(j4))(left_join(.,j4,by="passenger_id")) else .} %>%
-#     {if(!missing(j5))(left_join(.,j5,by="passenger_id")) else .} %>%
-#     {if(!missing(j6))(left_join(.,j6,by="passenger_id")) else .} %>%
-#     {if(!missing(j7))(left_join(.,j7,by="passenger_id")) else .} -> dat2
-#   
-#   if(ncol(dat2)==1) {
-#     dat
-#   }
-#   else{dat2}
-# }
-
-#{if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
-### Categorical Encoding
 
 
 
