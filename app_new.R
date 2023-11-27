@@ -85,10 +85,13 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featTrans_ordEnc
-  #changed input from being conditional (renderUI) to a simple UI input
-  #updated IDs to be more user-friendly
-  #added titles to plots
+#featTrans_rareEnc
+  #employed more user-friendly ids
+  #moved legend below plots
+  #narrowed side panel and widened main panel
+  #increased plot size
+  #employed a log10 y-axis
+  #implemented grouped instead of stacked bars
 
 
 ## IN PROGRESS
@@ -97,19 +100,12 @@ spaceTitanicApp()
 
 #---------------------
 
-
-
-
-
 ## TO DO 
 
 #feature engineering- feature creation
   #add ns() where applicable
   #remove extraneous suffixes of inputs/outputs
   #get code to run
-
-
-
 
 
 
@@ -154,10 +150,6 @@ spaceTitanicApp()
 
 
   #rare label encoding
-    #use interpretable ids
-    #switch to grouped bars
-    #should add option for log10 y scale for both plots
-    #move legend to below plot
     #confirmation should yield feedback
       #1) toast notification selected
       #2) some type of text

@@ -6,30 +6,32 @@ featTrans_rareEncUI <- function(id) {
   ns <- NS(id)
   
   sidebarLayout(
-    sidebarPanel(
-      uiOutput(ns("ui_sel_rareEnc1a")),
-      uiOutput(ns("ui_sel_rareEnc1b")),
+    sidebarPanel(width=2,
+      selectInput01(ID=ns("sel_var_viz1"), label=varViz_feat,
+                    choices=c("deck", "ticket")),
+      uiOutput(ns("ui_sel_var_viz1")),
+      uiOutput(ns("ui_sel_var_cat1")),
       linebreaks(5),
-      uiOutput(ns("ui_sel_rareEnc2a")),
-      uiOutput(ns("ui_sel_rareEnc2b")),
-      uiOutput(ns("ui_btn_rareEnc"))
+      uiOutput(ns("ui_sel_var_viz2")),
+      uiOutput(ns("ui_sel_var_cat2")),
+      uiOutput(ns("ui_btn_rareEnc_complete"))
     ),
-    mainPanel(
+    mainPanel(width=10,
       fluidRow(
         column(6,
-          plotOutput(ns("plot_sel_rareEnc1a"),height="250px")
+          plotOutput(ns("plot_sel_var_viz1"),height="350px")
         ),
         column(6,
-          plotOutput(ns("plot_sel_rareEnc1b"),height="250px")
+          plotOutput(ns("plot_sel_var_cat1"),height="350px")
         )
       ),
       linebreaks(2),
       fluidRow(
-        column (6,
-          plotOutput(ns("plot_sel_rareEnc2a"),height="250px")
+        column(6,
+          plotOutput(ns("plot_sel_var_viz2"),height="350px")
         ),
         column(6,
-          plotOutput(ns("plot_sel_rareEnc2b"),height="250px"),
+          plotOutput(ns("plot_sel_var_cat2"),height="350px"),
           tableOutput(ns("temp_table_rareEnc")))
       )
     )
@@ -45,93 +47,95 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     ns <- session$ns
     
     ## Inputs--------------------
-    ### Input to select var to visualize as a barplot
-    output$ui_sel_rareEnc1a<-renderUI({
-      selectInput01(ID=ns("sel_rareEnc1a"),label=varViz_feat,
-                    #dynamically ticket and deck 
-                    choices=df_train_nvI() %>% select(deck,ticket) %>% names())
-    })
-    
     ### Input to select levels to combine as a category and visualize in a new barplot (NAs are off limits)
-    output$ui_sel_rareEnc1b<-renderUI({
-      req(input$sel_rareEnc1a)
-      selectizeInput(inputId=ns("sel_rareEnc1b"),label="",multiple=TRUE,
+    output$ui_sel_var_cat1<-renderUI({
+      req(input$sel_var_viz1)
+      
+      selectizeInput(inputId=ns("sel_var_cat1"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
                                df_train_nvI() %>% 
-                                 pull(input$sel_rareEnc1a) %>% 
+                                 pull(input$sel_var_viz1) %>% 
                                  unique() %>%
                                  sort() %>%
                                  as.character()))
     })
     
     #### Input to select other var to visualize as a barplot
-    output$ui_sel_rareEnc2a<-renderUI({
-      req(length(input$sel_rareEnc1b)>1)
-      selectInput01(ID=ns("sel_rareEnc2a"),label=varViz_feat,
+    output$ui_sel_var_viz2 <- renderUI({
+      req(input$sel_var_viz1)
+      # req(length(input$sel_var_cat1) > 1)
+      
+      selectInput01(ID=ns("sel_var_viz2"), label=varViz_feat,
                     #dynamically ticket and deck 
-                    choices=df_train_nvI() %>% select(deck,ticket,-input$sel_rareEnc1a) %>% names())
+                    choices=c("deck", "ticket") %>% .[.!=input$sel_var_viz1])
     })
     
     #### Input to select levels to combine as a category and visualize in a new barplot
-    output$ui_sel_rareEnc2b<-renderUI({
-      req(input$sel_rareEnc2a)
-      selectizeInput(inputId=ns("sel_rareEnc2b"),label="",multiple=TRUE,
+    output$ui_sel_var_cat2 <- renderUI({
+      req(input$sel_var_viz2)
+      
+      selectizeInput(inputId=ns("sel_var_cat2"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
                                df_train_nvI() %>% 
-                                 pull(input$sel_rareEnc2a) %>% 
+                                 pull(input$sel_var_viz2) %>% 
                                  unique() %>%
                                  sort() %>%
                                  as.character()))
     })
     
     #### Button to confirm selections
-    output$ui_btn_rareEnc<-renderUI({
-      req(input$sel_rareEnc1a)
-      actionButton(inputId=ns("btn_rareEnc"),label="Confirm selections")
+    output$ui_btn_rareEnc_complete <- renderUI({
+      req(input$sel_var_viz1)
+      
+      actionButton(inputId=ns("btn_rareEnc_complete"), label="Confirm selections")
     })
   
   
     ## Outputs--------------------
     #var1-raw
-    output$plot_sel_rareEnc1a<-renderPlot({
-      req(input$sel_rareEnc1a)
-      rare_enc_barplotter(df_train_nvI(),input$sel_rareEnc1a)
+    output$plot_sel_var_viz1 <- renderPlot({
+      req(input$sel_var_viz1)
+      
+      rare_enc_barplotter(df_train_nvI(), input$sel_var_viz1)
     })
     
     #var1-combined categories
-    output$plot_sel_rareEnc1b<-renderPlot({
-      req(length(input$sel_rareEnc1b)>1)
-      rare_enc_barplotter(df_train_nvI(),var=input$sel_rareEnc1a,cats=input$sel_rareEnc1b)
+    output$plot_sel_var_cat1 <- renderPlot({
+      req(length(input$sel_var_cat1) > 1)
+      
+      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz1, cats=input$sel_var_cat1)
     })
     
     #var2-raw
-    output$plot_sel_rareEnc2a<-renderPlot({
-      req(input$sel_rareEnc2a)
-      rare_enc_barplotter(df_train_nvI(),input$sel_rareEnc2a)
+    output$plot_sel_var_viz2 <- renderPlot({
+      req(input$sel_var_viz2)
+      
+      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz2, col="mako")
     })
     
     #var2-combined categories
-    output$plot_sel_rareEnc2b<-renderPlot({
-      req(length(input$sel_rareEnc2b)>1)
-      rare_enc_barplotter(df_train_nvI(),var=input$sel_rareEnc2a,cats=input$sel_rareEnc2b)
+    output$plot_sel_var_cat2 <- renderPlot({
+      req(length(input$sel_var_cat2) > 1)
+      
+      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
     })
     
     
     ## Export--------------------
     ### Extract features via rare label encoding
-    df_train_nvI_r<-eventReactive(input$btn_rareEnc, {
+    df_train_nvI_r <- eventReactive(input$btn_rareEnc_complete, {
       df_train_nvI() %>%
-        {if(length(input$sel_rareEnc1b)>=2) 
+        {if(length(input$sel_var_cat1) >= 2) 
           #paste variable name using !! and :=
-          mutate(.,!!paste0(input$sel_rareEnc1a,"_rare") := fct_collapse(!!sym(input$sel_rareEnc1a),
-                                                                                other=input$sel_rareEnc1b))
+          mutate(.,!!paste0(input$sel_var_viz1,"_rare") := fct_collapse(!!sym(input$sel_var_viz1),
+                                                                                other=input$sel_var_cat1))
           else .} %>%
-        {if(length(input$sel_rareEnc2b)>=2)
-          mutate(.,!!paste0(input$sel_rareEnc2a,"_rare") := fct_collapse(!!sym(input$sel_rareEnc2a),
-                                                                                other=input$sel_rareEnc2b))
+        {if(length(input$sel_var_cat2) >= 2)
+          mutate(.,!!paste0(input$sel_var_viz2,"_rare") := fct_collapse(!!sym(input$sel_var_viz2),
+                                                                                other=input$sel_var_cat2))
           else .} %>%
         #retain cols of interest
-        select(passenger_id,ends_with("_rare")) 
+        select(passenger_id, ends_with("_rare")) 
     })
     
     
