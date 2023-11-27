@@ -167,14 +167,18 @@ bin_plotter <- function(dat, col, type, log_val) {
 
 ## Rare Label Encoding
 ### Function to make barplots of counts filled by transported and to combine different factor levels
-rare_enc_barplotter<-function(dat,var,cats){
+rare_enc_barplotter<-function(dat, var, cats){
   #convert quoted input to symbol
   var<-sym(var)
+  
+  title_suffix <- if(!missing(cats)) {
+    "with rare categories combined"
+  } else{""}
   
   if(!missing(cats)) { 
     dat %>%
       #combine categories into a single 'other' category (if it has values)
-      mutate(var1=fct_collapse(!!var,other=cats),
+      mutate(var1=fct_collapse(!!var, other=cats),
         #order by frequency
         var1=fct_infreq(var1)) -> dat1
   }
@@ -190,6 +194,7 @@ rare_enc_barplotter<-function(dat,var,cats){
       scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
       scale_fill_viridis_d() +
       xlab(paste(var)) +
+      ggtitle(paste("Bar plot of", var, title_suffix)) +
       theme_bw() +
       theme(axis.text=element_text(size=12),
             axis.title=element_text(size=13))

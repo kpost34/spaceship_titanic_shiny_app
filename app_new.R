@@ -85,17 +85,10 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featTrans_main
-  #added code to generate a 'all transformations complete' button
-  #if button is hit, then all four types of transformed DFs are joined
-  #turn renderUIs with htmlOutput to simply renderText and textOutput (in submodules)
-
-#featTrans_scale
-  #narrowed sidebarPanel (and made mainPanel slightly wider)
-  #increased text size of plots
-  #added labels to individual plots
-  #changed one input from conditional logic to a simple UI input
-  #updated IDs to make them more user-friendly
+#featTrans_ordEnc
+  #changed input from being conditional (renderUI) to a simple UI input
+  #updated IDs to be more user-friendly
+  #added titles to plots
 
 
 ## IN PROGRESS
@@ -124,12 +117,10 @@ spaceTitanicApp()
 #feature engineering- transform
   #whole module
     #all transforms need to be completed to move on
-      #next tab won't display (i.e., feature creation tab won't display)
       #some sort of modal should appear that lists remaining items
         #or some other feedback system
 
     #for new 'submodules'
-      #turn renderUIs/uiOutput to updateXXXXX instead (where possible)
       #turn lists of outputs to purrr::map with tagList
       #there should be an option to 'skip' scaling/extraction (this will make debugging quicker too)
 
@@ -140,6 +131,8 @@ spaceTitanicApp()
     #when the scaling type is selected and confirmed, there needs to be feedback
       #1) toast notification
       #2) textOutput: "x has been selected"
+    #later...
+      #more nuanced scaling: choose type for each variable
 
 
   #discretization 
@@ -153,19 +146,18 @@ spaceTitanicApp()
 
 
   #ordinal encoding
-    #use interpretable ids
-    #add plot title: include variable name in it
-    #add horizontal line before "check each variable..."
     #feedback following button pressing
       #1) toast notification
       #2) some type of text
+    #later...
+      #use purrr::map() to bundle output/render fns
 
 
   #rare label encoding
     #use interpretable ids
     #switch to grouped bars
     #should add option for log10 y scale for both plots
-    #plots need titles
+    #move legend to below plot
     #confirmation should yield feedback
       #1) toast notification selected
       #2) some type of text

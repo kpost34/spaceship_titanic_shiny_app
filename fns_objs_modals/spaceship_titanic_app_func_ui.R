@@ -99,9 +99,6 @@ split_chk_sel_builder<-function(lab, fn){
 #creates a vector
 labs<-paste0(rep(2,5),letters[1:5])
 
-#run vector through function
-# ui_splits<-map(labs, split_chk_sel_builder, fn=ns)
-
 
 
 
