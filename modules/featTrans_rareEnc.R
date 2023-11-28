@@ -96,28 +96,28 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     output$plot_sel_var_viz1 <- renderPlot({
       req(input$sel_var_viz1)
       
-      rare_enc_barplotter(df_train_nvI(), input$sel_var_viz1)
+      barplotter2(df_train_nvI(), input$sel_var_viz1)
     })
     
     #var1-combined categories
     output$plot_sel_var_cat1 <- renderPlot({
       req(length(input$sel_var_cat1) > 1)
       
-      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz1, cats=input$sel_var_cat1)
+      barplotter2(df_train_nvI(), var=input$sel_var_viz1, cats=input$sel_var_cat1)
     })
     
     #var2-raw
     output$plot_sel_var_viz2 <- renderPlot({
       req(input$sel_var_viz2)
       
-      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz2, col="mako")
+      barplotter2(df_train_nvI(), var=input$sel_var_viz2, col="mako")
     })
     
     #var2-combined categories
     output$plot_sel_var_cat2 <- renderPlot({
       req(length(input$sel_var_cat2) > 1)
       
-      rare_enc_barplotter(df_train_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
+      barplotter2(df_train_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
     })
     
     

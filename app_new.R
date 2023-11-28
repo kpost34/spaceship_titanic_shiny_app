@@ -43,8 +43,8 @@ spaceTitanicApp <- function() {
       missOtherUI("dat2")
       ),
     navbarMenu(title="Feature Engineering", menuName="Fea04",
-      featTrans_mainUI("df0")
-      # featCreatUI("df1")
+      featTrans_mainUI("df0"),
+      featCreatUI("df1")
       # featSelUI("df2")
     )
   )
@@ -65,8 +65,8 @@ spaceTitanicApp <- function() {
     
     #feature engineering
     df_train_nvI_t <- featTrans_mainServer("df0", df_train_nvI)
-    # featCreatServer("df2")
-    # featSelServer("df3")
+    featCreatServer("df1", df_train_nvI)
+    # featSelServer("df2")
     
 
   }
@@ -85,13 +85,17 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featTrans_rareEnc
-  #employed more user-friendly ids
-  #moved legend below plots
-  #narrowed side panel and widened main panel
-  #increased plot size
-  #employed a log10 y-axis
-  #implemented grouped instead of stacked bars
+#app_new
+  #removed extraneous comments/notes
+
+#featCreat
+  #added namespacing to module
+  #removed standard dark blue barplot
+  #get code to run
+  #removed null option for lux expense variable
+  #removed visualize results button
+  #employed group bars and log10 y-axis & put x-axis categories in order via barplotter2 fn 
+    #(renamed from rare_enc_barplotter) [also updated name of fn in rare-enc module]
 
 
 ## IN PROGRESS
@@ -103,11 +107,30 @@ spaceTitanicApp()
 ## TO DO 
 
 #feature engineering- feature creation
-  #add ns() where applicable
   #remove extraneous suffixes of inputs/outputs
-  #get code to run
+  #luxury items
+    #heatmap
+      #invert color scheme such that blue is positive
+      #make smaller & increase text size
+      #make legend horizontal and move below plot
+    #boxplot
+      #increase text size
+      #make plot smaller
+      #use different colors
+      #try to put heatmap & boxplot in same row
+  #UI
+    #unsure what visualize results button does--remove?
+    #reword second label or adjust layout so that it fits in one line
+    #reorganize layout so that it is user-friendly, particularly after all choices made
 
 
+#feature engineering- selection
+  #take the reactive DF from transformation and the reactive DF from creation & join them
+  #then use names() to populate choices in selectize
+  #when user picks a variable that is related to other vars in the joined DF, those vars 
+    #will drop out (i.e., the choices needs to be a reactiveValue)
+    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
+      #then 'spa' and 'spa_dis" disappear
 
 
 #feature engineering- transform
@@ -156,11 +179,6 @@ spaceTitanicApp()
 
 
     
-
-
-
-
-
 #missName
   #Use accordion text for the description in the middle
   #Indicate somehow (red box?) that the last step must be completed to continue
@@ -181,6 +199,8 @@ spaceTitanicApp()
   #add a backward/forward arrows for users to navigate pages in sequence
   #feature engineering (all tabs) can only be available after missingness tabs dealt with
     #same goes for next set of tabs
+  #look for spots in server code that can be functionalized
+  #UI labels are inconsistently coded as objects--figure out consistent way to handle them
 
 
 
@@ -189,10 +209,7 @@ spaceTitanicApp()
 ### OLD COMMENTS ###-----------------
 #general/unknown
   #add table titles--perhaps to correlation table
-  #ability to bin choices? (vars into factor, logical, etc)
   #add modals for imputation options that are risky
-  
-  #fix group size plots not in descending order of frequency
   #from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
   #need a title page where variables are defined--perhaps some type of accordion presentation
 
@@ -203,52 +220,12 @@ spaceTitanicApp()
    #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
 
 
-#functions
-  #make selectizeInput functions more flexible (and change edaTabBuilder)
-  #convert larger server 'patterns' to functions & populate into separate script
-  #update functions so that they don't carry so many extraneous cols/vars
-  #consider making group size variable switch code a function
-
-
-
-
 
 #feature engineering
-  #feature scaling plots--axis labels and plot types (e.g., density, qq)
   #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
     #type of hyperlink or colored text where you hover over to get a more thorough defintion
-  #discretization first plot--log scale y axis as option (and thus update formula)
-  # add ggtitles to rare label encoding(?)
-  #make the feature extraction-discretization plot interactive so a user can pull values for breaks
   #user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
     #variable
-
-
-#------------------------------------------------
-### BEFORE PAUSING ON DEVELOPMENT###
-## NEED TO...
-#1) change inputs for log10 x-axis and bin numbers to dynamic version
-#2) enable a way to reset the input values when someone selects yes or no
-#3) selecting yes/no leads to a change/non-change in growing data frame
-#4) connect all the growing data frames (for discretization) 
-#5) check by outputting a preview table
-
-
-## Update (9/22/22): putting this app on pause because of lack of progress. Right now I am stuck on feature extraction-
-#discretization server code. The code to generate plots and produce DFs works fine. The issue is that I am stuck
-#attempting to develop a way to connect each DF (associated with each numerical variable). Ideally I'd like to join
-#them on passenger_id and create a DF that has one or more vars that end with "_dis." Unfortunately when I try to use
-#an actionButton that triggers (confirms) a "dis" variable and lack of pressing the button generates a reactive DF, 
-#which contains only passenger_id, they won't join. Shiny still says that the var(s) where the button was not pressed
-#is not reactive and I can't join reactive and non-reactive DFs. I've tried various observeEvents eventReactives
-#to cirumvent this but I get either errors or nonsense output. I've tried a second button but shiny seems to "dislike"
-#having inputs control different types of outputs via an observeEvent (or two) or two eventReactives. When I figure this
-#out, I will return. A temporary solution would be to force the user to go through each variable, but that is cumbrersome
-#and it will make testing a PitA. Also I will need to do something similar shortly after this because I want to join
-#the temporary reactive DFs that come from the four types of data transforms/feature extraction methods. Then I will
-#need to join that reactive DF with a feature creation DF.
-
-#--------------------
 
 
 

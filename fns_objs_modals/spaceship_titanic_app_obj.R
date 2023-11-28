@@ -96,8 +96,8 @@ ch_grp_size_featCreat <- c("do not create a group size variable"="none",
                            "family size (passenger group & last name)"="family_size",
                            "travel party size (cabin)"="travel_party_size")
 
-ch_lux_featCreat <- c("do not create a luxury expense variable"="none", 
-                      "room_service",
+# ch_lux_featCreat <- c("do not create a luxury expense variable"="none", 
+ch_lux_featCreat <- c("room_service",
                       "food_court",
                       "shopping_mall",
                       "spa",
