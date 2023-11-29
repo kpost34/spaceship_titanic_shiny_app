@@ -203,13 +203,24 @@ barplotter2 <- function(dat, var, cats, col="viridis"){
 # Feature Creation==================================================================================
 ## Plotting functions for luxury expense variable
 ### Function to mutate input variables to create luxury expense variable
-lux_builder<-function(dat,vars){
-  vars<-syms(vars)
+lux_builder <- function(dat, vars){
   
-  dat %>%
-    rowwise() %>%
-    mutate(luxury=sum(!!!vars)) %>%
-    ungroup()
+  if(length(vars) <= 1) {
+    
+    dat1 <- tibble()
+    
+  } else {
+    
+    vars <- syms(vars)
+  
+    dat %>%
+      rowwise() %>%
+      mutate(!!paste(paste(vars, collapse="_"), "lux", sep="_") := sum(!!!vars)) %>%
+      ungroup() -> dat1
+  }
+  
+  return(dat1)
+  
 }
 
 ### Function to make heat map
@@ -217,19 +228,33 @@ heatmapper<-function(dat,vars){
   
 dat %>%
     select(all_of(vars)) %>%
-    ggcorr(label=TRUE,digits=3)
+    ggcorr(geom="tile", label=TRUE, label_size=6, digits=3, high="#3B9AB2", low="#F21A00",
+           size=5) +
+    ggtitle("Correlation matrix of expense items") +
+    theme(axis.text=element_text(size=14),
+          legend.position="bottom",
+          legend.key.size=unit(1.1, "cm"),
+          legend.text=element_text(size=14),
+          plot.title=element_text(size=16, face="bold"))
 }
 
 
 ### Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
 boxplotter2<-function(dat){
+  
+  var <- dat %>%
+    names() %>%
+    .[str_detect(., "_lux$")]
+  
   dat %>%
     ggplot() +
-    geom_boxplot(aes(x=transported,y=luxury,color=transported)) +
+    geom_boxplot(aes(x=transported,y=!!sym(var),color=transported)) +
     scale_y_log10() +
-    scale_color_viridis_d(end=0.8,guide=NULL) +
+    scale_color_viridis_d(option="mako", end=0.8, guide=NULL) +
     ylab("$") +
-    theme_bw()
+    ggtitle("Boxplot of summed luxury expense items") +
+    theme_bw(base_size=15) +
+    theme(plot.title=element_text(size=16, face="bold"))
 }
   
   

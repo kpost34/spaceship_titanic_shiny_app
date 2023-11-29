@@ -11,44 +11,41 @@ featCreatUI <- function(id) {
     #inputs
     wellPanel(
       fluidRow(
-        column(5,
+        column(4,
           #select input for group size
-          selectInput01(ID=ns("sel_var_group_size"), 
-                        label="Create a group size variable that uses...",
-                        choices=ch_grp_size_featCreat)
+          uiOutput(ns("ui_sel_var_group_size"))
         ),
         column(2,
           linebreaks(5),    
           uiOutput(ns("ui_btn_creFea_complete"))
         ),
-        column(5,
+        column(6,
           #select input for luxury expenses
           selectizeInput(inputId=ns("sel_var_lux_expense"),
                          label="Create a luxury expense variable that uses the sum of",
                          multiple=TRUE,
                          choices=c(
-                           "Choose at least two variables"="",
+                           "Choose at least two variables or leave empty to decline"="",
                            ch_lux_featCreat)),
         )
-        # column(2,
-        #   actionButton(inputId=ns("btn_exp2_creFea04"),label="Visualize results") #remove?
-        # )
       )
       #vertically aligns button with selectizeInput
       # tags$style(type="text/css", "#btn_exp2_creFea04 {width: 100%; margin-top: 25px;}")
     ),
     #outputs
     fluidRow(
-      column(6,
+      column(4,
         # plotOutput(ns("plot_sel_exp1a_creFea04")),
         plotOutput(ns("plot_var_group_size"))
       ),
-      column(6,
-        plotOutput(ns("plot_lux_expense_heatmap")),
-        br(),
+      column(1),
+      column(3,
+        plotOutput(ns("plot_lux_expense_heatmap"))
+      ), 
+      column(4,
         plotOutput(ns("plot_lux_expense_boxplot")),
         #temporary table--previews data after confirming selections
-        tableOutput(ns("plot_temp_table_creFea04"))
+        tableOutput(ns("temp_table"))
       )
     )
   )
@@ -59,6 +56,20 @@ featCreatServer <- function(id, df_train_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
+    
+    ## Input
+    ### Create selector input
+    output$ui_sel_var_group_size <- renderUI({
+      opts <- if(sum(names(df_train_nvI())=="l_name") > 0) {
+        ch_grp_size_featCreat
+      } else {
+        ch_grp_size_featCreat[ch_grp_size_featCreat!="family_size"]
+      }
+      
+      selectInput01(ID=ns("sel_var_group_size"), 
+                label="Create a group size variable that uses...",
+                choices=opts)
+    })
     
     ## Outputs--------------------
     ### Group size variable
@@ -79,72 +90,71 @@ featCreatServer <- function(id, df_train_nvI) {
                ungroup(),
              travel_party_size=df_train_nvI() %>%
                group_by(cabin) %>% 
-               mutate(travel_party_size=n(),
+               mutate(n=n(),
+                      travel_party_size=ifelse(n > 100, NA_character_, paste(n)),
                       travel_party_size=as.factor(travel_party_size)) %>%
-               ungroup()
+               ungroup(),
+             none=df_train_nvI() %>%
+               select(passenger_id)
         )
     })
     
     #### Make bar plot using new df
-    # output$plot_sel_exp1a_creFea04 <- renderPlot({
-    #   #require that user does not select "none" to get plots
-    #   req(input$sel_var_group_size %in% ch_grp_size_featCreat[ch_grp_size_featCreat!="none"])
-    #   
-    #   df_group_size() %>%
-    #     barplotter(input$sel_var_group_size)
-    # })
-  
     output$plot_var_group_size <- renderPlot({
       #require that user does not select "none" to get plots
       req(input$sel_var_group_size %in% ch_grp_size_featCreat[ch_grp_size_featCreat!="none"])
       
       df_group_size() %>%
-        barplotter2(var=input$sel_var_group_size)
+        barplotter2(var=input$sel_var_group_size) +
+        theme(plot.title=element_text(size=16, face="bold"))
     })
     
     
     ### Luxury expense variable
     #### Create reactive df for plotting and feature creation
     df_lux_expense <- reactive({
-      req(input$sel_var_lux_expense %in% ch_lux_featCreat[ch_lux_featCreat!="none"])
-      
       lux_builder(df_train_nvI(), input$sel_var_lux_expense)
     })
     
     
-    #### Display plots after action button depressed
-    observeEvent(input$btn_exp2_creFea04, {
-      output$plot_lux_expense_heatmap <- renderPlot({
-        heatmapper(df_lux_expense(), input$sel_var_lux_expense) 
-      })
+    #### Display plots once at least two variables selected
+    output$plot_lux_expense_heatmap <- renderPlot({
+      req(length(input$sel_var_lux_expense) >= 2)
       
-      output$plot_lux_expense_boxplot <- renderPlot({
-        boxplotter2(df_lux_expense())
-      })
+      heatmapper(df_lux_expense(), input$sel_var_lux_expense) 
     })
+      
+    output$plot_lux_expense_boxplot <- renderPlot({
+      req(length(input$sel_var_lux_expense) >= 2)
+      
+      boxplotter2(df_lux_expense()) 
+    })
+    
+    
     
     
     ## Feature creation--------------------
     ### Display action button to confirm selections dynamically
     output$ui_btn_creFea_complete <- renderUI({
       req(input$sel_var_group_size)
-      req(input$sel_var_lux_expense=="none"|length(input$sel_var_lux_expense)>=2)
-      req(input$btn_exp2_creFea04)
       
       actionButton(inputId=ns("btn_creFea_complete"), "Confirm feature creation selections")
     })
     
     ### Create features
-    df_train_nvI_eF <- eventReactive(input$btn_creFea_complete,{
+    df_train_nvI_eF <- eventReactive(input$btn_creFea_complete, {
+      
       df_group_size() %>%
-        select(passenger_id,ends_with("size")) %>%
-        left_join(df_lux_expense() %>%
-                    select(passenger_id,luxury),by="passenger_id")
-    }
-    )
+        select(passenger_id, ends_with("size")) %>%
+        #join in luxury expense only if it has rows
+        {if(nrow(df_lux_expense()) > 0) 
+          left_join(., df_lux_expense() %>%
+                      select(passenger_id, ends_with("_lux")), by="passenger_id") else .}
+      
+    })
     
     ### Checking
-    output$plot_temp_table_creFea04<-renderTable({
+    output$temp_table <- renderTable({
       head(df_train_nvI_eF())
     })
     

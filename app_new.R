@@ -84,18 +84,18 @@ spaceTitanicApp()
 
 
 
-# LAST PUSHED COMMENT(S)
-#app_new
-  #removed extraneous comments/notes
 
+# LAST PUSHED COMMENT(S)
 #featCreat
-  #added namespacing to module
-  #removed standard dark blue barplot
-  #get code to run
-  #removed null option for lux expense variable
-  #removed visualize results button
-  #employed group bars and log10 y-axis & put x-axis categories in order via barplotter2 fn 
-    #(renamed from rare_enc_barplotter) [also updated name of fn in rare-enc module]
+  #inverted color scheme
+  #removed 'visualize results' button and functionality
+  #made legend of heatmap horizontal and moved below plot
+  #updated logic of lux_builder(), for printing plots, & for joining DFs
+  #improved layout of inputs and outputs
+  #adjusted text sizes in heatmapper & added a title
+  #added title, increased text sizes, & updated colors for boxplot
+  #added logic to conditionally display options for barplot selector
+  #converted travel_party_size of 199 to NA in bar plot
 
 
 ## IN PROGRESS
@@ -105,25 +105,6 @@ spaceTitanicApp()
 #---------------------
 
 ## TO DO 
-
-#feature engineering- feature creation
-  #remove extraneous suffixes of inputs/outputs
-  #luxury items
-    #heatmap
-      #invert color scheme such that blue is positive
-      #make smaller & increase text size
-      #make legend horizontal and move below plot
-    #boxplot
-      #increase text size
-      #make plot smaller
-      #use different colors
-      #try to put heatmap & boxplot in same row
-  #UI
-    #unsure what visualize results button does--remove?
-    #reword second label or adjust layout so that it fits in one line
-    #reorganize layout so that it is user-friendly, particularly after all choices made
-
-
 #feature engineering- selection
   #take the reactive DF from transformation and the reactive DF from creation & join them
   #then use names() to populate choices in selectize
@@ -131,6 +112,13 @@ spaceTitanicApp()
     #will drop out (i.e., the choices needs to be a reactiveValue)
     #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
       #then 'spa' and 'spa_dis" disappear
+
+
+
+#-------------------------------------------------------------------------------------------
+#general
+  #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
+    #data become hidden
 
 
 #feature engineering- transform
@@ -201,6 +189,7 @@ spaceTitanicApp()
     #same goes for next set of tabs
   #look for spots in server code that can be functionalized
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
+  #color confirmation buttons green?
 
 
 
