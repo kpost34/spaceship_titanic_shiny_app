@@ -66,7 +66,7 @@ featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_
     df_train_nvI_r <- featTrans_rareEncServer("df4", df_train_nvI)
     
     # Join DFs
-    df_train_nvI_t <- eventReactive(input$btn_trans_complete, {
+    df_train_nvI_tF <- eventReactive(input$btn_trans_complete, {
       
       df_train_nvI_s() %>%
         left_join(df_train_nvI_d()) %>%
@@ -76,7 +76,7 @@ featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_
     })
     
     # Return DF
-    return(df_train_nvI_t)
+    return(df_train_nvI_tF)
     
   })
 

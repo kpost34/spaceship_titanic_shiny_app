@@ -4,7 +4,7 @@
 featCreatUI <- function(id) {
   ns <- NS(id)
   
-  tabPanel(title="Feature Creation",id="creFea04",
+  tabPanel(title="Feature Creation",
     titlePanel(title="Feature Creation"),
     h4("Now you have the opportunity to create new features for your model using the existing variables. Let's look
        at some possible options"),
@@ -29,8 +29,6 @@ featCreatUI <- function(id) {
                            ch_lux_featCreat)),
         )
       )
-      #vertically aligns button with selectizeInput
-      # tags$style(type="text/css", "#btn_exp2_creFea04 {width: 100%; margin-top: 25px;}")
     ),
     #outputs
     fluidRow(
@@ -142,7 +140,7 @@ featCreatServer <- function(id, df_train_nvI) {
     })
     
     ### Create features
-    df_train_nvI_eF <- eventReactive(input$btn_creFea_complete, {
+    df_train_nvI_cF <- eventReactive(input$btn_creFea_complete, {
       
       df_group_size() %>%
         select(passenger_id, ends_with("size")) %>%
@@ -155,12 +153,12 @@ featCreatServer <- function(id, df_train_nvI) {
     
     ### Checking
     output$temp_table <- renderTable({
-      head(df_train_nvI_eF())
+      head(df_train_nvI_cF())
     })
     
     
     ## Export--------------------
-    return(df_train_nvI_eF)
+    return(df_train_nvI_cF)
     
     
   })

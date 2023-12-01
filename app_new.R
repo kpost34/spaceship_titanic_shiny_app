@@ -44,8 +44,8 @@ spaceTitanicApp <- function() {
       ),
     navbarMenu(title="Feature Engineering", menuName="Fea04",
       featTrans_mainUI("df0"),
-      featCreatUI("df1")
-      # featSelUI("df2")
+      featCreatUI("df1"),
+      featSelUI("df2")
     )
   )
   
@@ -64,9 +64,9 @@ spaceTitanicApp <- function() {
     missOtherServer("dat2", df_train_nvI)
     
     #feature engineering
-    df_train_nvI_t <- featTrans_mainServer("df0", df_train_nvI)
-    featCreatServer("df1", df_train_nvI)
-    # featSelServer("df2")
+    df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI)
+    df_train_nvI_cF <- featCreatServer("df1", df_train_nvI)
+    featSelServer("df2", df_train_nvI, df_train_nvI_tF, df_train_nvI_cF)
     
 
   }
@@ -86,16 +86,9 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featCreat
-  #inverted color scheme
-  #removed 'visualize results' button and functionality
-  #made legend of heatmap horizontal and moved below plot
-  #updated logic of lux_builder(), for printing plots, & for joining DFs
-  #improved layout of inputs and outputs
-  #adjusted text sizes in heatmapper & added a title
-  #added title, increased text sizes, & updated colors for boxplot
-  #added logic to conditionally display options for barplot selector
-  #converted travel_party_size of 199 to NA in bar plot
+#featSel
+  #began creating featSel module
+
 
 
 ## IN PROGRESS
@@ -119,6 +112,13 @@ spaceTitanicApp()
 #general
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
+
+
+
+
+
+
+
 
 
 #feature engineering- transform
@@ -190,6 +190,8 @@ spaceTitanicApp()
   #look for spots in server code that can be functionalized
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #color confirmation buttons green?
+  #hide all 'temp_tables'
+  #use a numeric prefix for module scripts??
 
 
 
