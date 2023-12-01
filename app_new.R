@@ -86,8 +86,9 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#featSel
-  #began creating featSel module
+#added number prefixes to all module scripts
+#colored all buttons
+#added variable type in dropdowns when selecting variable (in EDA modules)
 
 
 
@@ -112,20 +113,20 @@ spaceTitanicApp()
 #general
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
+  #feature engineering (all tabs) can only be available after missingness tabs dealt with
+    #same goes for next set of tabs
+  #UI labels are inconsistently coded as objects--figure out consistent way to handle them
 
 
 
 
-
-
-
-
-
-#feature engineering- transform
+#04_feature engineering- transform
   #whole module
     #all transforms need to be completed to move on
       #some sort of modal should appear that lists remaining items
         #or some other feedback system
+  #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization)
+  #add some type of hyperlink or colored text where you hover over to get a more thorough definition
 
     #for new 'submodules'
       #turn lists of outputs to purrr::map with tagList
@@ -133,7 +134,7 @@ spaceTitanicApp()
 
 
 
-  #feature scaling
+  #04_feature scaling
     #use waiter (or equivalent package) to let user know that processing is happening
     #when the scaling type is selected and confirmed, there needs to be feedback
       #1) toast notification
@@ -142,17 +143,19 @@ spaceTitanicApp()
       #more nuanced scaling: choose type for each variable
 
 
-  #discretization 
+  #04_discretization 
     #need feedback after confirmation
       #1) toast notificaton
       #2) some type of text output [that stays] & is dynamic so it disappears if a user confirms
         #'no discretization'
     #for user cuts (bin boundaries)
       #set it up such that 0 (or negative values) are not possible--need to create user feedback here
+    #got error after discretizing one var then not dis then confirming
+    #confirm button needs to moved fully onto panel
     
 
 
-  #ordinal encoding
+  #04_ordinal encoding
     #feedback following button pressing
       #1) toast notification
       #2) some type of text
@@ -160,64 +163,47 @@ spaceTitanicApp()
       #use purrr::map() to bundle output/render fns
 
 
-  #rare label encoding
+  #04_rare label encoding
     #confirmation should yield feedback
       #1) toast notification selected
       #2) some type of text
 
 
     
-#missName
+#03_missName
   #Use accordion text for the description in the middle
   #Indicate somehow (red box?) that the last step must be completed to continue
-
-
-#missOther
-  #this tab/page (and all of them after) should be hidden until user submits a name imputation method
-  #make side panel narrower
-  #last plot won't work with ticket
-  #re-think the types of missingness plots that we should use
-  #re-think how to assess testing for MAR
-    #--> for both bullets, look at the marsh analysis that I started
-
-
-#general (new)
-  #add variable type in dropdowns when selecting variable
-  #Note: use ggiraph for EDA and all plots--make them interactive
-  #add a backward/forward arrows for users to navigate pages in sequence
-  #feature engineering (all tabs) can only be available after missingness tabs dealt with
-    #same goes for next set of tabs
-  #look for spots in server code that can be functionalized
-  #UI labels are inconsistently coded as objects--figure out consistent way to handle them
-  #color confirmation buttons green?
-  #hide all 'temp_tables'
-  #use a numeric prefix for module scripts??
-
-
-
-
-
-### OLD COMMENTS ###-----------------
-#general/unknown
-  #add table titles--perhaps to correlation table
-  #add modals for imputation options that are risky
-  #from dataCheck module: swap out my missingness function (data check tab) with the one from naniar?
-  #need a title page where variables are defined--perhaps some type of accordion presentation
-
-
-#missingness
-  #perhaps add an option to compare before/after datasets re imputation using vis_compare()
   #in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
    #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
 
 
+#03_missOth
+  #UI
+    #this tab/page (and all of them after) should be hidden until user submits a name imputation method
+    #input 1:
+      #layout: table on left & plot on right
+      #tables: miss_case_table & miss_var_table
+      #plots: gg_miss_case & gg_miss_var
+    #input 2:
+      #determine if missingness is MCAR--run naniar::mcar_test() on predictors
+    #input 3:
+      #imputation method--selector from MICE package
+  #Server
+    #last plot won't work with ticket
+    
 
-#feature engineering
-  #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization) and add some
-    #type of hyperlink or colored text where you hover over to get a more thorough defintion
-  #user feedback: add it if user chooses beyond range and if user does not select at least two vars for luxury expense
-    #variable
 
+
+
+#---------------------------------------------------------------------------------------------------
+
+
+#### LAST UPDATES (if at all)
+  #perhaps add an option to compare before/after datasets re imputation using vis_compare()
+  #need a title page where variables are defined--perhaps some type of accordion presentation
+  #use ggiraph for EDA and all plots--make them interactive
+  #look for spots in server code that can be functionalized
+  #hide all 'temp_tables'
 
 
 #------------------------------------------------

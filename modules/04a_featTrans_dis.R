@@ -49,7 +49,7 @@ featTrans_disUI <- function(id) {
         column(3,
           uiOutput(ns("ui_btn_dis")),
           br(),
-          actionButton(ns("btn_dis_complete"), label="Complete discretization"),
+          actionButton(ns("btn_dis_complete"), label="Complete discretization", class="btn-success")
         )
       )
     ),
@@ -119,7 +119,8 @@ featTrans_disServer <- function(id, df_train_nvI) {
       actionButton(ns(paste("btn_not_dis",
                             input$sel_var_hist,
                             sep="_")),
-                   label="Confirm")
+                   label="Confirm",
+                   class="btn-primary")
     })
     
     output$ui_btn_dis<-renderUI({
@@ -128,7 +129,8 @@ featTrans_disServer <- function(id, df_train_nvI) {
             (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
-      actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")),label="Confirm")
+      actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")), label="Confirm",
+                   class="btn-primary")
     })
     
     

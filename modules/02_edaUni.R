@@ -7,7 +7,7 @@ edaUniUI <- function(id) {
       edaTabBuilder(id,
                     name="Univariate",
                     varID=c("var1","var2"),
-                    options=nchrVars,
+                    options=ncharVarClass,
                     fn=selectInput01)
     )
 }
@@ -22,7 +22,7 @@ edaUniServer <- function(id) {
     ### reactives of output tables
     dat1<-reactive({
       if(input$sel_var1 %in% numVars){
-        summaryize(df_train,input$sel_var1)
+        summaryize(df_train, input$sel_var1)
       }
       else if(input$sel_var1 %in% catVars){
         df_train %>%

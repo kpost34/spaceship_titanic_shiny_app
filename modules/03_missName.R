@@ -31,7 +31,7 @@ missNameUI <- function(id) {
                         choices=ch_imp_opt_missName),
           br(),
           uiOutput(ns("ui_slid_impOpt")),
-        actionButton(ns("btn_impOpt"), "Submit")
+        actionButton(ns("btn_impOpt"), "Submit", class="btn-primary")
       ),
       
       mainPanel(

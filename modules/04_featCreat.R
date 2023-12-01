@@ -136,7 +136,8 @@ featCreatServer <- function(id, df_train_nvI) {
     output$ui_btn_creFea_complete <- renderUI({
       req(input$sel_var_group_size)
       
-      actionButton(inputId=ns("btn_creFea_complete"), "Confirm feature creation selections")
+      actionButton(inputId=ns("btn_creFea_complete"), "Confirm feature creation selections",
+                   class="btn-success")
     })
     
     ### Create features

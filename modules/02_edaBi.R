@@ -9,7 +9,7 @@ edaBiUI <- function(id) {
                   # tabID="biEDA02",
                   varID=c("var1ab", "var2ab"),
                   # varID=c("var12","var34"),
-                  options=nchrVars,
+                  options=ncharVarClass,
                   fn=selectizeInput01)
   )
 }

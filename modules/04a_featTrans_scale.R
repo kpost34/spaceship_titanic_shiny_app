@@ -41,7 +41,8 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     ### Button to confirm selection
     output$ui_btn_scale_complete <- renderUI({
       req(input$sel_var_viz, input$type_scale)
-      actionButton(inputId=ns("btn_scale_complete"), label="Confirm your selection") 
+      actionButton(inputId=ns("btn_scale_complete"), label="Confirm your selection", 
+                   class="btn-success") 
     })
   
     

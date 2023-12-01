@@ -87,7 +87,8 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     output$ui_btn_rareEnc_complete <- renderUI({
       req(input$sel_var_viz1)
       
-      actionButton(inputId=ns("btn_rareEnc_complete"), label="Confirm selections")
+      actionButton(inputId=ns("btn_rareEnc_complete"), label="Confirm selections",
+                   class="btn-success")
     })
   
   

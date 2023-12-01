@@ -56,7 +56,7 @@ featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_
     output$ui_btn_trans_complete <- renderUI({
       req(df_train_nvI_s(), df_train_nvI_d(), df_train_nvI_o(), df_train_nvI_r())
       
-      actionButton(ns("btn_trans_complete"), "All transformations complete")
+      actionButton(ns("btn_trans_complete"), "All transformations complete", class="btn-success")
     })
     
     # Source/run server submodules

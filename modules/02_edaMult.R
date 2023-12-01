@@ -9,7 +9,7 @@ edaMultUI <- function(id) {
                   # tabID="mulEDA02",
                   varID=c("var1abc", "var2abc"),
                   # varID=c("var123", "var456"),
-                  options=nchrVars,
+                  options=ncharVarClass,
                   fn=selectizeInput02)
   )
 }

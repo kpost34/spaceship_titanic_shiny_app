@@ -129,7 +129,9 @@ featTrans_ordEncServer <- function(id, df_train_nvI) {
         )
         )
       )
-      actionButton(inputId=ns("btn_ordEnc_complete"),label="Confirm all ordinal encoding selections")
+      actionButton(inputId=ns("btn_ordEnc_complete"),
+                   label="Confirm all ordinal encoding selections",
+                   class="btn-success")
     })
     
     

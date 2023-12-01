@@ -21,9 +21,15 @@ read_csv(here("data","train.csv")) %>%
 df_train %>% select(where(is.character)) %>% names() -> chrVars
 
 ### All cols but character
+#### Colnames
 df_train %>% select(!where(is.character)) %>% names() -> nchrVars
 #excluding dep var
 nchrVars[nchrVars!="transported"] -> nchrPreds
+
+#### Classes
+df_train %>% select(!where(is.character)) %>% map(class) %>% as.character() -> nchrClass
+ncharVarClass <- nchrVars %>%
+  set_names(paste0(nchrVars, " (", nchrClass, ")"))
 
 ### All logical and factor cols
 df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> catVars
