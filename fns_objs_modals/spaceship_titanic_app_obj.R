@@ -76,13 +76,13 @@ ch_imp_opt_missName <- c("drop name columns"="drop_cols",
 
 ch_exp_nnm_missOther <- c("missing values occurrences"="miss_occur",
                           "missing values per variable" = "miss_var",
-                          "missing values per observation" = "miss_obs",
-                          "missing pattern"="miss_patt")
+                          "missing values per observation" = "miss_obs")
 
-#unused?
-# nchrMis03_impVec<-c("retain complete cases only"="lwise_del",
-#                     "remove variable(s) missing data"="var_del",
-#                     "mean imputation (numeric vars only)" = "mean_imp")
+
+ch_impute_missOther <-c("retain complete cases only"="lwise_del",
+                        "mean imputation (numeric vars) with most frequent category" = "mean_imp",
+                        "median imputation (numeric vars) with most frequent category" = "med_imp",
+                        "multiple imputation - cart" = "mult_imp")
 
 ch_trans_featTrans <- c("Feature Scaling",
                         "Discretization",

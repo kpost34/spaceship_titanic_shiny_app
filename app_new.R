@@ -3,7 +3,7 @@
 # Modularized structure
 ## Load packages
 pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
-               naniar,mice,cowplot,GGally, ggiraph, shinyWidgets)
+               naniar,mice,cowplot,GGally, ggiraph, shinyWidgets, Hmisc, mice, simputation)
 
 #address potential conflicts
 filter <- dplyr::filter
@@ -60,8 +60,8 @@ spaceTitanicApp <- function() {
     edaMultServer("data3")
     
     #missingness
-    df_train_nvI <- missNameServer("dat1")
-    missOtherServer("dat2", df_train_nvI)
+    df_train_nI <- missNameServer("dat1")
+    missOtherServer("dat2", df_train_nI)
     
     #feature engineering
     df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI)
@@ -84,11 +84,14 @@ spaceTitanicApp()
 
 
 
-
 # LAST PUSHED COMMENT(S)
-#added number prefixes to all module scripts
-#colored all buttons
-#added variable type in dropdowns when selecting variable (in EDA modules)
+#missOther
+  #remove gg_miss_upset (missing pattern plot), including modifying choices object
+  #added radioButtons to run mcar test
+  #created text and tabular outputs associated with mcar test
+  #moved above next to plotOutputs used to visualize missingness
+  #increased text size of plotOutputs
+  #created selector to choose imputation method
 
 
 
@@ -96,20 +99,12 @@ spaceTitanicApp()
 
 
 
-#---------------------
+#---------------------------------------------------------------------------------------------------
 
 ## TO DO 
-#feature engineering- selection
-  #take the reactive DF from transformation and the reactive DF from creation & join them
-  #then use names() to populate choices in selectize
-  #when user picks a variable that is related to other vars in the joined DF, those vars 
-    #will drop out (i.e., the choices needs to be a reactiveValue)
-    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
-      #then 'spa' and 'spa_dis" disappear
 
 
 
-#-------------------------------------------------------------------------------------------
 #general
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
@@ -117,6 +112,14 @@ spaceTitanicApp()
     #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
 
+
+#feature engineering- selection
+  #take the reactive DF from transformation and the reactive DF from creation & join them
+  #then use names() to populate choices in selectize
+  #when user picks a variable that is related to other vars in the joined DF, those vars 
+    #will drop out (i.e., the choices needs to be a reactiveValue)
+    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
+      #then 'spa' and 'spa_dis" disappear
 
 
 
@@ -179,18 +182,10 @@ spaceTitanicApp()
 
 #03_missOth
   #UI
-    #this tab/page (and all of them after) should be hidden until user submits a name imputation method
-    #input 1:
-      #layout: table on left & plot on right
-      #tables: miss_case_table & miss_var_table
-      #plots: gg_miss_case & gg_miss_var
-    #input 2:
-      #determine if missingness is MCAR--run naniar::mcar_test() on predictors
     #input 3:
       #imputation method--selector from MICE package
-  #Server
-    #last plot won't work with ticket
-    
+  #this tab/page (and all of them after) should be hidden until user submits a name imputation method
+  
 
 
 
