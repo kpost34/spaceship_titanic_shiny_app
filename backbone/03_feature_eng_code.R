@@ -329,6 +329,57 @@ trainDF %>%
   theme_bw()
 
 
+### Name
+i_trainDF %>%
+  separate(name,into=c("f_name","l_name",sep=" "),remove=FALSE) -> fi_trainDF
+
+
+### Cabin
+
+
+
+### Family size
+## l_name
+trainDF %>%
+  group_by(l_name) %>%
+  mutate(fam_size=n()) -> train
+
+# l_name + passenger_group
+train %>%
+  group_by(l_name,passenger_group) %>%
+  mutate(fam_size=n()) -> train
+
+# l_name + cabin
+train %>%
+  group_by(l_name,cabin) %>%
+  mutate(fam_size=n()) -> train
+
+# l_name + passenger_group + cabin
+train %>%
+  group_by(l_name,passenger_group,cabin) %>%
+  mutate(fam_size=n()) -> train
+
+
+### Traveling party size
+## Number of different tickets in a group
+train %>%
+  group_by(passenger_group) %>%
+  mutate(party_size=n_distinct(ticket)) -> train
+
+## Number of people in same cabin (room)
+train %>%
+  group_by(cabin) %>%
+  mutate(party_size=n())
+
+
+### Age groups
+
+
+### Visualize new cols
+## Descriptive stats
+tabyl(train$fam_size)
+
+## Graphically
 
 
 

@@ -85,13 +85,12 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#missOther
-  #remove gg_miss_upset (missing pattern plot), including modifying choices object
-  #added radioButtons to run mcar test
-  #created text and tabular outputs associated with mcar test
-  #moved above next to plotOutputs used to visualize missingness
-  #increased text size of plotOutputs
-  #created selector to choose imputation method
+#backbone code
+  #moved featuring engineering code from missingness to feature engineering
+  #in former, developed code to quickly impute num followed by multiple imputation of remaining vars
+  #created short script called 'data_partitioning_code.R' where I test processing speeds when creating
+    #cross-validation folds using various combinations of v and repeats
+  #began developing model-fitting code
 
 
 
@@ -102,9 +101,38 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
+#feature selection
+  #dynamic logic whereby if a user selects a column then all directly related columns will drop out
+
+
+### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
+
+
+### 6. Modeling
+## Create recipe (identify col as id var, predictor, or outcome)
+## Specify models
+## Construct workflow
+## Fit models 
+## Assess model accuracy
+
+
+### 7. Validation and tuning
+## Fit models to cross-validation folds
+## Tune models
+## Select best model and finalize workflow
+## Assess model characteristics
+
+
+### 8. Testing
+#develop code to save pre-processing steps
+#preprocess test data using same methods for training data
+#run trained and tuned model onto test data
 
 
 
+
+
+#--------------------------------------------------------------------------------------------
 #general
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
@@ -201,28 +229,5 @@ spaceTitanicApp()
   #hide all 'temp_tables'
 
 
-#------------------------------------------------
-#OUTLINE
 
-### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
-
-
-### 6. Modeling
-## Create recipe (identify col as id var, predictor, or outcome)
-## Specify models
-## Construct workflow
-## Fit models 
-## Assess model accuracy
-
-
-### 7. Validation and tuning
-## Fit models to cross-validation folds
-## Tune models
-## Select best model and finalize workflow
-## Assess model characteristics
-
-
-### 8. Testing
-## Preprocess test data using same methods for training data
-## Run trained and tuned model onto test data
 
