@@ -85,12 +85,8 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#backbone code
-  #moved featuring engineering code from missingness to feature engineering
-  #in former, developed code to quickly impute num followed by multiple imputation of remaining vars
-  #created short script called 'data_partitioning_code.R' where I test processing speeds when creating
-    #cross-validation folds using various combinations of v and repeats
-  #began developing model-fitting code
+#backbone: 01_data_clean_check_eda_code.R
+  #updated style & spacing
 
 
 
