@@ -21,7 +21,7 @@ missOtherUI <- function(id) {
 
         #how to handle missing data
         h5("Now that we've visualized and assessed missingness, let's impute data."),
-        selectInput01(ID=ns("sel_impute", label="", choices=ch_impute_missOther))
+        selectInput01(ID=ns("sel_impute"), label="", choices=ch_impute_missOther)
         
       ),
       mainPanel(width=10,
@@ -93,32 +93,32 @@ missOtherServer <- function(id, df_train_nI) {
     
     
     ## Imputation--------------------
-    ### Create reactifve
-    df_train_nvI <- reactive({
-      req(input$sel_impute)
-      
-      switch(input$sel_impute,
-        lwise_del=na.omit(df_train),
-          
-        mean_imp=df_train_nI() %>% 
-          mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=mean))),
-          
-        med_imp=df_train_nI() %>% 
-          mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=median))),
-          
-        mult_imp=
-      
-      
-      
-      
-    })
-  
-  
-    #### Output reactive
-    output$tab_sel_compare <- renderDT(
-      dat(), options=list(scrollX="400px")
-    )
-    
+    ### Create reactive
+#     df_train_nvI <- reactive({
+#       req(input$sel_impute)
+#       
+#       switch(input$sel_impute,
+#         lwise_del=na.omit(df_train),
+#           
+#         mean_imp=df_train_nI() %>% 
+#           mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=mean))),
+#           
+#         med_imp=df_train_nI() %>% 
+#           mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=median))),
+#           
+#         mult_imp=
+#       
+#       
+#       
+#       
+#     })
+#   
+#   
+#     #### Output reactive
+#     output$tab_sel_compare <- renderDT(
+#       dat(), options=list(scrollX="400px")
+#     )
+#     
   })
 }
 

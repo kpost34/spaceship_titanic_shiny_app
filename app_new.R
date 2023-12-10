@@ -82,11 +82,15 @@ spaceTitanicApp()
 #----------------------
 ## DONE
 
+  
 
 
 # LAST PUSHED COMMENT(S)
-#backbone: 01_data_clean_check_eda_code.R
-  #updated style & spacing
+#backbone: 02
+  #cleaned up layout, naming, and spacing of code
+  #removed previous statistical testing code
+  #added mcar_test()
+  #added section on discretizing num into bins by floor or floor ranges
 
 
 
@@ -97,6 +101,22 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
+#3. once this is completed, revisit non-chr imputation as more options should become available--speeds
+  #up processing time
+#4. try different options in imputation
+#5. then update 1) chr missingness code in app, 2) non-chr missingness code in app; 3) backbone 03;
+  #4) backbone 04
+
+
+#...eventually want to include this in app--remove num from EDA plots (treat like name, a string)
+  #and either 1) include with name imputation or 2) add as separate page where it's another
+  #type of imputation...there would be a slider with bin_width and this would get populated into
+  #cut_width(width)...make sure to set boundary to 0 [range could be 100-300/400 by 100]
+#perhaps this could be used again in rare label encoding and maybe even ordinal encoding
+
+#Note: how to handle NA names after name imputation?
+
+#---------------------------------------------------------------------------------------------------
 #feature selection
   #dynamic logic whereby if a user selects a column then all directly related columns will drop out
 
@@ -186,7 +206,7 @@ spaceTitanicApp()
     #feedback following button pressing
       #1) toast notification
       #2) some type of text
-    #later...
+    #later.../
       #use purrr::map() to bundle output/render fns
 
 
@@ -194,7 +214,6 @@ spaceTitanicApp()
     #confirmation should yield feedback
       #1) toast notification selected
       #2) some type of text
-
 
     
 #03_missName
