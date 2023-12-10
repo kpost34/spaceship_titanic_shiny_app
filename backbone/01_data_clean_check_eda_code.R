@@ -22,9 +22,9 @@ read_csv(here("data","train.csv")) %>%
   ### cabin
   separate(cabin,into=c("deck","num","side"), sep="/", remove=FALSE) %>%
   ### name
-  separate(name,into=c("f_name","l_name"), sep=" ", remove=FALSE) %>%
+  separate(name,into=c("f_name","l_name"), sep=" ", remove=FALSE) %>% 
   ### reclassify vars
-  mutate(across(c(ticket, home_planet, deck:destination), ~as.factor(.x))) -> df_train
+  mutate(across(c(ticket, home_planet, deck, side, destination), ~as.factor(.x))) -> df_train
 
 
 # Data Checking=====================================================================================

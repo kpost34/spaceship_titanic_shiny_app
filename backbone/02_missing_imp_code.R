@@ -5,8 +5,7 @@
 
 # Load Packages, Address Conflicts, and Source Data=================================================
 ## Load Packages
-pacman::p_load(here, tidyverse, janitor, visdat, finalfit, skimr, GGally, rstatix, naniar, mice,
-               simputation)
+pacman::p_load(here, tidyverse, janitor, visdat, finalfit, skimr, GGally, rstatix, naniar, mice)
 
 ## Address conflicts
 filter <- dplyr::filter
@@ -24,9 +23,9 @@ read_csv(here("data","train.csv")) %>%
   #cabin
   separate(cabin,into=c("deck", "num", "side"), sep="/", remove=FALSE) %>%
   #name
-  separate(name,into=c("f_name", "l_name"), sep=" ", remove=FALSE) %>%
+  separate(name,into=c("f_name", "l_name"), sep=" ", remove=FALSE) %>% 
   #reclassify vars
-  mutate(across(c(ticket, home_planet, deck:destination), ~as.factor(.x))) -> df_train
+  mutate(across(c(ticket, home_planet, deck, side, destination), ~as.factor(.x))) -> df_train
 
 
 # num Discretization================================================================================
@@ -136,8 +135,10 @@ plot_floors(df_train_floor, floor_4, "floor range")
 #floor_1 is more granular and has the largest deviation in prop_transported, so will use it going
   #forward
 df_train %>%
-  mutate(num=as.numeric(num),
-         floor=num %/% 100) -> df_train_nd
+  mutate(num_num=as.numeric(num),
+         floor=num_num %/% 100,
+         floor=as.factor(floor)) %>%
+  select(-num_num) -> df_train_nd
 
 
 # Character String Imputation=======================================================================
@@ -300,7 +301,7 @@ roomGroupNAnameSizes_tab %>%
 
 
 #### Filter by passenger groups then fill by named passengers in pass groups (also a function)
-df_train %>%
+df_train_nd %>%
   #filter by cabin
   filter(cabin %in% roomGroupNAnames2larger) %>% 
   #populate l_name by passenger_group
@@ -334,7 +335,7 @@ df_train_nd_nI %>%
 ## Missingness----------------------------------------
 ### Code variables
 #all non-chr explanatory variables
-explanatory <- df_train_nI %>%
+explanatory <- df_train_nd_nI %>%
   select(-c(passenger_id, passenger_group, cabin, name:last_col())) %>%
   names()
 #dependent variable
@@ -344,49 +345,49 @@ dependent<-"transported"
 ### Identify missing values in each variable
 #### Tabular visualization
 ##### Detailed missingingness data and summary stats
-df_train_nI %>%
+df_train_nd_nI %>%
   ff_glimpse(dependent, explanatory)
 
 ##### Number missing,  complete cases,  and summary stats
-df_train_nI %>%
+df_train_nd_nI %>%
   skim()
 
 ##### Row number,  number of missing values,  and pct missing
-df_train_nI %>%
+df_train_nd_nI %>%
   miss_case_summary()
 
 ##### Number and pct of cases with 0-n missing values
-df_train_nI %>%
+df_train_nd_nI %>%
   miss_case_table()
 
 #### Graphical visualization
 ##### Occurrences
-vis_dat(df_train_nI)
-vis_miss(df_train_nI)
+vis_dat(df_train_nd_nI)
+vis_miss(df_train_nd_nI)
 
-df_train_nI %>%
+df_train_nd_nI %>%
   missing_plot(dependent, explanatory) 
 #cols with missing data: home_planet,  cryo_sleep,  deck,  num,  side,  destination,  age,  vip,  room_service,  food_court,  
 #shopping_mall,  spa,  vr_deck (aside from character vars...all but transported)
 
 ##### Per variable or row
-df_train_nI %>%
+df_train_nd_nI %>%
   #remove chr vars
   select(all_of(c(explanatory, dependent))) %>%
   gg_miss_var()
 
-df_train_nI %>%
+df_train_nd_nI %>%
   #remove chr vars
   select(all_of(c(explanatory, dependent))) %>%
   gg_miss_case()
   
 
 ##### Look for patterns of missingness
-df_train_nI %>%
+df_train_nd_nI %>%
   missing_pattern(dependent, explanatory) 
 #there are 77 patterns of missingness
 
-df_train_nI %>%
+df_train_nd_nI %>%
   #remove chr vars
   select(all_of(c(explanatory, dependent))) %>%
   #nset specifies the number of most common patterns to return
@@ -394,98 +395,58 @@ df_train_nI %>%
 
 
 ### Statistically test for MCAR
-df_train_nI %>%
+df_train_nd_nI %>%
   #select non-chr predictors
   select(all_of(explanatory)) %>% 
-  naniar::mcar_test() 
+  naniar::mcar_test()
 #p > 0.97 indicating that it's NS and thus the data are MCAR
 
 
 ## Handling missing data----------------------------------------
-### Multiple imputation
-#NOTE: best to avoid using the explanatory variable interest (not really present in these data) and the response 
-  #variable when performing multiple imputation
-
-#e.g., deck missingness is conditional on cryo_sleep,  room_service,  and spa (from test above)
-#### Choose which variables to use in imputation and to impute
-explanatory <- c("cryo_sleep", "room_service", "spa")
-dependent <- "deck"
-df_train_nI %>%
-  select(all_of(explanatory), all_of(dependent)) %>%
-  missing_predictorMatrix() -> pred_deck
-    #only want to impute deck
-    #drop_from_imputed=explanatory 
-
-#### Create linear models to impute missing deck values
-fits <- df_train_nI %>%
-  select(all_of(explanatory), all_of(dependent)) %>%
-  #m=# of data sets and maxit = # of iterations; method is *per col*
-  mice(m=4, predictorMatrix=pred_deck, method=c(rep("", 3), "cart"), maxit=5)
-
-#original data
-summary(df_train_nI$deck) 
-
-#row-by-row of imputed data
-fits$imp
-fits$imp$deck 
-summary(fits$imp$deck)
-#select imputed data set that is similar to data
-
-final_train <- mice::complete(fits, 5)
-
-#Note method can be specified for each column with c(); e.g.,  c("pmm", "pmm", "lda")
-
-  #with(lda(formula(ff_formula(dependent, explanatory))))
-
-#### Extract metrics from fits
-fits %>%
-  getfit() %>%
-  purrr::map(AIC)
-
-fits %>% 
-  getfit() %>% 
-  purrr::map(~ pROC::roc(.x$y,  .x$fitted)$auc)
-
-fits %>%
-  pool()
-
-df_train_nI %>%
-  or_plot(dependent, explanatory, glm)
+### Listwise deletion (retain complete cases only)
+na.omit(df_train_nd_nI) #-> df_train_nd_nvI
+#drops rows from 8559 to 6606
 
 
-### Impute data
-## individually-impute num (factor variable with many,  many levels)
-df_train2 <- df_train_nI %>% 
-  select(!where(is.character),  passenger_id,  cabin) %>% #select only fct,  num,  or log variables
-  impute_knn(formula= num ~ ticket + home_planet + cryo_sleep + destination + age + vip + 
-               room_service + food_court + shopping_mall + spa + vr_deck ,  backend="VIM")
-#formula removes vars that have shared missigness with num--side & deck; takes ~ 5 sec
+### Mean imputation (numeric vars) & most frequent categories
+df_train_nd_nI %>% 
+  mutate(across(!where(is.character), ~Hmisc::impute(.x, fun=mean))) 
 
 
 
+### Median imputation (numeric vars) & most frequent categories
+df_train_nd_nI %>% 
+  mutate(across(!where(is.character), ~Hmisc::impute(.x, fun=median))) 
 
-## all
-df_train3 <- df_train2 %>%
-  select(!where(is.character),  -num,  passenger_id) %>% #should I split off pass_id,  name vars,  & cabin & rejoin later?
-  mice(method="pmm",  m=2,  maxit=2) %>%
+
+### Multiple imputation - PMM
+df_train_nd_nI %>% 
+  mice(method="pmm", m=2, maxit=2) %>%
+  complete() -> df_train_nd_nvI
+#takes ~7 seconds
+
+
+#### Cart
+df_train_nd_nI %>% 
+  mice(method="cart", m=2, maxit=2) %>%
   complete() %>%
-  bind_cols(
-    df_train %>%
-      select(passenger_id,  passenger_group,  cabin,  name,  f_name,  l_name) #select(chrVars)
-  )
+  skim()
+#takes a while--so use PMM
 
 
-### Post-imputation data check
-## remaining missingness?
-skim(df_train3) #no data missing
+## Post-imputation check----------------------------------------
+### Remaining missingness?
+skim(df_train_nd_nvI) #only char vars have missing values
 
-## new ranges/averages/counts--perhaps do a pre- vs post
-skim(df_train_nI)
-skim(df_train3)
 
-## graphically
+### Visualize missingness
+missing_plot(df_train_nd_nvI)
+gg_miss_var(df_train_nd_nvI)
+gg_miss_case(df_train_nd_nvI)
 
-#use vis_compare()
-vis_compare(df_train_nI,  df_train3) #can't b/c differ in dimensions
+
+### Compare pre- vs post-imputation
+vis_compare(df_train_nd_nvI, df_train_nd_nI) 
+
 
 

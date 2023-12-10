@@ -101,10 +101,10 @@ missOtherServer <- function(id, df_train_nI) {
 #         lwise_del=na.omit(df_train),
 #           
 #         mean_imp=df_train_nI() %>% 
-#           mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=mean))),
+#           mutate(across(all_of(nchrPreds), ~Hmisc::impute(x=.x, fun=mean))),
 #           
 #         med_imp=df_train_nI() %>% 
-#           mutate(across(all_of(nchrPreds), ~impute(x=.x, fun=median))),
+#           mutate(across(all_of(nchrPreds), ~Hmisc::impute(x=.x, fun=median))),
 #           
 #         mult_imp=
 #       

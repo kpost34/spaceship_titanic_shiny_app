@@ -86,11 +86,10 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#backbone: 02
-  #cleaned up layout, naming, and spacing of code
-  #removed previous statistical testing code
-  #added mcar_test()
-  #added section on discretizing num into bins by floor or floor ranges
+#missOther module: added Hmisc:: before impute for clarity
+#in backbones 01 & 02, removed conversion of num from chr to fct
+#in backbone 02, updated naming of DFs, removed old multiple imputation code, added new multiple
+  #imputation code (using floor as a fct), and developed post-imputation code
 
 
 
