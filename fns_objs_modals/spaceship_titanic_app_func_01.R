@@ -3,8 +3,10 @@
 #Functions for spaceship titanic R shiny project: part 1 of x
 #Codes for functions that match backbone 01 script: reading in data, data checking, and eda
 
-#Load packages
+# Load Packages & Address Conflicts=============================================
 pacman::p_load(tidyverse, skimr, janitor, purrr, rstatix, scales)
+
+summarize <- dplyr::summarize
 
 
 # Data Checking===================================================================

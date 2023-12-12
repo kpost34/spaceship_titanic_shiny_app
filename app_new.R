@@ -39,14 +39,15 @@ spaceTitanicApp <- function() {
       edaMultUI("data3")
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
-      missNameUI("dat1"),
-      missOtherUI("dat2")
+      missNumUI("dat1"),
+      missNameUI("dat2")
+      # missOtherUI("dat2")
       ),
-    navbarMenu(title="Feature Engineering", menuName="Fea04",
-      featTrans_mainUI("df0"),
-      featCreatUI("df1"),
-      featSelUI("df2")
-    )
+    # navbarMenu(title="Feature Engineering", menuName="Fea04",
+    #   featTrans_mainUI("df0"),
+    #   featCreatUI("df1"),
+    #   featSelUI("df2")
+    # )
   )
   
   ## Server
@@ -60,13 +61,14 @@ spaceTitanicApp <- function() {
     edaMultServer("data3")
     
     #missingness
-    df_train_nI <- missNameServer("dat1")
-    missOtherServer("dat2", df_train_nI)
-    
-    #feature engineering
-    df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI)
-    df_train_nvI_cF <- featCreatServer("df1", df_train_nvI)
-    featSelServer("df2", df_train_nvI, df_train_nvI_tF, df_train_nvI_cF)
+    df_train_nd <- missNumServer("dat1")
+    df_train_nd_nI <- missNameServer("dat2", df_train_nd)
+    # missOtherServer("dat3", df_train_nd_nI)
+    # 
+    # #feature engineering
+    # df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI) #would like to update to df1
+    # df_train_nvI_cF <- featCreatServer("df1", df_train_nvI) #would like to update to df2
+    # featSelServer("df2", df_train_nvI, df_train_nvI_tF, df_train_nvI_cF) #would like to update to df3
     
 
   }
@@ -86,10 +88,13 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#missOther module: added Hmisc:: before impute for clarity
-#in backbones 01 & 02, removed conversion of num from chr to fct
-#in backbone 02, updated naming of DFs, removed old multiple imputation code, added new multiple
-  #imputation code (using floor as a fct), and developed post-imputation code
+#updated *_obj.R to reflect converting num back to chr (from fct)
+#same with 02_edaUni/Bi/Mult modules
+#updated app code to reflect changes in ids and reactive DFs
+#created new module 03_missNum.R
+  #developed UI & server to print DT & barplot of num bins & transported
+#func_02: 1) added more spacing, 2) created new fn to bin num into floor groups; 3) updated 
+  #barplotter2() to make ggplot title optional
 
 
 
@@ -100,18 +105,13 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
-#3. once this is completed, revisit non-chr imputation as more options should become available--speeds
-  #up processing time
-#4. try different options in imputation
-#5. then update 1) chr missingness code in app, 2) non-chr missingness code in app; 3) backbone 03;
-  #4) backbone 04
+#5. then update 1) non-chr missingness code in app; 2) backbone 03;
+  #3) backbone 04
 
 
-#...eventually want to include this in app--remove num from EDA plots (treat like name, a string)
-  #and either 1) include with name imputation or 2) add as separate page where it's another
-  #type of imputation...there would be a slider with bin_width and this would get populated into
-  #cut_width(width)...make sure to set boundary to 0 [range could be 100-300/400 by 100]
-#perhaps this could be used again in rare label encoding and maybe even ordinal encoding
+#perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
+
+#add toast notification after submitting floor_num decision
 
 #Note: how to handle NA names after name imputation?
 

@@ -52,7 +52,7 @@ missNameUI <- function(id) {
 
 
 # Server============================================================================================
-missNameServer <- function(id) {
+missNameServer <- function(id, df_train_nd) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns

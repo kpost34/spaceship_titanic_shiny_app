@@ -4,13 +4,13 @@
 read_csv(here("data","train.csv")) %>%
   clean_names() %>%
   ### passenger_id
-  separate(passenger_id,into=c("passenger_group","ticket"),sep="_",remove=FALSE) %>%
+  separate(passenger_id,into=c("passenger_group","ticket"), sep="_", remove=FALSE) %>%
   ### cabin
-  separate(cabin,into=c("deck","num","side"),sep="/",remove=FALSE) %>%
+  separate(cabin,into=c("deck","num","side"), sep="/", remove=FALSE) %>%
   ### name
-  separate(name,into=c("f_name","l_name"),sep=" ",remove=FALSE) %>%
+  separate(name,into=c("f_name","l_name"), sep=" ", remove=FALSE) %>% 
   ### reclassify vars
-  mutate(across(c(ticket,home_planet,deck:destination),~as.factor(.x))) -> df_train
+  mutate(across(c(ticket, home_planet, deck, side, destination), ~as.factor(.x))) -> df_train
 
 
 
@@ -37,11 +37,11 @@ df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> catVars
 ### All numeric cols
 df_train %>% select(where(is.numeric)) %>% names() -> numVars
 
-### All factor cols except for num
-df_train %>% select(where(is.factor),-num) %>% names() -> fct_nonumVars
+### All factor cols 
+df_train %>% select(where(is.factor)) %>% names() -> fct_nonumVars
 
-### Numeric vars + num
-df_train %>% select(where(is.numeric),num) %>% names() -> disVars
+### Numeric vars
+df_train %>% select(where(is.numeric)) %>% names() -> disVars
 
 ## Missing exploration cols
 vars_miss_exp <- c("passenger_id", "passenger_group", "ticket", "cabin", "home_planet", 

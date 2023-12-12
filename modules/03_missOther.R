@@ -42,7 +42,7 @@ missOtherUI <- function(id) {
 
 
 # Server============================================================================================
-missOtherServer <- function(id, df_train_nI) {
+missOtherServer <- function(id, df_train_nd_nI) {
   moduleServer(id, function(input, output, session) {
     
     ## Exploration--------------------
@@ -58,11 +58,11 @@ missOtherServer <- function(id, df_train_nI) {
     ### Plot output
     output$plot_sel_exp <- renderPlot({
       switch(input$sel_exp,
-       miss_occur=df_train_nvI() %>% 
+       miss_occur=df_train_nd_nvI() %>% 
          missing_plot(depVar, nchrPreds) + labs(title="") + theme_bw(base_size=16),
-       miss_var=df_train_nvI() %>% select(all_of(nchrVars)) %>% 
+       miss_var=df_train_nd_nvI() %>% select(all_of(nchrVars)) %>% 
          gg_miss_var() + theme_bw(base_size=16),
-       miss_obs=df_train_nvI() %>% select(all_of(nchrVars)) %>% 
+       miss_obs=df_train_nd_nvI() %>% select(all_of(nchrVars)) %>% 
          gg_miss_case() + theme_bw(base_size=16)
       )
     })
@@ -81,7 +81,7 @@ missOtherServer <- function(id, df_train_nI) {
     output$tab_mcar <- renderDT({
       req(input$rad_mcar=="Yes")
       
-      df_train_nvI() %>%
+      df_train_nd_nvI() %>%
         select(all_of(nchrPreds)) %>%
         naniar::mcar_test() %>%
         mutate(across(c(statistic, p.value), ~signif(.x, 4))) %>%
@@ -94,7 +94,7 @@ missOtherServer <- function(id, df_train_nI) {
     
     ## Imputation--------------------
     ### Create reactive
-#     df_train_nvI <- reactive({
+#     df_train_nd_nvI <- reactive({
 #       req(input$sel_impute)
 #       
 #       switch(input$sel_impute,

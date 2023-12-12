@@ -167,7 +167,7 @@ bin_plotter <- function(dat, col, type, log_val) {
 
 ## Rare Label Encoding
 ### Function to make barplots of counts filled by transported and to combine different factor levels
-barplotter2 <- function(dat, var, cats, col="viridis"){
+barplotter2 <- function(dat, var, cats, col="viridis", title=TRUE){
   #convert quoted input to symbol
   var <- sym(var)
   
@@ -194,7 +194,7 @@ barplotter2 <- function(dat, var, cats, col="viridis"){
       scale_y_log10(expand=expansion(mult=c(0,0.1))) +
       scale_fill_viridis_d(option=col) +
       xlab(paste(var)) +
-      ggtitle(paste("Bar plot of", var, title_suffix)) +
+      {if(title) ggtitle(paste("Bar plot of", var, title_suffix))} +
       theme_bw(base_size=15) +
       theme(legend.position="bottom")
 }

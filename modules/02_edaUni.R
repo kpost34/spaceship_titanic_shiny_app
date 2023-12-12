@@ -26,11 +26,6 @@ edaUniServer <- function(id) {
       }
       else if(input$sel_var1 %in% catVars){
         df_train %>%
-          #bin num into six equally spaced groups
-          {if(input$sel_var1=="num") 
-            mutate(., 
-                   num=as.numeric(num), 
-                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           tabylize(input$sel_var1)
       }
     })
@@ -41,10 +36,6 @@ edaUniServer <- function(id) {
       }
       else if(input$sel_var2 %in% catVars){
         df_train %>%
-          {if(input$sel_var2=="num") 
-            mutate(., 
-                   num=as.numeric(num), 
-                   num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           tabylize(input$sel_var2)
       }
     }) 
@@ -83,11 +74,6 @@ edaUniServer <- function(id) {
       }
       else if(input$sel_var1 %in% catVars){
         df_train %>%
-          #bin num into six equally spaced groups
-          {if(input$sel_var1=="num")
-              mutate(., 
-                     num=as.numeric(num), 
-                     num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           barplotter(input$sel_var1)
       }
     })
@@ -98,10 +84,6 @@ edaUniServer <- function(id) {
       }
       else if(input$sel_var2 %in% catVars){
         df_train %>%
-          {if(input$sel_var2=="num")
-              mutate(., 
-                     num=as.numeric(num), 
-                     num=cut_width(num, width=303, boundary=0, dig.lab=4)) else .} %>%
           barplotter(input$sel_var2)
       }
     })
