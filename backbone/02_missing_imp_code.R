@@ -3,20 +3,20 @@
 # R code to build Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
 # Part 2 of x:  exploring missing data, imputing names, and imputing non-character variables
 
-# Load Packages, Address Conflicts, and Source Data=================================================
+# Load Packages and Address Conflicts===============================================================
 ## Load Packages
 pacman::p_load(here, tidyverse, janitor, visdat, finalfit, skimr, GGally, rstatix, naniar, mice)
 
 ## Address conflicts
 filter <- dplyr::filter
 chisq.test <- stats::chisq.test
+summarize <- dplyr::summarize
 
 
 
-
-# Read in Data & Initially Clean Data===============================================================
+# Read in and Initially Clean Data==================================================================
 #exit: df_train
-read_csv(here("data","train.csv")) %>%
+read_csv(here("data", "train.csv")) %>%
   clean_names() %>%
   #passenger_id
   separate(passenger_id,into=c("passenger_group", "ticket"), sep="_", remove=FALSE) %>%
@@ -427,10 +427,10 @@ df_train_nd_nI %>%
 
 
 #### Cart
-df_train_nd_nI %>% 
-  mice(method="cart", m=2, maxit=2) %>%
-  complete() %>%
-  skim()
+# df_train_nd_nI %>% 
+#   mice(method="cart", m=2, maxit=2) %>%
+#   complete() %>%
+#   skim()
 #takes a while--so use PMM
 
 
@@ -447,6 +447,17 @@ gg_miss_case(df_train_nd_nvI)
 
 ### Compare pre- vs post-imputation
 vis_compare(df_train_nd_nvI, df_train_nd_nI) 
+
+
+
+# Data Hygiene======================================================================================
+## Remove all but final data frame
+rm(list=setdiff(ls(), "df_train_nd_nvI"))
+
+
+
+
+
 
 
 

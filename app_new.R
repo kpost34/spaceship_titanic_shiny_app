@@ -88,13 +88,12 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#updated *_obj.R to reflect converting num back to chr (from fct)
-#same with 02_edaUni/Bi/Mult modules
-#updated app code to reflect changes in ids and reactive DFs
-#created new module 03_missNum.R
-  #developed UI & server to print DT & barplot of num bins & transported
-#func_02: 1) added more spacing, 2) created new fn to bin num into floor groups; 3) updated 
-  #barplotter2() to make ggplot title optional
+#03_missNum
+  #displayed & updated num per page in DT output
+#backbone: 
+  #02: tidied up some part; resolved conflict
+  #03: began updating code for consistent format; replaced trainDF wrangling with source() of 02;
+    #add code in transformation section to create new DF with transformed numerical vars
 
 
 
@@ -105,8 +104,9 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
-#5. then update 1) non-chr missingness code in app; 2) backbone 03;
-  #3) backbone 04
+#1; update backbone 03
+#2: update backbone 04
+#3: update non-chr missingness module
 
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding

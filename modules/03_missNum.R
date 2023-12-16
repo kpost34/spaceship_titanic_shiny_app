@@ -6,11 +6,12 @@ missNumUI <- function(id) {
   ns <- NS(id)
   
   tabPanel(title="Cabin Number",
-    titlePanel("Cabin num and Missingness"),
+    titlePanel("num (Door Number) and Missingness"),
     sidebarLayout(
       sidebarPanel(
+        h3("Convert door number to floor or floor ranges"),
         #visualize binning options
-        h5("cabin is a character string composed of three variables: deck, num, and side. The former
+        h4("cabin is a character string composed of three variables: deck, num, and side. The former
            and latter can and have been easily converted to a factor. But num has over 1800 values,
            which do not possess any numeric value. Thus, it may be easiest to convert these into
            coarser groups, preferably according to some multiple of the hundreds digit, which often 
@@ -26,7 +27,6 @@ missNumUI <- function(id) {
       mainPanel(
         DTOutput(ns("tab_num_bin")),
         linebreaks(2),
-        # h3(textOutput(ns("text_num_bin"))),
         plotOutput(ns("plot_num_bin")),
       )
     )
@@ -58,7 +58,7 @@ missNumServer <- function(id) {
       dat1() %>%
         tabyl(floor_num, transported),
       rownames=FALSE,
-      options=list(dom="t",
+      options=list(dom="tp",
                    autoWidth=TRUE,
                    pageLength=5,
                    #center-justifies column header and text
@@ -68,14 +68,6 @@ missNumServer <- function(id) {
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
         paste0("transported by floor_num (", input$slid_num_bin, "-floor groups)"))
     )
-    
-    # #### Text outputs
-    # output$text_num_bin <- renderText({
-    #   req(input$slid_num_bin)
-    #   
-    #   paste0("Bar plot of transported by", input$slid_num_bin, "-floor groups")
-    # })
-    
     
     #### Plot output
     output$plot_num_bin <- renderPlot({
