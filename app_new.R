@@ -88,12 +88,13 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#03_missNum
-  #displayed & updated num per page in DT output
-#backbone: 
-  #02: tidied up some part; resolved conflict
-  #03: began updating code for consistent format; replaced trainDF wrangling with source() of 02;
-    #add code in transformation section to create new DF with transformed numerical vars
+#03 backbone
+  #deleted extraneous code  
+  #improved plot of binned numerical var (discretization) (exploratory)
+  #updated code that's used to create new DF and to plot discretized vars using user vs equal intervals
+  #updated code used to generate ordered factors (for ordinal encoding)
+  #updated code to conduct rare label encoding
+  #combined all transformations into a single DF
 
 
 
@@ -108,6 +109,7 @@ spaceTitanicApp()
 #2: update backbone 04
 #3: update non-chr missingness module
 
+#in ordinal encoding, need to make factors ordered, not just changed the order
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
 
