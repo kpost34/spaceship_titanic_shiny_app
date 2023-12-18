@@ -84,17 +84,12 @@ spaceTitanicApp()
 #----------------------
 ## DONE
 
-  
 
 
 # LAST PUSHED COMMENT(S)
-#03 backbone
-  #deleted extraneous code  
-  #improved plot of binned numerical var (discretization) (exploratory)
-  #updated code that's used to create new DF and to plot discretized vars using user vs equal intervals
-  #updated code used to generate ordered factors (for ordinal encoding)
-  #updated code to conduct rare label encoding
-  #combined all transformations into a single DF
+#03 backbone: 1) used updated groups for ticket group, family, and travel party sizes; 2) developed
+  #new feature creation and plotting code for groups; 3) updated luxury-expense creation code; 
+  #4) combined all feature-related DFs
 
 
 

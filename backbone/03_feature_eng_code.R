@@ -231,37 +231,88 @@ df_train_nd_nvI_tF <- df_train_nd_nvI_s %>%
 
 # Feature Creation==================================================================================
 #enter: df_train_nd_nvI
-#exit: df_train_nd_nvI_cF
+#exit: df_group_size
 
 
-## Group Size
+## Group size--------------------
 #options: 
 #1) ticket group size (same passenger group); 
 #2) family size (passenger group + last name); 
 #3) travel party size (cabin)
 #4) none
 
-## Calculate feature
+
+### Ticket group size
+#### Create feature
 df_train_nd_nvI %>%
-  group_by(!!sym("passenger_group")) %>%
+  group_by(passenger_group) %>%
   mutate(ticket_group_size=n(), 
-    ticket_group_size=as.factor(ticket_group_size)) -> ticket_grp_sum
+         ticket_group_size=as.factor(ticket_group_size)) %>%
+  ungroup() -> df_tix_grp_size
 
-
-## Plots
-# Group size only
-ticket_grp_sum %>%
+#### Plots
+##### Group size only
+df_tix_grp_size %>%
   barplotter("ticket_group_size")
 
 # Group size + transported status
-ticket_grp_sum %>%
+df_tix_grp_size %>%
   barplotter(c("ticket_group_size", "transported"))
 
-  
+df_tix_grp_size %>%
+  barplotter2("ticket_group_size", title=FALSE)
 
-### Luxury Expenses
-## Exploratory plots
-# Heat map
+
+### Family size
+#### Create feature
+df_train_nd_nvI %>%
+  group_by(l_name, passenger_group) %>%
+  mutate(fam_size=n(),
+         fam_size=as.factor(fam_size)) %>%
+  ungroup() -> df_fam_size
+
+
+#### Plot feature
+df_fam_size %>%
+  # mutate(fam_size=fct_infreq(fam_size)) %>%
+  barplotter("fam_size")
+
+df_fam_size %>%
+  # mutate(fam_size=fct_infreq(fam_size)) %>%
+  barplotter2("fam_size", title=FALSE)
+
+
+
+### Traveling party size
+#### Create feature
+df_train_nd_nvI %>%
+  group_by(cabin) %>%
+  mutate(n=n(),
+         travel_party_size=ifelse(n > 100, NA_character_, paste(n)),
+         travel_party_size=as.factor(travel_party_size)) %>%
+  ungroup() -> df_trav_party_size
+
+#### Plot feature
+df_trav_party_size %>%
+  mutate(travel_party_size=fct_infreq(travel_party_size)) %>%
+  barplotter("travel_party_size")
+
+df_trav_party_size %>%
+  mutate(travel_party_size=fct_infreq(travel_party_size)) %>%
+  barplotter2("travel_party_size", title=FALSE)
+
+
+### Choose a feature
+df_group_size <- df_trav_party_size %>%
+  select(passenger_id, ends_with("size"))
+
+
+## Luxury Expenses--------------------
+#enter: df_train_nd_nvI
+#exit: df_lux_expense
+
+### Exploratory plots
+#### Heat map
 df_train_nd_nvI %>%
   select(room_service:vr_deck) %>%
   ggcorr(label=TRUE, digits=3) 
@@ -276,7 +327,7 @@ df_train_nd_nvI %>%
   pairs()
 #note: takes a while to plot
 
-# Scatterplot of one pair
+#### Scatterplot of one pair
 df_train_nd_nvI %>%
   ggplot(aes(room_service, food_court)) +
   geom_point() +
@@ -286,7 +337,8 @@ df_train_nd_nvI %>%
   scale_y_log10() +
   theme_bw()
 
-# Boxplots
+
+#### Boxplots
 #one var
 df_train_nd_nvI %>%
   ggplot() +
@@ -304,58 +356,35 @@ df_train_nd_nvI %>%
   scale_y_log10() +
   theme_bw()
 
-
-### Name
-i_df_train_nd_nvI %>%
-  separate(name, into=c("f_name", "l_name", sep=" "), remove=FALSE) -> fi_df_train_nd_nvI
-
-
-### Cabin
-
-
-
-### Family size
-## l_name
+#summing three vars
 df_train_nd_nvI %>%
-  group_by(l_name) %>%
-  mutate(fam_size=n()) -> train
-
-# l_name + passenger_group
-train %>%
-  group_by(l_name, passenger_group) %>%
-  mutate(fam_size=n()) -> train
-
-# l_name + cabin
-train %>%
-  group_by(l_name, cabin) %>%
-  mutate(fam_size=n()) -> train
-
-# l_name + passenger_group + cabin
-train %>%
-  group_by(l_name, passenger_group, cabin) %>%
-  mutate(fam_size=n()) -> train
+  rowwise() %>%
+  mutate(luxury=sum(room_service, spa, vr_deck, na.rm=TRUE)) %>% 
+  ungroup() %>%
+  ggplot() +
+  geom_boxplot(aes(x=transported, y=luxury)) +
+  scale_y_log10() +
+  theme_bw()
+#choose this for feature creation
 
 
-### Traveling party size
-## Number of different tickets in a group
-train %>%
-  group_by(passenger_group) %>%
-  mutate(party_size=n_distinct(ticket)) -> train
-
-## Number of people in same cabin (room)
-train %>%
-  group_by(cabin) %>%
-  mutate(party_size=n())
+### Create luxury expense 
+df_lux_expense <- df_train_nd_nvI %>%
+  mutate(room_service_spa_vr_deck_lux=sum(room_service, spa, vr_deck, na.rm=TRUE)) %>%
+  select(passenger_id, ends_with("lux"))
 
 
-### Age groups
+## Combine all new features## Group size--------------------
+#enter: df_train_nd_nvI
+#exit: df_train_nd_nvI_tcF
+
+df_train_nd_nvI_tcF <- df_train_nd_nvI %>% #entering DF
+  left_join(df_train_nd_nvI_tF) %>% #pass id + transformed features
+  left_join(df_group_size) %>% #pass id + group size var
+  left_join(df_lux_expense) %>%  #pass id + lux expense
+  as_tibble()
 
 
-### Visualize new cols
-## Descriptive stats
-tabyl(train$fam_size)
-
-## Graphically
 
 
 
