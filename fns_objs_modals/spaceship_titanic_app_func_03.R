@@ -215,7 +215,7 @@ lux_builder <- function(dat, vars){
   
     dat %>%
       rowwise() %>%
-      mutate(!!paste(paste(vars, collapse="_"), "lux", sep="_") := sum(!!!vars)) %>%
+      mutate(!!paste(paste(vars, collapse="__"), "lux", sep="_") := sum(!!!vars)) %>%
       ungroup() -> dat1
   }
   
@@ -257,7 +257,53 @@ boxplotter2<-function(dat){
     theme(plot.title=element_text(size=16, face="bold"))
 }
   
+
+# Feature Selection=================================================================================
+## Function to reduce variable pool
+deplete_var_pool <- function(var_sel, var_pool) {
+  #create obj suffixes for regex
+  suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
+    paste(., collapse="|")
   
+  #create obj var_drop which represents variables that will be removed
+  var_drop <- if(str_detect(var_sel, "_lux")) {
+    var_sel %>%
+      str_remove("_lux") %>%
+      str_replace_all("__", "|")
+  } else if(!str_detect(var_sel, "_lux")) {
+    var_sel %>%
+      str_remove(suffixes)
+  }
+
+  #extract 'novel'variables remaining
+  var_remain <- var_pool[!str_detect(var_pool, var_drop)]
+
+  return(var_remain)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 
 

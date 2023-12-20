@@ -87,9 +87,11 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#03 backbone: 1) used updated groups for ticket group, family, and travel party sizes; 2) developed
-  #new feature creation and plotting code for groups; 3) updated luxury-expense creation code; 
-  #4) combined all feature-related DFs
+#03 backbone: developed code to automatically drop related vars from pool after one is selected
+  #as final set of vars--both via hard coding & function--then actually selected vars to 
+  #continue backbone workflow
+#03 fn: created new function deplete_var_pool() which will reduce vars available as they are 
+  #selected in app; updated lux_builder() to include "__" b/t var names in new feature
 
 
 
@@ -100,11 +102,11 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
-#1; update backbone 03
+#1: update backbone 03
 #2: update backbone 04
-#3: update non-chr missingness module
+#3: update non-chr missingness module & other modules (re: incoming & outgoing DF)
 
-#in ordinal encoding, need to make factors ordered, not just changed the order
+#for feature creation of luxury expenses variable -- add "__" to separate vars
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
 
@@ -151,6 +153,7 @@ spaceTitanicApp()
   #feature engineering (all tabs) can only be available after missingness tabs dealt with
     #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
+  #update headers in fn and backbone codes--for accuracy
 
 
 #feature engineering- selection

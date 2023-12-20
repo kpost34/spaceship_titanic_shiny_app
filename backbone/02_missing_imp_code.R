@@ -1,7 +1,7 @@
 #Created by Keith Post on 8/6/22
 
 # R code to build Shiny app for developing and testing machine learning algorithm on Spaceship Titanic data
-# Part 2 of x:  exploring missing data, imputing names, and imputing non-character variables
+# Part 2 of x:  exploring missing data, discretizing num, imputing names, and imputing non-character variables
 
 # Load Packages and Address Conflicts===============================================================
 ## Load Packages

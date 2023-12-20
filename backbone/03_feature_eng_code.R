@@ -370,11 +370,11 @@ df_train_nd_nvI %>%
 
 ### Create luxury expense 
 df_lux_expense <- df_train_nd_nvI %>%
-  mutate(room_service_spa_vr_deck_lux=sum(room_service, spa, vr_deck, na.rm=TRUE)) %>%
+  mutate(room_service__spa__vr_deck_lux=sum(room_service, spa, vr_deck, na.rm=TRUE)) %>%
   select(passenger_id, ends_with("lux"))
 
 
-## Combine all new features## Group size--------------------
+# Combine All New Features==========================================================================
 #enter: df_train_nd_nvI
 #exit: df_train_nd_nvI_tcF
 
@@ -383,6 +383,82 @@ df_train_nd_nvI_tcF <- df_train_nd_nvI %>% #entering DF
   left_join(df_group_size) %>% #pass id + group size var
   left_join(df_lux_expense) %>%  #pass id + lux expense
   as_tibble()
+
+
+# Feature Selection=================================================================================
+#enter: df_train_nd_nvI_tcF
+#exit: df_train_nd_nvI_sF (selected features)
+
+## Create vectors of names--original predictors and orig pred + engineered features via hard-coding
+
+#note: this should already be an obj in app code
+nm_var <- names(df_train_nd_nvI) %>%
+  .[-c(1, 2, 6, 8, 18:21)]
+
+#by index
+# nm_fea <- names(df_train_nd_nvI_tcF) %>%
+#   .[-c(1, 2, 6, 8, 18:21)]
+
+#by logic
+nm_fea <- names(df_train_nd_nvI_tcF) %>%
+  #all vars from nm_var + _size suffix
+  .[str_detect(., paste(c(nm_var, "_size$"), collapse="|"))]
+
+
+## Create pattern of suffixes
+suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
+  paste(., collapse="|")
+
+## Isolate orig pred selected (even if modified) & remove from feature vector
+root_var <- nm_fea[19] %>%
+  str_remove(suffixes)
+
+nm_fea[!str_detect(nm_fea, root_var)]
+
+
+## Handling lux variable
+### Split into chr vec to use as search
+lux_var <- "room_service__spa__vr_deck_lux"
+
+lux_vars <- lux_var %>%
+  str_remove("_lux") %>%
+  str_replace_all("__", "|")
+  
+
+### Put together in if...else
+#### Selected variable
+# var_sel <- "spa_scale"
+var_sel <- "room_service__spa__vr_deck_lux"
+
+#### Generate search string
+var_drop <- if(str_detect(var_sel, "_lux")) {
+  var_sel %>%
+    str_remove("_lux") %>%
+    str_replace_all("__", "|")
+} else if(!str_detect(var_sel, "_lux")) {
+  var_sel %>%
+    str_remove(suffixes)
+}
+
+tmp <- nm_fea[!str_detect(nm_fea, var_drop)]
+
+
+#nm_fea will be a reactive object that shrinks as vars are selected and is used as choices available
+  #for that selector
+
+
+## Create vec of remaining variables via function
+tmp2 <- deplete_var_pool(var_sel="room_service__spa__vr_deck_lux", var_pool=nm_fea)
+setequal(tmp, tmp2) #TRUE
+
+
+## Select actual variables to continue with backbone code
+df_train_nd_nvI_sF <- df_train_nd_nvI_tcF %>%
+  select(passenger_id, transported, #identifier & DV -- mandatory
+         home_planet, side, destination, #original vars
+         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) #transformed/created vars
+
+
 
 
 
