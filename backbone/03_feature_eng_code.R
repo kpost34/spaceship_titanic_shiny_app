@@ -454,9 +454,12 @@ setequal(tmp, tmp2) #TRUE
 
 ## Select actual variables to continue with backbone code
 df_train_nd_nvI_sF <- df_train_nd_nvI_tcF %>%
-  select(passenger_id, transported, #identifier & DV -- mandatory
-         home_planet, side, destination, #original vars
-         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) #transformed/created vars
+  #identifier & DV -- mandatory
+  select(passenger_id, transported, 
+          #original vars
+         home_planet, side, destination,
+         #transformed/created vars
+         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) 
 
 
 
