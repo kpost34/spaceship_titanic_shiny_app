@@ -462,6 +462,9 @@ df_train_nd_nvI_sF <- df_train_nd_nvI_tcF %>%
          floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) 
 
 
+# Data Hygiene======================================================================================
+## Remove extraneous objs
+rm(list=setdiff(ls(), "df_train_nd_nvI_sF"))
 
 
 

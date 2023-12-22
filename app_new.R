@@ -87,11 +87,12 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#03 backbone: developed code to automatically drop related vars from pool after one is selected
-  #as final set of vars--both via hard coding & function--then actually selected vars to 
-  #continue backbone workflow
-#03 fn: created new function deplete_var_pool() which will reduce vars available as they are 
-  #selected in app; updated lux_builder() to include "__" b/t var names in new feature
+#03 backbone: added data hygiene & retained only final DF at bottom of script
+#04 backbone:
+  #updated first section so that major tasks are accomplished through sourcing 03 backbone
+  #added more examples to test processing time
+  #chose vfold arguments and created 'exit' df
+  #added data hygiene to remove extraneous obj
 
 
 
@@ -102,11 +103,8 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 
 ## TO DO 
-#1: update backbone 03
-#2: update backbone 04
-#3: update non-chr missingness module & other modules (re: incoming & outgoing DF)
-
-#for feature creation of luxury expenses variable -- add "__" to separate vars
+#1: update non-chr missingness module & other modules (re: incoming & outgoing DF)
+#3. create/update feature selection code--if a user selects a column then all directly related columns will drop out
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
 
@@ -115,9 +113,6 @@ spaceTitanicApp()
 #Note: how to handle NA names after name imputation?
 
 #---------------------------------------------------------------------------------------------------
-#feature selection
-  #dynamic logic whereby if a user selects a column then all directly related columns will drop out
-
 
 ### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
 
