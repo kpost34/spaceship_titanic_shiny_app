@@ -83,27 +83,30 @@ spaceTitanicApp()
 
 #----------------------
 ## DONE
-
+  
+ 
 
 
 # LAST PUSHED COMMENT(S)
-#03 backbone: added data hygiene & retained only final DF at bottom of script
-#04 backbone:
-  #updated first section so that major tasks are accomplished through sourcing 03 backbone
-  #added more examples to test processing time
-  #chose vfold arguments and created 'exit' df
-  #added data hygiene to remove extraneous obj
+#01: added annotation for clarity
 
 
 
 ## IN PROGRESS
-
+#see checking below - going through each module to see 1) if they work and 2) annotations and 
+  #3) extraneous code
 
 
 #---------------------------------------------------------------------------------------------------
+## CHECKING functionality of modules after updates
+#01_dataCheck.R - no issues; num is considered chr and displays fine
+#02_edaUni.R - 
+
+
 
 ## TO DO 
 #1: update non-chr missingness module & other modules (re: incoming & outgoing DF)
+#2: update EDA modules to account for no more num
 #3. create/update feature selection code--if a user selects a column then all directly related columns will drop out
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding

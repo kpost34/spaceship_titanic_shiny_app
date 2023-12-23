@@ -5,11 +5,13 @@ dataCheckUI <- function(id) {
   ns <- NS(id)
   
   sidebarLayout(
+    ## Input selectors for two tables
     sidebarPanel(width=2,
       selectInput01(ID=ns("sel_quick"), label="Quick data check", choices=ch_quick_dataCheck),
       linebreaks(2),
       selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=ch_summ_dataCheck),
     ),
+    ## Tabular outputs
     mainPanel(width=10,
       DTOutput(ns("tab_quick")),
       linebreaks(2),
@@ -24,6 +26,8 @@ dataCheckUI <- function(id) {
 # Server============================================================================================
 dataCheckServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    ## Display data checks dependent upon user selection
+    ### Create reactive obj df_check()
     df_check <- reactive({
       switch(input$sel_quick,
              dim=dim_tbl(df_train),
@@ -31,7 +35,8 @@ dataCheckServer <- function(id) {
              miss=n_miss_tbl(df_train)
       )
     })
-
+    
+    ### Generate DT
     output$tab_quick <- renderDT(
       df_check(), 
       rownames=FALSE, 
@@ -48,7 +53,8 @@ dataCheckServer <- function(id) {
         extract_nm(ch_quick_dataCheck, input$sel_quick))
     )
 
-    ### Display data summary by col type
+    ## Display data summary by col type
+    ### Create reactive df_summ
     df_summ <- reactive({
       switch(input$sel_summ,
         chr=skim_tbl(df_train, type="character"),
@@ -57,6 +63,7 @@ dataCheckServer <- function(id) {
         num=skim_tbl(df_train, type="numeric"))
     })
   
+    ### Generate DT
     output$tab_summ <- renderDT(
       df_summ(), 
       rownames=FALSE,
