@@ -6,9 +6,7 @@ edaBiUI <- function(id) {
   tabPanel(title="Bivariate",
     edaTabBuilder(id,
                   name="Bivariate",
-                  # tabID="biEDA02",
                   varID=c("var1ab", "var2ab"),
-                  # varID=c("var12","var34"),
                   options=ncharVarClass,
                   fn=selectizeInput01)
   )

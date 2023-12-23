@@ -77,7 +77,7 @@ missNumServer <- function(id) {
     
     
     ## Confirm selection-------------------
-    df_train_nd_tmp <- eventReactive(input$btn_num_bin, {
+    df_train_nd <- eventReactive(input$btn_num_bin, {
       dat1()
     })
     

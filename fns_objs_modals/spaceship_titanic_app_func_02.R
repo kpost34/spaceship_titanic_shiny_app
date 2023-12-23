@@ -9,20 +9,52 @@ pacman::p_load(tidyverse, skimr, janitor, purrr, rstatix)
 
 # Character Data Missingness========================================================================
 ## num missingness--------------------
+### Helper function to extract and reduce upper limit by one
+grab_reduce_floor <- function(dat) {
+  dat %>%
+    mutate(floor_num_temp=as.character(floor_num_temp),
+           new_upr=str_extract(floor_num_temp, "(?<=\\,)[0-9]{1,2}") %>% as.integer(),
+           new_upr=as.character(new_upr - 1),
+           floor_num_temp=str_remove_all(floor_num_temp, "\\[|\\]|\\)"),
+           floor_num_temp=str_replace(floor_num_temp, ",", "_"),
+           floor_num_temp=str_replace(floor_num_temp, "[0-9]{1,2}$", new_upr),
+           floor_num=as.factor(floor_num_temp)) %>%
+    select(-c(floor_num_temp, new_upr))
+}
+
+
+
 ### Function to bin num into floor groups
+#new version
 group_floors <- function(dat, nbin) {
   dat %>%
     mutate(num_num=as.numeric(num),
            floor=num_num %/% 100) %>%
     {if(nbin > 1)
       mutate(., 
-             floor_num=cut_width(floor, 
-                                 width=nbin, 
-                                 boundary=0, 
-                                 closed="left"))
+             floor_num_temp=cut_width(floor, 
+                                      width=nbin, 
+                                      boundary=0, 
+                                      closed="left")) %>%
+      grab_reduce_floor()
       else mutate(., floor_num=as.factor(floor))} %>%
     select(-c(num_num, floor))
 }
+
+#old version
+# group_floors <- function(dat, nbin) {
+#   dat %>%
+#     mutate(num_num=as.numeric(num),
+#            floor=num_num %/% 100) %>%
+#     {if(nbin > 1)
+#       mutate(., 
+#              floor_num=cut_width(floor, 
+#                                  width=nbin, 
+#                                  boundary=0, 
+#                                  closed="left"))
+#       else mutate(., floor_num=as.factor(floor))} %>%
+#     select(-c(num_num, floor))
+# }
 
 
 

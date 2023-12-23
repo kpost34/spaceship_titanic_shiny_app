@@ -40,8 +40,8 @@ spaceTitanicApp <- function() {
     ),
     navbarMenu(title="Missingness", menuName="Mis03",
       missNumUI("dat1"),
-      missNameUI("dat2")
-      # missOtherUI("dat2")
+      missNameUI("dat2"),
+      missOtherUI("dat3")
       ),
     # navbarMenu(title="Feature Engineering", menuName="Fea04",
     #   featTrans_mainUI("df0"),
@@ -63,7 +63,7 @@ spaceTitanicApp <- function() {
     #missingness
     df_train_nd <- missNumServer("dat1")
     df_train_nd_nI <- missNameServer("dat2", df_train_nd)
-    # missOtherServer("dat3", df_train_nd_nI)
+    missOtherServer("dat3", df_train_nd_nI)
     # 
     # #feature engineering
     # df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI) #would like to update to df1
@@ -83,37 +83,41 @@ spaceTitanicApp()
 
 #----------------------
 ## DONE
-  
- 
+
 
 
 # LAST PUSHED COMMENT(S)
-#01: added annotation for clarity
+#02-edaBi - removed extraneous annotated code
+#02-edaMult - removed extraneous annotated code
+#03: missNum & related code
+  #updated associated fns (02) by 1) creating helper fn grab_reduce_floor() & updating group_floors()
+    #so that factors are more interpretable
+  #removed '_tmp' suffix of the reactive DF in the module
+#03: missNam
+  #update reactive DF name in module code
+  #updated all occurrences of df_train with df_train_nd()
+#03: missOth & related code
+  #updated arg from "dat2" to "dat3" in UI code of app_new.R
+  #updated all occurrences of 'df_train_nd_nvI' to 'df_train_nd_nI' in modular code
 
 
 
 ## IN PROGRESS
-#see checking below - going through each module to see 1) if they work and 2) annotations and 
-  #3) extraneous code
 
 
 #---------------------------------------------------------------------------------------------------
 ## CHECKING functionality of modules after updates
-#01_dataCheck.R - no issues; num is considered chr and displays fine
-#02_edaUni.R - 
 
 
 
 ## TO DO 
-#1: update non-chr missingness module & other modules (re: incoming & outgoing DF)
-#2: update EDA modules to account for no more num
-#3. create/update feature selection code--if a user selects a column then all directly related columns will drop out
+#1: update non-chr missingness module - get imputation to work using backbone code as guide
+#2. create/update feature selection code--if a user selects a column then all directly related columns will drop out
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
 
-#add toast notification after submitting floor_num decision
 
-#Note: how to handle NA names after name imputation?
+
 
 #---------------------------------------------------------------------------------------------------
 
@@ -152,6 +156,7 @@ spaceTitanicApp()
     #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
+  #how to handle NA names after name imputation?
 
 
 #feature engineering- selection
@@ -212,7 +217,11 @@ spaceTitanicApp()
       #1) toast notification selected
       #2) some type of text
 
+
+#03_missNum:
+  #add toast notification after submitting floor_num decision
     
+
 #03_missName
   #Use accordion text for the description in the middle
   #Indicate somehow (red box?) that the last step must be completed to continue

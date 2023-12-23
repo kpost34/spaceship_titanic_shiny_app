@@ -6,9 +6,7 @@ edaMultUI <- function(id) {
   tabPanel(title="Multivariate",
     edaTabBuilder(id,
                   name="Multivariate",
-                  # tabID="mulEDA02",
                   varID=c("var1abc", "var2abc"),
-                  # varID=c("var123", "var456"),
                   options=ncharVarClass,
                   fn=selectizeInput02)
   )
