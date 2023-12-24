@@ -20,9 +20,9 @@ missOtherUI <- function(id) {
         br(),
 
         #how to handle missing data
-        h5("Now that we've visualized and assessed missingness, let's impute data."),
-        selectInput01(ID=ns("sel_impute"), label="", choices=ch_impute_missOther)
-        
+        h5("Now that we've visualized and assessed missingness, let's impute data. Please select a method."),
+        selectInput01(ID=ns("sel_impute"), label="", choices=ch_impute_missOther),
+        actionButton(ns("btn_impute"), label="Submit", class="btn-primary")
       ),
       mainPanel(width=10,
         splitLayout(cellWidths=c("65%", "35%"),
@@ -35,6 +35,7 @@ missOtherUI <- function(id) {
           DTOutput(ns("tab_mcar"))
         ),
         br(),
+        tableOutput(ns("tab_temp"))
       )
     )
   )
@@ -59,10 +60,10 @@ missOtherServer <- function(id, df_train_nd_nI) {
     output$plot_sel_exp <- renderPlot({
       switch(input$sel_exp,
        miss_occur=df_train_nd_nI() %>% 
-         missing_plot(depVar, nchrPreds) + labs(title="") + theme_bw(base_size=16),
-       miss_var=df_train_nd_nI() %>% select(all_of(nchrVars)) %>% 
+         missing_plot(depVar, nchrPredswFn) + labs(title="") + theme_bw(base_size=16),
+       miss_var=df_train_nd_nI() %>% select(all_of(nchrVarswFn)) %>% 
          gg_miss_var() + theme_bw(base_size=16),
-       miss_obs=df_train_nd_nI() %>% select(all_of(nchrVars)) %>% 
+       miss_obs=df_train_nd_nI() %>% select(all_of(nchrVarswFn)) %>% 
          gg_miss_case() + theme_bw(base_size=16)
       )
     })
@@ -82,7 +83,7 @@ missOtherServer <- function(id, df_train_nd_nI) {
       req(input$rad_mcar=="Yes")
       
       df_train_nd_nI() %>%
-        select(all_of(nchrPreds)) %>%
+        select(all_of(nchrPredswFn)) %>%
         naniar::mcar_test() %>%
         mutate(across(c(statistic, p.value), ~signif(.x, 4))) %>%
         DT::datatable(
@@ -94,31 +95,38 @@ missOtherServer <- function(id, df_train_nd_nI) {
     
     ## Imputation--------------------
     ### Create reactive
-#     df_train_nd_nI <- reactive({
-#       req(input$sel_impute)
-#       
-#       switch(input$sel_impute,
-#         lwise_del=na.omit(df_train),
-#           
-#         mean_imp=df_train_nI() %>% 
-#           mutate(across(all_of(nchrPreds), ~Hmisc::impute(x=.x, fun=mean))),
-#           
-#         med_imp=df_train_nI() %>% 
-#           mutate(across(all_of(nchrPreds), ~Hmisc::impute(x=.x, fun=median))),
-#           
-#         mult_imp=
-#       
-#       
-#       
-#       
-#     })
-#   
-#   
-#     #### Output reactive
-#     output$tab_sel_compare <- renderDT(
-#       dat(), options=list(scrollX="400px")
-#     )
-#     
+    # dat <- reactive({
+    df_train_nd_nvI <- eventReactive(input$btn_impute, {
+      req(input$sel_impute)
+
+      switch(input$sel_impute,
+        lwise_del=na.omit(df_train_nd_nI()),
+
+        mean_imp=df_train_nd_nI() %>%
+          mutate(across(all_of(nchrVarswFn), ~Hmisc::impute(x=.x, fun=mean))),
+
+        med_imp=df_train_nd_nI() %>%
+          mutate(across(all_of(nchrVarswFn), ~Hmisc::impute(x=.x, fun=median))),
+
+        mult_imp=df_train_nd_nI() %>%
+          mice(method="pmm", m=2, maxit=2) %>%
+          complete()
+      )
+    })
+    
+    ## Submit selection-------------------
+    # df_train_nd_nvI <- eventReactive(input$btn_impute, {
+    #   dat()
+    # })
+
+
+    #### Output reactive
+    output$tab_temp <- renderTable(
+      df_train_nd_nvI()
+    )
+
+    
+    return(df_train_nd_nvI)
   })
 }
 

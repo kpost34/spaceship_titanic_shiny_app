@@ -23,8 +23,11 @@ df_train %>% select(where(is.character)) %>% names() -> chrVars
 ### All cols but character
 #### Colnames
 df_train %>% select(!where(is.character)) %>% names() -> nchrVars
+nchrVarswFn <- c(nchrVars, "floor_num")
 #excluding dep var
 nchrVars[nchrVars!="transported"] -> nchrPreds
+#with floor_num
+nchrPredswFn <- c(nchrPreds, "floor_num")
 
 #### Classes
 df_train %>% select(!where(is.character)) %>% map(class) %>% as.character() -> nchrClass
@@ -82,7 +85,7 @@ ch_exp_nnm_missOther <- c("missing values occurrences"="miss_occur",
 ch_impute_missOther <-c("retain complete cases only"="lwise_del",
                         "mean imputation (numeric vars) with most frequent category" = "mean_imp",
                         "median imputation (numeric vars) with most frequent category" = "med_imp",
-                        "multiple imputation - cart" = "mult_imp")
+                        "multiple imputation - predictive mean matching" = "mult_imp")
 
 ch_trans_featTrans <- c("Feature Scaling",
                         "Discretization",

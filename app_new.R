@@ -87,18 +87,9 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#02-edaBi - removed extraneous annotated code
-#02-edaMult - removed extraneous annotated code
-#03: missNum & related code
-  #updated associated fns (02) by 1) creating helper fn grab_reduce_floor() & updating group_floors()
-    #so that factors are more interpretable
-  #removed '_tmp' suffix of the reactive DF in the module
-#03: missNam
-  #update reactive DF name in module code
-  #updated all occurrences of df_train with df_train_nd()
-#03: missOth & related code
-  #updated arg from "dat2" to "dat3" in UI code of app_new.R
-  #updated all occurrences of 'df_train_nd_nvI' to 'df_train_nd_nI' in modular code
+#obj script: added nchrPredswFn (which has nchrPred with floor_num)
+#03_missOther: updated cols selected to accommodate floor_num; updated imputation code based on
+  #backbone code; created button to confirm/submit selection; created temp table to check output
 
 
 
@@ -106,13 +97,9 @@ spaceTitanicApp()
 
 
 #---------------------------------------------------------------------------------------------------
-## CHECKING functionality of modules after updates
-
-
-
 ## TO DO 
-#1: update non-chr missingness module - get imputation to work using backbone code as guide
-#2. create/update feature selection code--if a user selects a column then all directly related columns will drop out
+#1. create/update feature engineering code -- update DF names in app_new & module
+#2. feature selection code--if a user selects a column then all directly related columns will drop out
 
 #perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
 
@@ -156,7 +143,6 @@ spaceTitanicApp()
     #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
-  #how to handle NA names after name imputation?
 
 
 #feature engineering- selection
