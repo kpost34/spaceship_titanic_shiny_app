@@ -72,7 +72,7 @@ featTrans_disUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_disServer <- function(id, df_train_nvI) {
+featTrans_disServer <- function(id, df_train_nd_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -141,7 +141,7 @@ featTrans_disServer <- function(id, df_train_nvI) {
           input$rad_log_hist)
       
       #simplify code
-      histogrammer2(dat=df_train_nvI(),col=input$sel_var_hist,
+      histogrammer2(dat=df_train_nd_nvI(),col=input$sel_var_hist,
           n.bins=input$num_bin_hist,x.log.scale=input$rad_log_hist)
     })
     
@@ -159,10 +159,10 @@ featTrans_disServer <- function(id, df_train_nvI) {
           input$rad_bdry_bar, input$num_brk_bar, input$rad_log_bar)
       
       if(input$rad_bdry_bar=="cut_int") {
-        equal_cutter(dat=df_train_nvI(), col=input$sel_var_hist, n.breaks=input$num_brk_bar)
+        equal_cutter(dat=df_train_nd_nvI(), col=input$sel_var_hist, n.breaks=input$num_brk_bar)
       
       } else if(input$rad_bdry_bar=="user") {
-        user_cutter(dat=df_train_nvI(), col=input$sel_var_hist, break.vals=user_cuts())
+        user_cutter(dat=df_train_nd_nvI(), col=input$sel_var_hist, break.vals=user_cuts())
         
       }
     })
@@ -204,14 +204,15 @@ featTrans_disServer <- function(id, df_train_nvI) {
     
     
     ### Convert rv_dis to df_dis by running an inner_join
-    df_train_nvI_d <- eventReactive(input$btn_dis_complete, {
+    df_train_nd_nvI_d <- eventReactive(input$btn_dis_complete, {
         
       print("Button Clicked - Inside eventReactive")
         
       rv_dis %>%
         reactiveValuesToList() %>%
-        reduce(inner_join) %>%
-        relocate(transported, .after=last_col()) 
+        reduce(inner_join, .init=df_train %>% select(passenger_id)) %>%
+        {if(sum(names(.)=="transported") > 0) 
+          relocate(transported, .after=last_col()) else .}
       
     })
     
@@ -225,13 +226,13 @@ featTrans_disServer <- function(id, df_train_nvI) {
     #### Check creation of reactiveValues & joining within elements
     output$temp_table_hist <- renderTable({
       
-      df_train_nvI_d() %>%
+      df_train_nd_nvI_d() %>%
         head()
       
       })
     
     ### Return obj
-    return(df_train_nvI_d)
+    return(df_train_nd_nvI_d)
   })
 }
   

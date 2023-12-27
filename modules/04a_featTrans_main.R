@@ -12,8 +12,8 @@ featTrans_mainUI <- function(id) {
        and group rare categories together. What would you like to begin with?"),
     fluidRow(
       column(6,align="center",
-        radioButtons(inputId=ns("rad_trans"),label="",choices=ch_trans_featTrans,selected=character(0),
-                     inline=TRUE,width="100%")
+        radioButtons(inputId=ns("rad_trans"), label="",choices=ch_trans_featTrans,
+                     selected=character(0), inline=TRUE,width="100%")
       ),
       column(6, align="center",
         #placeholder
@@ -42,7 +42,9 @@ featTrans_mainUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_d, df_train_nvI_o, df_train_nvI_r) {
+featTrans_mainServer <- function(id, df_train_nd_nvI) {
+# featTrans_mainServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_s, df_train_ndnvI_d, 
+#                                  df_train_nd_nvI_o, df_train_nd_nvI_r) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -54,29 +56,29 @@ featTrans_mainServer <- function(id, df_train_nvI, df_train_nvI_s, df_train_nvI_
     })
     
     output$ui_btn_trans_complete <- renderUI({
-      req(df_train_nvI_s(), df_train_nvI_d(), df_train_nvI_o(), df_train_nvI_r())
+      req(df_train_nd_nvI_s(), df_train_nd_nvI_d(), df_train_nd_nvI_o(), df_train_nd_nvI_r())
       
       actionButton(ns("btn_trans_complete"), "All transformations complete", class="btn-success")
     })
     
     # Source/run server submodules
-    df_train_nvI_s <- featTrans_scaleServer("df1", df_train_nvI)
-    df_train_nvI_d <- featTrans_disServer("df2", df_train_nvI)
-    df_train_nvI_o <- featTrans_ordEncServer("df3", df_train_nvI)
-    df_train_nvI_r <- featTrans_rareEncServer("df4", df_train_nvI)
+    df_train_nd_nvI_s <- featTrans_scaleServer("df1", df_train_nd_nvI)
+    df_train_nd_nvI_d <- featTrans_disServer("df2", df_train_nd_nvI)
+    df_train_nd_nvI_o <- featTrans_ordEncServer("df3", df_train_nd_nvI)
+    df_train_nd_nvI_r <- featTrans_rareEncServer("df4", df_train_nd_nvI)
     
     # Join DFs
-    df_train_nvI_tF <- eventReactive(input$btn_trans_complete, {
+    df_train_nd_nvI_tF <- eventReactive(input$btn_trans_complete, {
       
-      df_train_nvI_s() %>%
-        left_join(df_train_nvI_d()) %>%
-        left_join(df_train_nvI_o()) %>%
-        left_join(df_train_nvI_r())
+      df_train_nd_nvI_s() %>%
+        left_join(df_train_nd_nvI_d()) %>%
+        left_join(df_train_nd_nvI_o()) %>%
+        left_join(df_train_nd_nvI_r())
       
     })
     
     # Return DF
-    return(df_train_nvI_tF)
+    return(df_train_nd_nvI_tF)
     
   })
 

@@ -29,7 +29,7 @@ featSelUI <- function(id) {
 
 
 # Server============================================================================================
-featSelServer <- function(id, df_train_nvI, df_train_nvI_tF, df_train_nvI_cF) {
+featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -40,9 +40,9 @@ featSelServer <- function(id, df_train_nvI, df_train_nvI_tF, df_train_nvI_cF) {
     # vars_avail <- reactiveVal(NA)
     
     ch_vars <- reactive({
-      df_train_nvI() %>%
-        left_join(df_train_nvI_tF()) %>%
-        left_join(df_train_nvI_cF()) %>%
+      df_train_nd_nvI() %>%
+        left_join(df_train_nd_nvI_tF()) %>%
+        left_join(df_train_nd_nvI_cF()) %>%
         select(-c(passenger_id, passenger_group, cabin, num, name, transported)) %>%
         names() 
     })

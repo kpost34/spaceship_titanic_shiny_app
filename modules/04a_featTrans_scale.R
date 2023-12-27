@@ -22,7 +22,7 @@ featTrans_scaleUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_scaleServer <- function(id, df_train_nvI) {
+featTrans_scaleServer <- function(id, df_train_nd_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -52,27 +52,27 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     output$plot_sel_var_viz<-renderPlot({
       req(input$sel_var_viz)
       
-      cowplotter(df_train_nvI(), input$sel_var_viz)
+      cowplotter(df_train_nd_nvI(), input$sel_var_viz)
     })
     
     
     
     ## Export--------------------
     ### Create new DF with scaled columns/variables
-    df_train_nvI_s<-eventReactive(input$btn_scale_complete, {
+    df_train_nd_nvI_s<-eventReactive(input$btn_scale_complete, {
       switch(input$type_scale,
              #raw = unchanged
-             raw=df_train_nvI(),
+             raw=df_train_nd_nvI(),
              #log = log-transform + identifier
-             log=df_train_nvI() %>% 
+             log=df_train_nd_nvI() %>% 
                mutate(across(where(is.numeric),~log(.x + 1),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")),
              #mm_scale = min-max scale + identifier
-             mm_scale=df_train_nvI() %>%
+             mm_scale=df_train_nd_nvI() %>%
                mutate(across(where(is.numeric),~min_max_scaler(.x),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")), 
              #standize = standardized + identifier
-             standize=df_train_nvI() %>%
+             standize=df_train_nd_nvI() %>%
                mutate(across(where(is.numeric),~standardizer(.x),.names="{.col}_scale")) %>%
                select(passenger_id,ends_with("scale")) 
       )
@@ -80,10 +80,10 @@ featTrans_scaleServer <- function(id, df_train_nvI) {
     
     ### Temporary table--proof that above code is working
     output$temp_table <- renderTable({
-      head(df_train_nvI_s())
+      head(df_train_nd_nvI_s())
     })
     
-    return(df_train_nvI_s)
+    return(df_train_nd_nvI_s)
     
   })
 }

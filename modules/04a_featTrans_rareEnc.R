@@ -41,7 +41,7 @@ featTrans_rareEncUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_rareEncServer <- function(id, df_train_nvI) {
+featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -53,7 +53,7 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
       
       selectizeInput(inputId=ns("sel_var_cat1"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
-                               df_train_nvI() %>% 
+                               df_train_nd_nvI() %>% 
                                  pull(input$sel_var_viz1) %>% 
                                  unique() %>%
                                  sort() %>%
@@ -76,7 +76,7 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
       
       selectizeInput(inputId=ns("sel_var_cat2"),label="",multiple=TRUE,
                      choices=c("Choose at least two"="",
-                               df_train_nvI() %>% 
+                               df_train_nd_nvI() %>% 
                                  pull(input$sel_var_viz2) %>% 
                                  unique() %>%
                                  sort() %>%
@@ -97,35 +97,35 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     output$plot_sel_var_viz1 <- renderPlot({
       req(input$sel_var_viz1)
       
-      barplotter2(df_train_nvI(), input$sel_var_viz1)
+      barplotter2(df_train_nd_nvI(), input$sel_var_viz1)
     })
     
     #var1-combined categories
     output$plot_sel_var_cat1 <- renderPlot({
       req(length(input$sel_var_cat1) > 1)
       
-      barplotter2(df_train_nvI(), var=input$sel_var_viz1, cats=input$sel_var_cat1)
+      barplotter2(df_train_nd_nvI(), var=input$sel_var_viz1, cats=input$sel_var_cat1)
     })
     
     #var2-raw
     output$plot_sel_var_viz2 <- renderPlot({
       req(input$sel_var_viz2)
       
-      barplotter2(df_train_nvI(), var=input$sel_var_viz2, col="mako")
+      barplotter2(df_train_nd_nvI(), var=input$sel_var_viz2, col="mako")
     })
     
     #var2-combined categories
     output$plot_sel_var_cat2 <- renderPlot({
       req(length(input$sel_var_cat2) > 1)
       
-      barplotter2(df_train_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
+      barplotter2(df_train_nd_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
     })
     
     
     ## Export--------------------
     ### Extract features via rare label encoding
-    df_train_nvI_r <- eventReactive(input$btn_rareEnc_complete, {
-      df_train_nvI() %>%
+    df_train_nd_nvI_r <- eventReactive(input$btn_rareEnc_complete, {
+      df_train_nd_nvI() %>%
         {if(length(input$sel_var_cat1) >= 2) 
           #paste variable name using !! and :=
           mutate(.,!!paste0(input$sel_var_viz1,"_rare") := fct_collapse(!!sym(input$sel_var_viz1),
@@ -142,10 +142,10 @@ featTrans_rareEncServer <- function(id, df_train_nvI) {
     
     ### Output temp table
     output$temp_table_rareEnc<-renderTable({
-      df_train_nvI_r() %>% head()
+      df_train_nd_nvI_r() %>% head()
     })
     
-    return(df_train_nvI_r)
+    return(df_train_nd_nvI_r)
     
   })
 }

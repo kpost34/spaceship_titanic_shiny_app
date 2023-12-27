@@ -50,7 +50,7 @@ featCreatUI <- function(id) {
 }
 
 # Server============================================================================================
-featCreatServer <- function(id, df_train_nvI) {
+featCreatServer <- function(id, df_train_nd_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -58,7 +58,7 @@ featCreatServer <- function(id, df_train_nvI) {
     ## Input
     ### Create selector input
     output$ui_sel_var_group_size <- renderUI({
-      opts <- if(sum(names(df_train_nvI())=="l_name") > 0) {
+      opts <- if(sum(names(df_train_nd_nvI())=="l_name") > 0) {
         ch_grp_size_featCreat
       } else {
         ch_grp_size_featCreat[ch_grp_size_featCreat!="family_size"]
@@ -76,23 +76,23 @@ featCreatServer <- function(id, df_train_nvI) {
       req(input$sel_var_group_size)
       
       switch(input$sel_var_group_size,
-             ticket_group_size=df_train_nvI() %>%
+             ticket_group_size=df_train_nd_nvI() %>%
               group_by(passenger_group) %>%
               mutate(ticket_group_size=n(),
                     ticket_group_size=as.factor(ticket_group_size)) %>%
                ungroup(),
-             family_size=df_train_nvI() %>%
+             family_size=df_train_nd_nvI() %>%
                group_by(passenger_group,l_name) %>%
                mutate(family_size=n(),
                       family_size=as.factor(family_size)) %>%
                ungroup(),
-             travel_party_size=df_train_nvI() %>%
+             travel_party_size=df_train_nd_nvI() %>%
                group_by(cabin) %>% 
                mutate(n=n(),
                       travel_party_size=ifelse(n > 100, NA_character_, paste(n)),
                       travel_party_size=as.factor(travel_party_size)) %>%
                ungroup(),
-             none=df_train_nvI() %>%
+             none=df_train_nd_nvI() %>%
                select(passenger_id)
         )
     })
@@ -111,7 +111,7 @@ featCreatServer <- function(id, df_train_nvI) {
     ### Luxury expense variable
     #### Create reactive df for plotting and feature creation
     df_lux_expense <- reactive({
-      lux_builder(df_train_nvI(), input$sel_var_lux_expense)
+      lux_builder(df_train_nd_nvI(), input$sel_var_lux_expense)
     })
     
     
@@ -141,7 +141,7 @@ featCreatServer <- function(id, df_train_nvI) {
     })
     
     ### Create features
-    df_train_nvI_cF <- eventReactive(input$btn_creFea_complete, {
+    df_train_nd_nvI_cF <- eventReactive(input$btn_creFea_complete, {
       
       df_group_size() %>%
         select(passenger_id, ends_with("size")) %>%
@@ -154,12 +154,12 @@ featCreatServer <- function(id, df_train_nvI) {
     
     ### Checking
     output$temp_table <- renderTable({
-      head(df_train_nvI_cF())
+      head(df_train_nd_nvI_cF())
     })
     
     
     ## Export--------------------
-    return(df_train_nvI_cF)
+    return(df_train_nd_nvI_cF)
     
     
   })

@@ -43,11 +43,11 @@ spaceTitanicApp <- function() {
       missNameUI("dat2"),
       missOtherUI("dat3")
       ),
-    # navbarMenu(title="Feature Engineering", menuName="Fea04",
-    #   featTrans_mainUI("df0"),
-    #   featCreatUI("df1"),
-    #   featSelUI("df2")
-    # )
+    navbarMenu(title="Feature Engineering", menuName="Fea04",
+      featTrans_mainUI("df1"),
+      featCreatUI("df2"),
+      featSelUI("df3")
+    )
   )
   
   ## Server
@@ -63,12 +63,12 @@ spaceTitanicApp <- function() {
     #missingness
     df_train_nd <- missNumServer("dat1")
     df_train_nd_nI <- missNameServer("dat2", df_train_nd)
-    missOtherServer("dat3", df_train_nd_nI)
-    # 
+    df_train_nd_nvI <- missOtherServer("dat3", df_train_nd_nI)
+
     # #feature engineering
-    # df_train_nvI_tF <- featTrans_mainServer("df0", df_train_nvI) #would like to update to df1
-    # df_train_nvI_cF <- featCreatServer("df1", df_train_nvI) #would like to update to df2
-    # featSelServer("df2", df_train_nvI, df_train_nvI_tF, df_train_nvI_cF) #would like to update to df3
+    df_train_nvI_tF <- featTrans_mainServer("df1", df_train_nd_nvI) 
+    df_train_nvI_cF <- featCreatServer("df2", df_train_nd_nvI)
+    featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
     
 
   }
@@ -87,9 +87,8 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#obj script: added nchrPredswFn (which has nchrPred with floor_num)
-#03_missOther: updated cols selected to accommodate floor_num; updated imputation code based on
-  #backbone code; created button to confirm/submit selection; created temp table to check output
+#in app_new and modules--updated DF names to reflect upstream code updates
+#supplied a .init arg for reduce() in 04_featTrans_dis
 
 
 
@@ -98,10 +97,13 @@ spaceTitanicApp()
 
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
-#1. create/update feature engineering code -- update DF names in app_new & module
-#2. feature selection code--if a user selects a column then all directly related columns will drop out
+#1. add floor_num to choices in rare label encoing and ordinal encoding
+#2. feature selection code
+  #a) add a simple bivariate EDA with each non-chr var and transported
+  #b) use fn developed via backbone to incorporate logic such that if a user selects a column then 
+    #all directly related columns will drop out
 
-#perhaps floor_num could be used again in rare label encoding and maybe even ordinal encoding
+
 
 
 
@@ -146,6 +148,7 @@ spaceTitanicApp()
 
 
 #feature engineering- selection
+  #UI: remove starting gray box (sidebarpanel)
   #take the reactive DF from transformation and the reactive DF from creation & join them
   #then use names() to populate choices in selectize
   #when user picks a variable that is related to other vars in the joined DF, those vars 
@@ -156,6 +159,7 @@ spaceTitanicApp()
 
 
 #04_feature engineering- transform
+  #make button a different color or larger to make it stand out once all transforms done
   #whole module
     #all transforms need to be completed to move on
       #some sort of modal should appear that lists remaining items
@@ -179,6 +183,7 @@ spaceTitanicApp()
 
 
   #04_discretization 
+    #update caption to read "...for display on log10 scale"
     #need feedback after confirmation
       #1) toast notificaton
       #2) some type of text output [that stays] & is dynamic so it disappears if a user confirms
@@ -187,6 +192,9 @@ spaceTitanicApp()
       #set it up such that 0 (or negative values) are not possible--need to create user feedback here
     #got error after discretizing one var then not dis then confirming
     #confirm button needs to moved fully onto panel
+    #alter size of sidePanel and plots
+    #include a table that shows what user selected for each variable: 1) type of cuts and 2) if
+      #user-selected, then what are they
     
 
 
@@ -220,7 +228,7 @@ spaceTitanicApp()
     #input 3:
       #imputation method--selector from MICE package
   #this tab/page (and all of them after) should be hidden until user submits a name imputation method
-  
+  #need user feedback after 'submit' button is hit [unsure why this takes so long to run]
 
 
 
