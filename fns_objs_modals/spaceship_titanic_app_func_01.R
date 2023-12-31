@@ -165,8 +165,10 @@ histogrammer<-function(dat, col){
     ggplot() +
     #use bang-bang operator
     geom_histogram(aes(!!s_col),fill="darkred",color="black") +
-    {if(col!="age") scale_x_log10()} +
-    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    #use psuedo-log to account for 0s
+    {if(col!="age") scale_y_continuous(trans=scales::pseudo_log_trans(base=10),
+                                       expand=expansion(mult=c(0, .03)))
+      else scale_y_continuous(expand=expansion(mult=c(0, .03)))} +
     theme_bw(base_size=19) 
 }
 
@@ -312,8 +314,9 @@ boxplotter<-function(dat, vec, na.rm=FALSE) {
     ggplot() +
       #evaluate vec1 & vec2 (they are symbols) & use curly-curly convention for color
       geom_boxplot(aes(x=!!vec1, y=!!vec2, color={{color_value}})) +
-      #log-transform axis if not age
-      {if(vec[1]!="age") scale_x_log10()} +
+      #psuedo log-transform axis if not age
+      {if(vec[1]!="age") scale_x_continuous(trans=scales::pseudo_log_trans(base=10),
+                                            guide=guide_axis(check.overlap=TRUE))} +
       #limits=rev puts NA at bottom on y-axis
       scale_y_discrete(limits=rev) +
       theme_bw(base_size=19) -> p
@@ -370,26 +373,28 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
     #conditional filter on na.rm arg
     {if(na.rm==TRUE)(filter(.,across(everything(),~!is.na(.x)))) else .} %>%
     ggplot(aes(x=!!vec2, y=!!vec1)) +
-    {if(vec[2]!="age") scale_x_log10()} +
-    {if(vec[1]!="age") scale_y_log10(expand=expansion(mult=c(0,0.1))) 
-      else scale_y_continuous(expand=expansion(mult=c(0,0.1)))} +
+    {if(vec[2]!="age") scale_x_continuous(trans=scales::pseudo_log_trans(base=10),
+                                          guide=guide_axis(check.overlap=TRUE))} +
+    {if(vec[1]!="age") scale_y_continuous(trans=scales::pseudo_log_trans(base=10),
+                                          guide=guide_axis(check.overlap=TRUE))
+      else scale_y_continuous(guide=guide_axis(check.overlap=TRUE))} +
     theme_bw(base_size=19) +
     theme(legend.position="bottom") -> p
       
   #if/else if/else
   if(n==2) {
-    p + geom_point(color="darkred", size=2, alpha=0.8)
+    p + geom_point(color="darkred", size=2, alpha=0.5)
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("logical","factor")) {
     p + 
-      geom_point(aes(color=!!vec3), size=2, alpha=0.7) + 
+      geom_point(aes(color=!!vec3), size=2, alpha=0.5) + 
       scale_color_viridis_d(end=.7, na.value="grey50") +
       theme(legend.key.width=unit(3, "cm")) +
       guides(color=guide_legend(override.aes=list(size=4)))
   }
   else if(n==3 & class(dat[[vec[3]]]) %in% c("integer","numeric")) {
     p + 
-      geom_point(aes(color=!!vec3), size=2, alpha=0.7) + 
+      geom_point(aes(color=!!vec3), size=2, alpha=0.5) + 
       {if(vec[3]!="age") 
         scale_color_viridis_c(end=.8, na.value="grey50", trans="log", 
                               labels=label_number(accuracy=10, big.mark=","))

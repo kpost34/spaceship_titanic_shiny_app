@@ -86,14 +86,14 @@ spaceTitanicApp()
 
 
 
+
 # LAST PUSHED COMMENT(S)
-#02_fn: created new fn comp_var_class() that extracts and compares col class to passed arg
-#04_featSel module:
-  #created input, reactives, and output for doing a last viz before selecting variables
-  #simplified and updated code used to determine class of variable
-#03_fn: created new fn extract_pred_class() which extracts predictors into a vector & names them
-  #a combination of the predictor name and the class in ()
-#app_new: update more DF names
+#01_fn: replaced log10() scales for histogram, box, and scatterplotter with pseudo-log10 scales
+  #so that 0s can be displayed
+  #after adjusting y-axis of histogrammer to pseudo-log10 scale, reverted x-axis to linear scale
+  #added guide=guide_axis(check.overlap=TRUE) to boxplotter to avoid overlapping axis labels
+  #adjusted alpha values of scatterplotter
+  #removed expand arguments when they cut off data points
 
 
 
@@ -108,6 +108,11 @@ spaceTitanicApp()
 
 
 
+
+
+
+#--------------------------------------------------------------------------------------------------
+#put this on hold and went back to start.....
 # feature selection...
   #1. update barplotter so that it can take on ordered factors
   #2. use a color scheme for boxplotter?
