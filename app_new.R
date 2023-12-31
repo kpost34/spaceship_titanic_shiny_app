@@ -66,8 +66,8 @@ spaceTitanicApp <- function() {
     df_train_nd_nvI <- missOtherServer("dat3", df_train_nd_nI)
 
     # #feature engineering
-    df_train_nvI_tF <- featTrans_mainServer("df1", df_train_nd_nvI) 
-    df_train_nvI_cF <- featCreatServer("df2", df_train_nd_nvI)
+    df_train_nd_nvI_tF <- featTrans_mainServer("df1", df_train_nd_nvI) 
+    df_train_nd_nvI_cF <- featCreatServer("df2", df_train_nd_nvI)
     featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
     
 
@@ -87,8 +87,13 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#in app_new and modules--updated DF names to reflect upstream code updates
-#supplied a .init arg for reduce() in 04_featTrans_dis
+#02_fn: created new fn comp_var_class() that extracts and compares col class to passed arg
+#04_featSel module:
+  #created input, reactives, and output for doing a last viz before selecting variables
+  #simplified and updated code used to determine class of variable
+#03_fn: created new fn extract_pred_class() which extracts predictors into a vector & names them
+  #a combination of the predictor name and the class in ()
+#app_new: update more DF names
 
 
 
@@ -97,6 +102,15 @@ spaceTitanicApp()
 
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
+
+
+
+
+
+
+# feature selection...
+  #1. update barplotter so that it can take on ordered factors
+  #2. use a color scheme for boxplotter?
 #1. add floor_num to choices in rare label encoing and ordinal encoding
 #2. feature selection code
   #a) add a simple bivariate EDA with each non-chr var and transported
@@ -171,6 +185,9 @@ spaceTitanicApp()
       #turn lists of outputs to purrr::map with tagList
       #there should be an option to 'skip' scaling/extraction (this will make debugging quicker too)
 
+  #reword initial text--correct typo/spacing, change question to something more general, and make
+    #sure that user knows all four methods need to be confirmed first
+
 
 
   #04_feature scaling
@@ -204,6 +221,7 @@ spaceTitanicApp()
       #2) some type of text
     #later.../
       #use purrr::map() to bundle output/render fns
+  #if user does not want ordinal encoding, then confirmation button should appear
 
 
   #04_rare label encoding

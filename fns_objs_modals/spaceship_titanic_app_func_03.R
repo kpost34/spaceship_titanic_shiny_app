@@ -259,6 +259,45 @@ boxplotter2<-function(dat){
   
 
 # Feature Selection=================================================================================
+## Function to extract predictors into vec with classes as names,
+extract_pred_class <- function(dat){
+  dat %>% 
+    #remove chr vars and dep var
+    select(!c(where(is.character), transported)) %>%
+    #extract classes into a list
+    purrr::map(class) %>%
+    #combine classes into a single element if multiple (for ordered factors)
+    purrr::map(paste, collapse=" ") %>%
+    #convert to vector
+    unlist() %>%
+    set_names(names(.), .) -> tmp
+  
+  #grab names
+  nm <- names(tmp) %>%
+    str_replace("ordered", "ord")
+  
+  #append new names to vector of variables
+  tmp %>%
+    set_names(paste0(., " (", nm, ")")) -> varnames
+
+  return(varnames)
+}
+  
+
+## Function to ascertain class of selected variable
+comp_var_class <- function(var_sel, vars_vec, kind) {
+  #extract class of selected variable
+  type <- vars_vec[vars_vec == var_sel] %>%
+    #pull [variable] (class)
+    names() %>%
+    #extract class
+    str_extract("(?<=\\().+(?=\\))")
+  
+  #compare to the kind arg
+  type %in% kind
+}
+
+
 ## Function to reduce variable pool
 deplete_var_pool <- function(var_sel, var_pool) {
   #create obj suffixes for regex
