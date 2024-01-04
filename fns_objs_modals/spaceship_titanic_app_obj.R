@@ -114,22 +114,37 @@ ch_lux_featCreat <- c("room_service",
 
 
 ## Long strings--------------------
+### missNum module
+chr_1a_missNum <- "cabin is a character string composed of three variables: deck, num, and side. The former"
+chr_1b_missNum <- "and latter can and have been easily converted to a factor. But num has over 1800 values,"
+chr_1c_missNum <- "which do not possess any numeric value. Thus, it may be easiest to convert these into"
+chr_1d_missNum <- "coarser groups, preferably according to some multiple of the hundreds digit, which often"
+chr_1e_missNum <- "indicates the floor number. Thus, there will be an option to bin num by individual floors"
+chr_1f_missNum <- "or ranges of 2, 3, or 4 floors."
+
+chr_1_missNum <- paste(chr_1a_missNum, chr_1b_missNum, chr_1c_missNum, chr_1d_missNum, 
+                       chr_1e_missNum, chr_1f_missNum)
+
+
+
+
 ### missName module
 chr_1a_missName <- "Two hundred out of 8693 passengers (in the training data) lack names. That's 2.3%."
 chr_1b_missName <- "Although first names, and thus full names, will be impossible to impute from the other"
-chr_1c_missName <- "variables, last names may be populated with confidence if we assume passengers"
-chr_1d_missName <- "traveled together as families."
+chr_1c_missName <- "variables, last names may be populated with confidence through group membership."
 
-chr_1_missName <- paste(chr_1a_missName, chr_1b_missName, chr_1c_missName, chr_1d_missName)
+chr_1_missName <- paste(chr_1a_missName, chr_1b_missName, chr_1c_missName)
 
-chr_2a_missName <- "Two ways the traveling party is a family is by either..."
+chr_2a_missName <- "If we assume passengers traveled together as families, then families could be"
+chr_2b_missName <- "identified by..."
+chr_2ab_missName <- paste(chr_2a_missName, chr_2b_missName)
 
-chr_2b_missName <- "  1) purchasing tickets together (same passenger group)"
-chr_2c_missName <- "  2) staying in the same room (cabin)." 
+chr_2c_missName <- "  1) purchasing tickets together (same passenger group)"
+chr_2d_missName <- "  2) staying in the same room (cabin)." 
 
-chr_2_missName <- paste("<h4>", chr_2a_missName, "<br>",
-                        chr_2b_missName, "<br>",
-                        chr_2c_missName, "</h4>")
+chr_2_missName <- paste("<h4>", chr_2ab_missName, "<br>",
+                        chr_2c_missName, "<br>",
+                        chr_2d_missName, "</h4>")
 
 chr_2d_missName <- "Let's look at frequencies of passenger and cabin group sizes."
 

@@ -25,7 +25,6 @@ grab_reduce_floor <- function(dat) {
 
 
 ### Function to bin num into floor groups
-#new version
 group_floors <- function(dat, nbin) {
   dat %>%
     mutate(num_num=as.numeric(num),
@@ -41,25 +40,23 @@ group_floors <- function(dat, nbin) {
     select(-c(num_num, floor))
 }
 
-#old version
-# group_floors <- function(dat, nbin) {
-#   dat %>%
-#     mutate(num_num=as.numeric(num),
-#            floor=num_num %/% 100) %>%
-#     {if(nbin > 1)
-#       mutate(., 
-#              floor_num=cut_width(floor, 
-#                                  width=nbin, 
-#                                  boundary=0, 
-#                                  closed="left"))
-#       else mutate(., floor_num=as.factor(floor))} %>%
-#     select(-c(num_num, floor))
-# }
+
+
+### Function to display toast notification
+create_floor_num_msg <- function(number) {
+  if(number==1){
+    return("New variable 'floor_num' comprises individual floors")
+  } else if(number > 1) {
+    msg <- paste("New variable 'floor_num' comprises", number, "floors")
+    return(msg)
+  }
+}
+  
 
 
 
 
-## Exploring name missingness--------------------
+## Name missingness--------------------
 ### Function to provide summary table of missingness
 chr_miss_tabler<-function(dat){
   dat %>%
@@ -71,8 +68,8 @@ chr_miss_tabler<-function(dat){
 
 
 
-## Relationship between name missingness and passenger_group or room (cabin) occupancy & imputation
-### Function that provides of counts of named passengers grouped by another variable
+### Relationship between name missingness and passenger_group or room (cabin) occupancy & imputation
+#### Function that provides of counts of named passengers grouped by another variable
 mis_name_tabler<-function(dat, name, group){
   dat %>%
     #filter for missing names
@@ -95,7 +92,7 @@ mis_name_tabler<-function(dat, name, group){
 }
 
 
-### Function that provides column graphs using above table output
+#### Function that provides column graphs using above table output
 col_plotter<-function(dat,  group,  count,  input){
   
   fill_value <- if(input=="passenger_group") {
@@ -116,7 +113,7 @@ col_plotter<-function(dat,  group,  count,  input){
 }
 
 
-### Function to impute last names using passenger group size or cabin occupancy
+#### Function to impute last names using passenger group size or cabin occupancy
 name_imputer<-function(tab, col, range, dat, var) {
   tab %>%
     #filter summary table of missing names by range of number named
@@ -162,8 +159,27 @@ impute_name_msg <- function(action) {
 
 
 
+## Predictor missingness--------------------
+### Function to display toast notification after imputation
+impute_predictor_msg <- function(action) {
+  if(action=="lwise_del") {
+    return("Incomplete cases removed")
+    
+  } else if(action=="mean_imp") {
+    return("Mean imputation completed")
+    
+  } else if(action=="med_imp") {
+    return("Median imputation completed")
+    
+  } else if(action=="mult_imp") {
+    return("Predictive mean matching completed")
+  }
+}
+
+
+
 # Archive===========================================================================================
-## Function to provide summary barlot of missingness
+## Function to provide summary barplot of missingness
 chr_miss_barplotter<-function(dat){
   dat %>%
     summarize(across(contains("name"), ~ifelse(!is.na(.x), "Present", "Missing"))) %>%

@@ -11,12 +11,12 @@ missNumUI <- function(id) {
       sidebarPanel(
         h3("Convert door number to floor or floor ranges"),
         #visualize binning options
-        h4("cabin is a character string composed of three variables: deck, num, and side. The former
-           and latter can and have been easily converted to a factor. But num has over 1800 values,
-           which do not possess any numeric value. Thus, it may be easiest to convert these into
-           coarser groups, preferably according to some multiple of the hundreds digit, which often 
-           indicates the floor number. Thus, there will be an option to bin num by individual floors 
-           or ranges of 2, 3, or 4 floors."),
+        accordion(id=ns("accordion1"),
+          accordionItem(
+            title="Click for more details",
+            h4(chr_1_missNum)
+          )
+        ),
         sliderInput(ns("slid_num_bin"), label="Select number of floors per bin", 
                     min=1, max=4, value=1),
         
@@ -77,6 +77,19 @@ missNumServer <- function(id) {
     
     
     ## Confirm selection-------------------
+    ### Trigger toast notifications
+    observeEvent(input$btn_num_bin, {
+      if(input$slid_num_bin %in% 1:4) {
+        show_toast(
+          title="Floor variable",
+          type="success",
+          text=create_floor_num_msg(input$slid_num_bin),
+          position="center",
+          timer=3500
+      )} 
+    })
+    
+    ### Create new reactive DF to be exported
     df_train_nd <- eventReactive(input$btn_num_bin, {
       dat1()
     })

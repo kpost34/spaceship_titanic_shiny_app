@@ -2,8 +2,9 @@
 
 # Modularized structure
 ## Load packages
-pacman::p_load(shiny,conflicted,here,tidyverse,janitor,shinyjs,DT,visdat,finalfit,skimr,GGally,rstatix,
-               naniar,mice,cowplot,GGally, ggiraph, shinyWidgets, Hmisc, mice, simputation)
+pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat, finalfit, skimr,
+               GGally, rstatix, naniar, mice, cowplot, GGally, ggiraph, shinyWidgets, Hmisc, 
+               simputation, shinydashboardPlus, waiter)
 
 #address potential conflicts
 filter <- dplyr::filter
@@ -88,12 +89,11 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#01_fn: replaced log10() scales for histogram, box, and scatterplotter with pseudo-log10 scales
-  #so that 0s can be displayed
-  #after adjusting y-axis of histogrammer to pseudo-log10 scale, reverted x-axis to linear scale
-  #added guide=guide_axis(check.overlap=TRUE) to boxplotter to avoid overlapping axis labels
-  #adjusted alpha values of scatterplotter
-  #removed expand arguments when they cut off data points
+#03_missNum module: added accordion to hide bulk of text (which I stored as a string object);
+  #added toast notification after button is pressed (which included creating new fn)
+#03_missName_module: added headers and accordion and updated text
+#03_missOth_module: fixed delay in imputation/table display, added toast notification (via
+  #creating function)
 
 
 
@@ -111,7 +111,7 @@ spaceTitanicApp()
 
 
 
-#--------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 #put this on hold and went back to start.....
 # feature selection...
   #1. update barplotter so that it can take on ordered factors
@@ -158,14 +158,17 @@ spaceTitanicApp()
 
 #--------------------------------------------------------------------------------------------
 #general
+  #button changes color after selection?
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
   #feature engineering (all tabs) can only be available after missingness tabs dealt with
     #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
+  #conditionally display tabs as user progresses through app
 
 
+#---------------------------------
 #feature engineering- selection
   #UI: remove starting gray box (sidebarpanel)
   #take the reactive DF from transformation and the reactive DF from creation & join them
@@ -174,6 +177,7 @@ spaceTitanicApp()
     #will drop out (i.e., the choices needs to be a reactiveValue)
     #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
       #then 'spa' and 'spa_dis" disappear
+#---------------------------------
 
 
 
@@ -234,24 +238,6 @@ spaceTitanicApp()
       #1) toast notification selected
       #2) some type of text
 
-
-#03_missNum:
-  #add toast notification after submitting floor_num decision
-    
-
-#03_missName
-  #Use accordion text for the description in the middle
-  #Indicate somehow (red box?) that the last step must be completed to continue
-  #in missingness tab, consider adding option for nsets (or to select variables) for gg_miss_upset()--perhaps there's
-   #a first drop down selectize with option to choose all and then user can select the missingness pattern from there
-
-
-#03_missOth
-  #UI
-    #input 3:
-      #imputation method--selector from MICE package
-  #this tab/page (and all of them after) should be hidden until user submits a name imputation method
-  #need user feedback after 'submit' button is hit [unsure why this takes so long to run]
 
 
 

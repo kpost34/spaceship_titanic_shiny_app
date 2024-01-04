@@ -10,27 +10,35 @@ missNameUI <- function(id) {
     sidebarLayout(
       sidebarPanel(
         #exploring missing names
-        h4("Did you notice that some passengers did not have names? If not, take a closer look"),
-          selectInput01(ID=ns("sel_exp"), label="",choices=ch_exp_nm_missName),
-          hr(style = "border-top: 1px solid #000000;"),
+        h3("Observation"),
+          h4("Did you notice that some passengers did not have names? If not, take a closer look."),
+            selectInput01(ID=ns("sel_exp"), label="", choices=ch_exp_nm_missName),
+            hr(style = "border-top: 1px solid #000000;"),
         
         #go deeper with some possibilities
-        h4(chr_1_missName),
+        h3("Exploration"),
+          accordion(id=ns("accordion1"),
+            accordionItem(
+              title="Background",
+              h4(chr_1_missName),
+            )
+          ),
           HTML(chr_2_missName),
           radioButtons(inputId=ns("rad_grpVar"),
                        label=h4(chr_2d_missName),
-                       choices=c("passenger_group"="passenger_group",
-                                 "cabin occupancy"="cabin"),
+                       choices=c("passenger group"="passenger_group",
+                                 "cabin group"="cabin"),
                        selected=character(0)),
           hr(style = "border-top: 1px solid #000000;"),
         
         #options on missing names
-        h4("Given all this information, how would you like to handle passengers with missing names?"),
-          selectInput01(ID=ns("sel_impOpt"),
-                        label="",
-                        choices=ch_imp_opt_missName),
-          br(),
-          uiOutput(ns("ui_slid_impOpt")),
+        h3("Data handling"),
+          h4("Given all this information, how would you like to handle passengers with missing names?"),
+            selectInput01(ID=ns("sel_impOpt"),
+                          label="",
+                          choices=ch_imp_opt_missName),
+            br(),
+            uiOutput(ns("ui_slid_impOpt")),
         actionButton(ns("btn_impOpt"), "Submit", class="btn-primary")
       ),
       
@@ -39,7 +47,7 @@ missNameUI <- function(id) {
         DTOutput(ns("tab_sel_exp")),
         br(),
         h3(textOutput(ns("text_rad_grpVar"))),
-        plotOutput(ns("plot_rad_grpVar"))
+        plotOutput(ns("plot_rad_grpVar")),
         # tableOutput(ns("test_table")),
         # tableOutput(ns("test_table2"))
       )
@@ -150,8 +158,9 @@ missNameServer <- function(id, df_train_nd) {
     })
     
     
-    
-    ### Trigger toast notifications
+    ## Handling missing names--------------------
+    ### Selection is made
+    #### Trigger toast notifications
     observeEvent(input$btn_impOpt, {
       if(input$sel_impOpt %in% ch_imp_opt_missName) {
         show_toast(
@@ -160,19 +169,11 @@ missNameServer <- function(id, df_train_nd) {
           text=impute_name_msg(input$sel_impOpt),
           position="center",
           timer=3000
-        )} else{
-          show_toast(
-            title="Name imputation",
-            type="error",
-            text="Please select an action",
-            position="center",
-            timer=2000
-          )
-        }
+      )}
     })
     
     
-    ### Create new data frame object after name imputation or col/row removal
+    #### Create new data frame object after name imputation or col/row removal
     df_train_nd_nI <- eventReactive(input$btn_impOpt, {
       #requires selection from drop-down menu
       req(input$sel_impOpt)

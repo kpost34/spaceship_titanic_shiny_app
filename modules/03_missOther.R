@@ -94,8 +94,20 @@ missOtherServer <- function(id, df_train_nd_nI) {
     
     
     ## Imputation--------------------
+    ### Trigger toast notifications
+    observeEvent(input$btn_impute, {
+      if(input$sel_impute %in% ch_impute_missOther) {
+        show_toast(
+          title="Predictor imputation",
+          type="success",
+          text=impute_predictor_msg(input$sel_impute),
+          position="center",
+          timer=2000
+      )} 
+    })
+    
+    
     ### Create reactive
-    # dat <- reactive({
     df_train_nd_nvI <- eventReactive(input$btn_impute, {
       req(input$sel_impute)
 
@@ -122,7 +134,8 @@ missOtherServer <- function(id, df_train_nd_nI) {
 
     #### Output reactive
     output$tab_temp <- renderTable(
-      df_train_nd_nvI()
+      df_train_nd_nvI() %>%
+        head()
     )
 
     
