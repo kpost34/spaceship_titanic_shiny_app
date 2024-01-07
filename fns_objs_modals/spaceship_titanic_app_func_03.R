@@ -6,8 +6,8 @@
 #Load packages
 pacman::p_load(tidyverse,cowplot)
 
-# Data transformation and feature extraction=========================================================================
-## Feature Scaling
+# Data transformation and feature extraction========================================================
+## Feature Scaling--------------------
 ### Function to build cowplot of density and qqplots for various transforms
 #### Individual ggplot functions
 dens_plotter<-function(dat, var, label=""){
@@ -72,38 +72,44 @@ cowplotter<-function(dat, var, label_vec=c("raw", "log-transformed", "min-max sc
             nrow=4)
 }
 
-## Discretization
+
+#### Display text after confirmation hit
+confirm_scaling_msg <- function(action) {
+  if(action=="raw"){
+    return("Scaling has not been applied.")
+  } else if(action=="log"){
+    return("log x + 1 scaling has been applied.")
+  } else if(action=="mm_scale"){
+    return("Min-max scaling has been applied.")
+  } else if(action=="standize"){
+    return("Standardization has been applied.")
+  }
+}
+
+
+
+## Discretization--------------------
 ### Function to make histograms of a numerical var filled by transported with options to adjust bins & use log x scale
-histogrammer2<-function(dat,col,n.bins=30,x.log.scale=TRUE){
+histogrammer2<-function(dat, col, n.bins=30, x.log.scale=TRUE){
   dat %>%
     #convert any categorical vars to numeric
     mutate(var=as.numeric(!!sym(col))) -> dat
-  
-  if(x.log.scale==TRUE){
-    dat %>%
-      #convert to log scale
-      mutate(var=if_else(var==0,.001,var,NA_real_)) -> dat
-  }
 
   dat %>%
     ggplot(aes(var)) +
     #create histogram filled by transported status; specify bin number
-    geom_histogram(aes(fill=transported),bins=n.bins,color="black") +
-    scale_y_continuous(expand=expansion(mult=c(0,0.1))) +
+    geom_histogram(aes(fill=transported), bins=n.bins, color="black") +
+    #apply psuedo log (b/c of 0s) if log10 scale button selected
+    {if(x.log.scale) scale_x_continuous(trans=scales::pseudo_log_trans(base=10),
+                                        expand=expansion(mult=c(0.05, .05)),
+                                        guide=guide_axis(check.overlap=TRUE))
+      else scale_x_continuous(expand=expansion(mult=c(0.05, 0.05)))} +
     scale_fill_viridis_d() +
     xlab(col) +
     ggtitle(paste("Histogram of", col)) +
     theme_bw(base_size=18) -> p
-
   
-  if(x.log.scale==TRUE){
-    p + 
-      #use log10 scale for x-axis if arg=TRUE
-      scale_x_log10() +
-      theme(plot.caption=element_text(hjust=0)) +
-      labs(caption="- 0s converted to 0.001 for log10 scale") -> p
-  }
-  p
+  return(p)
 }
 
 ### Functions to bin numerical var & retain transported
@@ -135,7 +141,7 @@ equal_cutter <- function(dat, col, n.breaks=NA){
 
 
 ### Function to make bar plot after creating bins
-bin_plotter <- function(dat, col, type, log_val) {
+bin_plotter <- function(dat, col, type, y.log.scale=TRUE) {
   
   title_val <- if(type=="cut_int") {
     "bins with equal ranges"
@@ -149,23 +155,21 @@ bin_plotter <- function(dat, col, type, log_val) {
     ggplot(aes(!!sym(paste0(col, "_dis")))) +
     geom_bar(aes(fill=transported), 
                  position="dodge") +
+    {if(y.log.scale) scale_y_continuous(trans=scales::pseudo_log_trans(base=10),
+                                        expand=expansion(mult=c(0, .05)),
+                                        guide=guide_axis(check.overlap=TRUE))
+      else scale_y_continuous(expand=expansion(mult=c(0, 0.05)))} +
     scale_fill_viridis_d(option="mako", end=0.8) +
     xlab(col) +
     ggtitle(paste(col, title_val)) +
     theme_bw(base_size=18) -> p1
 
-    if(log_val=="No"){
-      p1 + scale_y_continuous(expand=expansion(mult=c(0,0.05)))
-    }
-
-    else if(log_val=="Yes"){
-      p1 + scale_y_log10(expand=expansion(mult=c(0,0.05)))
-    }
+  return(p1)
 }
 
 
 
-## Rare Label Encoding
+## Rare Label Encoding--------------------
 ### Function to make barplots of counts filled by transported and to combine different factor levels
 barplotter2 <- function(dat, var, cats, col="viridis", title=TRUE){
   #convert quoted input to symbol
@@ -201,8 +205,7 @@ barplotter2 <- function(dat, var, cats, col="viridis", title=TRUE){
       
 
 # Feature Creation==================================================================================
-## Plotting functions for luxury expense variable
-### Function to mutate input variables to create luxury expense variable
+## Function to mutate input variables to create luxury expense variable
 lux_builder <- function(dat, vars){
   
   if(length(vars) <= 1) {
@@ -223,7 +226,7 @@ lux_builder <- function(dat, vars){
   
 }
 
-### Function to make heat map
+## Function to make heat map
 heatmapper<-function(dat,vars){
   
 dat %>%
@@ -239,7 +242,7 @@ dat %>%
 }
 
 
-### Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
+## Function to create boxplot with transported (x) and luxury (y; summed numeric vars)
 boxplotter2<-function(dat){
   
   var <- dat %>%

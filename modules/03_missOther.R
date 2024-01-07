@@ -8,7 +8,7 @@ missOtherUI <- function(id) {
   tabPanel(title="Explore Missingness",
     titlePanel("Exploring Other Missing Data"),
     sidebarLayout(
-      sidebarPanel(width=2,
+      sidebarPanel(width=3,
         #missingness exploration (visualizations)
         h5("Let's visualize missingness in all non-character variables."),
         selectInput01(ID=ns("sel_exp"), label="", choices=ch_exp_nnm_missOther),
@@ -24,7 +24,7 @@ missOtherUI <- function(id) {
         selectInput01(ID=ns("sel_impute"), label="", choices=ch_impute_missOther),
         actionButton(ns("btn_impute"), label="Submit", class="btn-primary")
       ),
-      mainPanel(width=10,
+      mainPanel(width=9,
         splitLayout(cellWidths=c("65%", "35%"),
           h4(textOutput(ns("text_sel_exp"))),
           h4(textOutput(ns("text_mcar")))

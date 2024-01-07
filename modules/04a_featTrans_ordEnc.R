@@ -31,7 +31,7 @@ featTrans_ordEncUI <- function(id) {
 
 
 # Server============================================================================================
-featTrans_ordEncServer <- function(id, df_train_nd_nvI_nvI) {
+featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -73,45 +73,45 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI_nvI) {
       req(input$chk_ordEnc2a)
       selectizeInput(inputId=ns("sel_ordEnc2a"),label="", multiple=TRUE,
                     choices=c(varSelOrd_feat,
-                            df_train_nd_nvI_nvI()[["ticket"]] %>% levels()))
+                            df_train_nd_nvI()[["ticket"]] %>% levels()))
     })
     
     output$ui_sel_ordEnc2b<-renderUI({
       req(input$chk_ordEnc2b)
       selectizeInput(inputId=ns("sel_ordEnc2b"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               df_train_nd_nvI_nvI()[["home_planet"]] %>% levels()))
+                               df_train_nd_nvI()[["home_planet"]] %>% levels()))
     })
     
     output$ui_sel_ordEnc2c<-renderUI({
       req(input$chk_ordEnc2c)
       selectizeInput(inputId=ns("sel_ordEnc2c"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               df_train_nd_nvI_nvI()[["deck"]] %>% levels()))
+                               df_train_nd_nvI()[["deck"]] %>% levels()))
     })
     
     output$ui_sel_ordEnc2d<-renderUI({
       req(input$chk_ordEnc2d)
       selectizeInput(inputId=ns("sel_ordEnc2d"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               df_train_nd_nvI_nvI()[["side"]] %>% levels()))
+                               df_train_nd_nvI()[["side"]] %>% levels()))
     })
     
     output$ui_sel_ordEnc2e<-renderUI({
       req(input$chk_ordEnc2e)
       selectizeInput(inputId=ns("sel_ordEnc2e"),label="", multiple=TRUE,
                      choices=c(varSelOrd_feat,
-                               df_train_nd_nvI_nvI()[["destination"]] %>% levels()))
+                               df_train_nd_nvI()[["destination"]] %>% levels()))
     })
     
     
     ### Dynamically display button
     output$ui_btn_ordEnc_complete<-renderUI({
-      n_ticket<-nlevels(df_train_nd_nvI_nvI()[["ticket"]])
-      n_home_planet<-nlevels(df_train_nd_nvI_nvI()[["home_planet"]])
-      n_deck<-nlevels(df_train_nd_nvI_nvI()[["deck"]])
-      n_side<-nlevels(df_train_nd_nvI_nvI()[["side"]])
-      n_destination<-nlevels(df_train_nd_nvI_nvI()[["destination"]])
+      n_ticket<-nlevels(df_train_nd_nvI()[["ticket"]])
+      n_home_planet<-nlevels(df_train_nd_nvI()[["home_planet"]])
+      n_deck<-nlevels(df_train_nd_nvI()[["deck"]])
+      n_side<-nlevels(df_train_nd_nvI()[["side"]])
+      n_destination<-nlevels(df_train_nd_nvI()[["destination"]])
       
       #button displays if 1) "No" selected in radio button; 2) at least one box is checked AND for each var either
         #1) box unchecked or all categories selected 
@@ -139,7 +139,7 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI_nvI) {
     ### Display plot
     output$plot_sel_var_viz<-renderPlot({
       req(input$sel_var_viz)
-      barplotter(df_train_nd_nvI_nvI(), input$sel_var_viz)
+      barplotter(df_train_nd_nvI(), input$sel_var_viz)
     })
     
     
@@ -171,8 +171,8 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI_nvI) {
     
     ## Export--------------------
     ### Create reactive data frame
-    df_train_nd_nvI_nvI_o <- eventReactive(input$btn_ordEnc_complete, {
-      df_train_nd_nvI_nvI() %>%
+    df_train_nd_nvI_o <- eventReactive(input$btn_ordEnc_complete, {
+      df_train_nd_nvI() %>%
         #choose all factors except num
         mutate(across(.cols=all_of(fct_nonumVars), ~as.ordered(.x))) %>%
           #if...else statements for whether to change factor level order based on if checkbox checked
@@ -198,12 +198,12 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI_nvI) {
     
     ### Print temp table as a check
     output$temp_table<-renderTable({
-      df_train_nd_nvI_nvI_o() %>% head()
+      df_train_nd_nvI_o() %>% head()
     })
     
     
     ### Return obj
-    return(df_train_nd_nvI_nvI_o)
+    return(df_train_nd_nvI_o)
 
 
     

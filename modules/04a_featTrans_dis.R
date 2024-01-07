@@ -11,7 +11,7 @@ featTrans_disUI <- function(id) {
       selectInput01(ID=ns("sel_var_hist"), label=varViz_feat, choices=disVars),
       radioButtons(inputId=ns("rad_log_hist"),
                    label="Choose whether to log10-scale the x-axis",
-                   choices=c("Yes"=TRUE,"No"=FALSE),selected=character(0),inline=TRUE),
+                   choices=c("Yes"=TRUE, "No"=FALSE),selected=character(0),inline=TRUE),
       numericInput(inputId=ns("num_bin_hist"),
                    label="Select the number of bins for the histogram (2-50)",
                    value=10,min=2,max=50),
@@ -33,7 +33,7 @@ featTrans_disUI <- function(id) {
       h4("Visualization of binned data"),
       radioButtons(inputId=ns("rad_log_bar"),
                    label="Choose whether to log10-scale the y-axis",
-                   choices=c("Yes", "No"), selected=character(0), inline=TRUE),
+                   choices=c("Yes"=TRUE, "No"=FALSE), selected=character(0), inline=TRUE),
       numericInput(inputId=ns("num_brk_bar"),
                    label="Select the number of breaks to create data bins (1-5)",
                    value=2, min=1, max=5),
@@ -175,7 +175,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       bin_plotter(dat=df_cut(), 
                   col=input$sel_var_hist, 
                   type=input$rad_bdry_bar, 
-                  log_val=input$rad_log_bar)
+                  y.log.scale=input$rad_log_bar)
     })
       
     

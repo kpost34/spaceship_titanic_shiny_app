@@ -10,10 +10,12 @@ featTrans_scaleUI <- function(id) {
                     choices=numVars),
       br(),
       uiOutput(ns("ui_type_scale")),
-      uiOutput(ns("ui_btn_scale_complete"))
+      uiOutput(ns("ui_btn_scale_complete")),
+      strong(textOutput(ns("text_btn_scale_complete")))
     ),
     mainPanel(width=9,
-      plotOutput(ns("plot_sel_var_viz"), height="1000px"),
+      plotOutput(ns("plot_sel_var_viz"), height="1000px") %>%
+        withSpinner(),
       tableOutput(ns("temp_table"))
     )
   )
@@ -77,6 +79,16 @@ featTrans_scaleServer <- function(id, df_train_nd_nvI) {
                select(passenger_id,ends_with("scale")) 
       )
     })
+    
+    ### User feedback: display text of transformation selected
+    output$text_btn_scale_complete <- renderText({
+      req(input$type_scale)
+      req(input$btn_scale_complete)
+      confirm_scaling_msg(input$type_scale)
+    })
+      
+
+                                      
     
     ### Temporary table--proof that above code is working
     output$temp_table <- renderTable({

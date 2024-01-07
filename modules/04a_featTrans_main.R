@@ -12,8 +12,8 @@ featTrans_mainUI <- function(id) {
        and group rare categories together. What would you like to begin with?"),
     fluidRow(
       column(6,align="center",
-        radioButtons(inputId=ns("rad_trans"), label="",choices=ch_trans_featTrans,
-                     selected=character(0), inline=TRUE,width="100%")
+        radioButtons(inputId=ns("rad_trans"), label="", choices=ch_trans_featTrans,
+                     selected=character(0), inline=TRUE, width="100%")
       ),
       column(6, align="center",
         #placeholder
@@ -58,7 +58,10 @@ featTrans_mainServer <- function(id, df_train_nd_nvI) {
     output$ui_btn_trans_complete <- renderUI({
       req(df_train_nd_nvI_s(), df_train_nd_nvI_d(), df_train_nd_nvI_o(), df_train_nd_nvI_r())
       
-      actionButton(ns("btn_trans_complete"), "All transformations complete", class="btn-success")
+      actionButton(ns("btn_trans_complete"), 
+                   label=HTML("<b>All transformations complete</b>"), 
+                   style="width: 300px; height=150px",
+                   class="btn-info")
     })
     
     # Source/run server submodules

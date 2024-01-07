@@ -4,7 +4,7 @@
 ## Load packages
 pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat, finalfit, skimr,
                GGally, rstatix, naniar, mice, cowplot, GGally, ggiraph, shinyWidgets, Hmisc, 
-               simputation, shinydashboardPlus, waiter)
+               simputation, shinydashboardPlus, shinycssloaders)
 
 #address potential conflicts
 filter <- dplyr::filter
@@ -87,17 +87,18 @@ spaceTitanicApp()
 
 
 
-
 # LAST PUSHED COMMENT(S)
-#03_missNum module: added accordion to hide bulk of text (which I stored as a string object);
-  #added toast notification after button is pressed (which included creating new fn)
-#03_missName_module: added headers and accordion and updated text
-#03_missOth_module: fixed delay in imputation/table display, added toast notification (via
-  #creating function)
+#04a_scale: added user feedback (bold text) indicating when scaling has been applied via confirm_scaling_msg()
+  #function; added withspinners() to plot outputs
+#04a_ordEnc: fixed typos in naming reactive DF
+#04a_main: changed button color and size
+#04a_dis: applied psuedo-log scale to histogram (via histogrammer2()) & updated binned data plot
+  #(via bin_plotter) to use pseudo-log scale
 
 
 
 ## IN PROGRESS
+
 
 
 #---------------------------------------------------------------------------------------------------
@@ -158,14 +159,11 @@ spaceTitanicApp()
 
 #--------------------------------------------------------------------------------------------
 #general
-  #button changes color after selection?
   #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
     #data become hidden
-  #feature engineering (all tabs) can only be available after missingness tabs dealt with
-    #same goes for next set of tabs
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
-  #conditionally display tabs as user progresses through app
+  #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
 
 
 #---------------------------------
@@ -182,7 +180,6 @@ spaceTitanicApp()
 
 
 #04_feature engineering- transform
-  #make button a different color or larger to make it stand out once all transforms done
   #whole module
     #all transforms need to be completed to move on
       #some sort of modal should appear that lists remaining items
@@ -197,15 +194,6 @@ spaceTitanicApp()
   #reword initial text--correct typo/spacing, change question to something more general, and make
     #sure that user knows all four methods need to be confirmed first
 
-
-
-  #04_feature scaling
-    #use waiter (or equivalent package) to let user know that processing is happening
-    #when the scaling type is selected and confirmed, there needs to be feedback
-      #1) toast notification
-      #2) textOutput: "x has been selected"
-    #later...
-      #more nuanced scaling: choose type for each variable
 
 
   #04_discretization 
@@ -235,8 +223,7 @@ spaceTitanicApp()
 
   #04_rare label encoding
     #confirmation should yield feedback
-      #1) toast notification selected
-      #2) some type of text
+      #some type of text
 
 
 
@@ -246,12 +233,12 @@ spaceTitanicApp()
 
 
 #### LAST UPDATES (if at all)
-  #perhaps add an option to compare before/after datasets re imputation using vis_compare()
   #need a title page where variables are defined--perhaps some type of accordion presentation
   #use ggiraph for EDA and all plots--make them interactive
-  #look for spots in server code that can be functionalized
-  #hide all 'temp_tables'
+  #hide all 'temp_tables' (eventually)
 
+  #04_feature scaling: 
+    #choose type of scaling for each variable
 
 
 
