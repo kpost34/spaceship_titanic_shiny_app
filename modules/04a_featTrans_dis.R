@@ -5,13 +5,13 @@ featTrans_disUI <- function(id) {
   ns <- NS(id)
   
   sidebarLayout(
-    sidebarPanel(
+    sidebarPanel(width=3,
       #ui for histogram
       h4("Histogram of raw data"),
       selectInput01(ID=ns("sel_var_hist"), label=varViz_feat, choices=disVars),
       radioButtons(inputId=ns("rad_log_hist"),
                    label="Choose whether to log10-scale the x-axis",
-                   choices=c("Yes"=TRUE, "No"=FALSE),selected=character(0),inline=TRUE),
+                   choices=c("Yes"=TRUE, "No"=FALSE), selected=character(0), inline=TRUE),
       numericInput(inputId=ns("num_bin_hist"),
                    label="Select the number of bins for the histogram (2-50)",
                    value=10,min=2,max=50),
@@ -48,13 +48,26 @@ featTrans_disUI <- function(id) {
         ),
         column(3,
           uiOutput(ns("ui_btn_dis")),
-          br(),
-          actionButton(ns("btn_dis_complete"), label="Complete discretization", class="btn-success")
+        )
+      ),
+      br(),
+      hr(style = "border-top: 1px solid #000000;"),
+      
+      #summary table that shows discretization employed
+      DTOutput(ns("table_dis_summ")),
+      br(),
+      
+      #complete discretization actionButton
+      fluidRow(
+        column(12, align="center",
+          actionButton(ns("btn_dis_complete"), 
+                       label="Complete discretization", 
+                       class="btn-success")
         )
       )
     ),
     
-    mainPanel(
+    mainPanel(width=9,
       #histogram
       plotOutput(ns("plot_sel_var_hist")),
       linebreaks(2),
@@ -129,7 +142,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
             (input$rad_bdry_bar=="user" &  sum(!is.na(user_cuts()))==input$num_brk_bar)
       )
       
-      actionButton(ns(paste("btn_dis",input$sel_var_hist,sep="_")), label="Confirm",
+      actionButton(ns(paste("btn_dis" ,input$sel_var_hist, sep="_")), label="Confirm",
                    class="btn-primary")
     })
     
@@ -177,10 +190,23 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
                   type=input$rad_bdry_bar, 
                   y.log.scale=input$rad_log_bar)
     })
+    
+    
+    ### Discretization summary table
+    #### Create temp reactive DF that holds variable name and discretization type
+    df_dis_type <- reactive({
+      req(input$sel_var_hist)
+      req(input$rad_bdry_bar)
+      req(input$num_brk_bar)
       
+      tibble(predictor=input$sel_var_hist,
+             type=input$rad_bdry_bar,
+             bins=input$num_brk_bar) %>%
+        mutate(type=str_replace(type, "cut_int", "equal"),
+               bins=as.integer(bins) + 1)
+    })
     
     
-    ## Export-------------------- 
     ### Create reactiveVal var & populate with variable selected in histogram
     var <- reactiveVal(NA_character_)
     
@@ -189,15 +215,51 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
     })
     
     
+    ### Create reactiveValues rv_dis_type
+    rv_dis_type <- reactiveValues()
+    
+    
+    ### Update reactiveValues rv_dis_type
+    #### If discretization selected
+    observeEvent(input[[paste("btn_dis", var(), sep="_")]], {
+      rv_dis_type[[var()]] <- df_dis_type()
+    })
+    
+    #### If no discretization selected
+    observeEvent(input[[paste("btn_not_dis", var(), sep="_")]], {
+      rv_dis_type[[var()]] <- NULL
+    })
+    
+    
+    ### Update full reactive DF that holds variable name and discretization type
+    df_dis_summ <- reactive({
+      rv_dis_type %>%
+        reactiveValuesToList() %>%
+        reduce(bind_rows, .init=NULL)
+    })
+    
+    
+    ### Create table
+    output$table_dis_summ <- renderDT(
+      df_dis_summ(),
+      rownames=FALSE,
+      options=list(dom="t"),
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
+        "Summary of discretization by variable")
+    )
+    
+    
+    ## Export-------------------- 
     ### Create reactiveValues() rv_dis & populate it with every confirmed discretized variable
     rv_dis <- reactiveValues()
     
-    #if discretized selected, then populate rv element with df_cut()
+    #if discretized selected, then populate rv element with df_cut() & update summary table
     observeEvent(input[[paste("btn_dis", var(), sep="_")]], {
-      rv_dis[[var()]] <- df_cut()
+      rv_dis[[var()]] <- df_cut() 
     })
     
-    #if no discretization selected, then populate with pass id
+    #if no discretization selected, then populate with pass id & update summary table
     observeEvent(input[[paste("btn_not_dis", var(), sep="_")]], {
       rv_dis[[var()]] <- df_train %>% select(passenger_id)
     })
@@ -211,8 +273,8 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       rv_dis %>%
         reactiveValuesToList() %>%
         reduce(inner_join, .init=df_train %>% select(passenger_id)) %>%
-        {if(sum(names(.)=="transported") > 0) 
-          relocate(transported, .after=last_col()) else .}
+        {if(sum(names(.)=="transported") > 0)
+          relocate(., transported, .after=last_col()) else .}
       
     })
     

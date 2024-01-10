@@ -169,6 +169,12 @@ bin_plotter <- function(dat, col, type, y.log.scale=TRUE) {
 
 
 
+### Function to update discretization summary table
+
+
+
+
+
 ## Rare Label Encoding--------------------
 ### Function to make barplots of counts filled by transported and to combine different factor levels
 barplotter2 <- function(dat, var, cats, col="viridis", title=TRUE){

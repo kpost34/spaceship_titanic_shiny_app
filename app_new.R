@@ -88,27 +88,20 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#04a_scale: added user feedback (bold text) indicating when scaling has been applied via confirm_scaling_msg()
-  #function; added withspinners() to plot outputs
-#04a_ordEnc: fixed typos in naming reactive DF
-#04a_main: changed button color and size
-#04a_dis: applied psuedo-log scale to histogram (via histogrammer2()) & updated binned data plot
-  #(via bin_plotter) to use pseudo-log scale
+#04a_discretization: 
+  #developed code to populate a tracking DT that shows the predictor, type of discretization, and 
+    #number of bins
+  #added a horizontal line to separate table and inputs
+  #moved complete discretization button to bottom of side panel (and centered it)
+  #adjusted widths of panels
 
 
 
 ## IN PROGRESS
 
 
-
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
-
-
-
-
-
-
 
 
 
@@ -122,9 +115,6 @@ spaceTitanicApp()
   #a) add a simple bivariate EDA with each non-chr var and transported
   #b) use fn developed via backbone to incorporate logic such that if a user selects a column then 
     #all directly related columns will drop out
-
-
-
 
 
 
@@ -159,8 +149,6 @@ spaceTitanicApp()
 
 #--------------------------------------------------------------------------------------------
 #general
-  #need to use a pseduo-log scale (or some type of adjustment for 0s) in ALL PLOTS; otherwise
-    #data become hidden
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
   #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
@@ -194,24 +182,7 @@ spaceTitanicApp()
   #reword initial text--correct typo/spacing, change question to something more general, and make
     #sure that user knows all four methods need to be confirmed first
 
-
-
-  #04_discretization 
-    #update caption to read "...for display on log10 scale"
-    #need feedback after confirmation
-      #1) toast notificaton
-      #2) some type of text output [that stays] & is dynamic so it disappears if a user confirms
-        #'no discretization'
-    #for user cuts (bin boundaries)
-      #set it up such that 0 (or negative values) are not possible--need to create user feedback here
-    #got error after discretizing one var then not dis then confirming
-    #confirm button needs to moved fully onto panel
-    #alter size of sidePanel and plots
-    #include a table that shows what user selected for each variable: 1) type of cuts and 2) if
-      #user-selected, then what are they
     
-
-
   #04_ordinal encoding
     #feedback following button pressing
       #1) toast notification
@@ -240,5 +211,8 @@ spaceTitanicApp()
   #04_feature scaling: 
     #choose type of scaling for each variable
 
+  #04_discretization:
+    #error messages if user enters 0 or negative value in # of bins for histogram or # of breaks
+      #for binning data
 
 
