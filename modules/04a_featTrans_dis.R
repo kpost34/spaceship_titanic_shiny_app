@@ -62,7 +62,8 @@ featTrans_disUI <- function(id) {
         column(12, align="center",
           actionButton(ns("btn_dis_complete"), 
                        label="Complete discretization", 
-                       class="btn-success")
+                       class="btn-success"),
+          strong(textOutput(ns("text_btn_dis_complete")))
         )
       )
     ),
@@ -277,6 +278,14 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
           relocate(., transported, .after=last_col()) else .}
       
     })
+    
+    
+    ### User feedback: display text of discretization completed
+    output$text_btn_dis_complete <- renderText({
+      req(df_train_nd_nvI_d())
+      confirm_discretization_msg(df_train_nd_nvI_d())
+    })
+    
     
     ### Checks
     #### Check creation of rv_dis

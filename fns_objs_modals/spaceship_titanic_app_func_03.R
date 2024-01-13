@@ -76,13 +76,13 @@ cowplotter<-function(dat, var, label_vec=c("raw", "log-transformed", "min-max sc
 #### Display text after confirmation hit
 confirm_scaling_msg <- function(action) {
   if(action=="raw"){
-    return("Scaling has not been applied.")
+    return("Scaling has not been applied to all numerical variables.")
   } else if(action=="log"){
-    return("log x + 1 scaling has been applied.")
+    return("log x + 1 scaling has been applied to all numerical variables.")
   } else if(action=="mm_scale"){
-    return("Min-max scaling has been applied.")
+    return("Min-max scaling has been applied to all numerical variables.")
   } else if(action=="standize"){
-    return("Standardization has been applied.")
+    return("Standardization has been applied to all numerical variables.")
   }
 }
 
@@ -139,7 +139,6 @@ equal_cutter <- function(dat, col, n.breaks=NA){
 
 
 
-
 ### Function to make bar plot after creating bins
 bin_plotter <- function(dat, col, type, y.log.scale=TRUE) {
   
@@ -169,7 +168,21 @@ bin_plotter <- function(dat, col, type, y.log.scale=TRUE) {
 
 
 
-### Function to update discretization summary table
+#### Function to display text after confirmation hit
+confirm_discretization_msg <- function(dat) {
+  n_dis <- dat %>%
+    names() %>%
+    str_detect("_dis$") %>%
+    sum()
+  
+  if(n_dis==0) {
+    return("No variables discretized.")
+  } else if(n_dis==1) {
+    return("Discretization applied to one variable.")
+  } else if(n_dis>1) {
+    return("Discretization applied to more than one variable.")
+  }
+}
 
 
 
@@ -207,6 +220,25 @@ barplotter2 <- function(dat, var, cats, col="viridis", title=TRUE){
       {if(title) ggtitle(paste("Bar plot of", var, title_suffix))} +
       theme_bw(base_size=15) +
       theme(legend.position="bottom")
+}
+
+
+### Function to display text after confirmation hit
+confirm_rare_encoding_msg <- function(dat) {
+  var_rare <- dat %>%
+    names() %>%
+    str_subset("_rare$") %>%
+    str_remove("_rare$")
+  
+  if(length(var_rare)==0) {
+    return("Rare label encoding was not applied to any variables.")
+  } else if(length(var_rare)==1) {
+    return(paste0("Rare label encoding applied to ", var_rare, "."))
+  } else if(length(var_rare)==2) {
+    return(paste0("Rare label encoding applied to ",
+                 paste(var_rare, collapse=" and "),
+                 "."))
+  }
 }
       
 

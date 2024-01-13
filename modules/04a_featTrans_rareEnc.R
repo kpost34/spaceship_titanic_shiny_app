@@ -14,7 +14,8 @@ featTrans_rareEncUI <- function(id) {
       linebreaks(5),
       uiOutput(ns("ui_sel_var_viz2")),
       uiOutput(ns("ui_sel_var_cat2")),
-      uiOutput(ns("ui_btn_rareEnc_complete"))
+      uiOutput(ns("ui_btn_rareEnc_complete")),
+      strong(textOutput(ns("text_btn_rareEnc_complete")))
     ),
     mainPanel(width=10,
       fluidRow(
@@ -51,7 +52,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
     output$ui_sel_var_cat1<-renderUI({
       req(input$sel_var_viz1)
       
-      selectizeInput(inputId=ns("sel_var_cat1"),label="",multiple=TRUE,
+      selectizeInput(inputId=ns("sel_var_cat1"), label="Levels to group", multiple=TRUE,
                      choices=c("Choose at least two"="",
                                df_train_nd_nvI() %>% 
                                  pull(input$sel_var_viz1) %>% 
@@ -74,7 +75,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
     output$ui_sel_var_cat2 <- renderUI({
       req(input$sel_var_viz2)
       
-      selectizeInput(inputId=ns("sel_var_cat2"),label="",multiple=TRUE,
+      selectizeInput(inputId=ns("sel_var_cat2"), label="Levels to group", multiple=TRUE,
                      choices=c("Choose at least two"="",
                                df_train_nd_nvI() %>% 
                                  pull(input$sel_var_viz2) %>% 
@@ -137,6 +138,13 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
           else .} %>%
         #retain cols of interest
         select(passenger_id, ends_with("_rare")) 
+    })
+    
+    
+    ### User feedback: display text of discretization completed
+    output$text_btn_rareEnc_complete <- renderText({
+      req(df_train_nd_nvI_r)
+      confirm_rare_encoding_msg(df_train_nd_nvI_r())
     })
     
     

@@ -86,14 +86,12 @@ spaceTitanicApp()
 ## DONE
 
 
-
 # LAST PUSHED COMMENT(S)
-#04a_discretization: 
-  #developed code to populate a tracking DT that shows the predictor, type of discretization, and 
-    #number of bins
-  #added a horizontal line to separate table and inputs
-  #moved complete discretization button to bottom of side panel (and centered it)
-  #adjusted widths of panels
+#04_discretization:
+  #created fn confirm_discretization_msg() & applied it to discretization module
+#04_rareEnc:
+  #labels added to selectors for grouping levels
+  #added code (and created function) to display confirmation message after rare-label encoding applied
 
 
 
@@ -192,9 +190,6 @@ spaceTitanicApp()
   #if user does not want ordinal encoding, then confirmation button should appear
 
 
-  #04_rare label encoding
-    #confirmation should yield feedback
-      #some type of text
 
 
 
@@ -214,5 +209,9 @@ spaceTitanicApp()
   #04_discretization:
     #error messages if user enters 0 or negative value in # of bins for histogram or # of breaks
       #for binning data
+    #list out variables where discretization was applied to
+
+
+
 
 
