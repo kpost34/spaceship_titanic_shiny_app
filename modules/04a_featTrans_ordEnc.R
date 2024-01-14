@@ -7,17 +7,18 @@ featTrans_ordEncUI <- function(id) {
   
   sidebarLayout(
     sidebarPanel( 
-      selectInput01(ID=ns("sel_var_viz"),label=varViz_feat,
+      selectInput01(ID=ns("sel_var_viz"), label=varViz_feat,
                     choices=fct_nonumVars),
       linebreaks(2),
-      radioButtons(inputId=ns("rad_ordEnc"),label="Would you like to perform ordinal encoding on any of
-                   the variables?",choices=c("Yes","No"),selected=character(0)),
+      radioButtons(inputId=ns("rad_ordEnc"), label="Would you like to perform ordinal encoding on any of
+                   the variables?", choices=c("Yes","No"), selected=character(0)),
       linebreaks(2),
       h4(textOutput(ns("text_ordEnc"))),
       #produces a list of checkboxes and selectors
       map(labs, split_chk_sel_builder, fn=ns),
       # ui_splits,
-      uiOutput(ns("ui_btn_ordEnc_complete"))
+      uiOutput(ns("ui_btn_ordEnc_complete")),
+      strong(textOutput(ns("text_btn_ordEnc_complete")))
     ),
     mainPanel(
       plotOutput(ns("plot_sel_var_viz")),
@@ -46,93 +47,40 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
     
     
     ### Dynamically create checkboxes to choose variables for ordinal encoding
-    output$ui_chk_ordEnc2a<-renderUI({
-      req(input$rad_ordEnc=="Yes")
-      checkboxInput(inputId=ns("chk_ordEnc2a"),label="ticket",value=FALSE)
+    purrr::map2(.x=fct_nonumVars, .y=letters[1:5], function(x, y){
+      
+      output[[paste0("ui_chk_ordEnc2", y)]] <- renderUI({
+        req(input$rad_ordEnc=="Yes")
+        
+        checkboxInput(inputId=ns(paste0("chk_ordEnc2", y)),
+                      label=x, value=FALSE)
+      })
     })
-    output$ui_chk_ordEnc2b<-renderUI({
-      req(input$rad_ordEnc=="Yes")
-      checkboxInput(inputId=ns("chk_ordEnc2b"),label="home_planet",value=FALSE)
-    })
-    output$ui_chk_ordEnc2c<-renderUI({
-      req(input$rad_ordEnc=="Yes")
-      checkboxInput(inputId=ns("chk_ordEnc2c"),label="deck",value=FALSE)
-    })
-    output$ui_chk_ordEnc2d<-renderUI({
-      req(input$rad_ordEnc=="Yes")
-      checkboxInput(inputId=ns("chk_ordEnc2d"),label="side",value=FALSE)
-    })
-    output$ui_chk_ordEnc2e<-renderUI({
-      req(input$rad_ordEnc=="Yes")
-      checkboxInput(inputId=ns("chk_ordEnc2e"),label="destination",value=FALSE)
-    })
+    
   
       
     ### Dynamically create selectors for ordinal encoding
-    output$ui_sel_ordEnc2a<-renderUI({
-      req(input$chk_ordEnc2a)
-      selectizeInput(inputId=ns("sel_ordEnc2a"),label="", multiple=TRUE,
-                    choices=c(varSelOrd_feat,
-                            df_train_nd_nvI()[["ticket"]] %>% levels()))
-    })
-    
-    output$ui_sel_ordEnc2b<-renderUI({
-      req(input$chk_ordEnc2b)
-      selectizeInput(inputId=ns("sel_ordEnc2b"),label="", multiple=TRUE,
-                     choices=c(varSelOrd_feat,
-                               df_train_nd_nvI()[["home_planet"]] %>% levels()))
-    })
-    
-    output$ui_sel_ordEnc2c<-renderUI({
-      req(input$chk_ordEnc2c)
-      selectizeInput(inputId=ns("sel_ordEnc2c"),label="", multiple=TRUE,
-                     choices=c(varSelOrd_feat,
-                               df_train_nd_nvI()[["deck"]] %>% levels()))
-    })
-    
-    output$ui_sel_ordEnc2d<-renderUI({
-      req(input$chk_ordEnc2d)
-      selectizeInput(inputId=ns("sel_ordEnc2d"),label="", multiple=TRUE,
-                     choices=c(varSelOrd_feat,
-                               df_train_nd_nvI()[["side"]] %>% levels()))
-    })
-    
-    output$ui_sel_ordEnc2e<-renderUI({
-      req(input$chk_ordEnc2e)
-      selectizeInput(inputId=ns("sel_ordEnc2e"),label="", multiple=TRUE,
-                     choices=c(varSelOrd_feat,
-                               df_train_nd_nvI()[["destination"]] %>% levels()))
+    purrr::map2(.x=fct_nonumVars, .y=letters[1:5], function(x, y) {
+      
+      output[[paste0("ui_sel_ordEnc2", y)]] <- renderUI({
+        req(input[[paste0("chk_ordEnc2", y)]],
+            input$rad_ordEnc=="Yes")
+      
+        selectizeInput(inputId=ns(paste0("sel_ordEnc2", y)), label="", multiple=TRUE,
+                       choices=c(varSelOrd_feat, df_train_nd_nvI()[[x]] %>% levels()))
+      })
     })
     
     
     ### Dynamically display button
     output$ui_btn_ordEnc_complete<-renderUI({
-      n_ticket<-nlevels(df_train_nd_nvI()[["ticket"]])
-      n_home_planet<-nlevels(df_train_nd_nvI()[["home_planet"]])
-      n_deck<-nlevels(df_train_nd_nvI()[["deck"]])
-      n_side<-nlevels(df_train_nd_nvI()[["side"]])
-      n_destination<-nlevels(df_train_nd_nvI()[["destination"]])
+      req(input$rad_ordEnc)
       
-      #button displays if 1) "No" selected in radio button; 2) at least one box is checked AND for each var either
-        #1) box unchecked or all categories selected 
-      req(input$rad_ordEnc=="No"|(
-        sum(length(input$sel_ordEnc2a)==n_ticket,
-            length(input$sel_ordEnc2b)==n_home_planet, 
-            length(input$sel_ordEnc2c)==n_deck,
-            length(input$sel_ordEnc2d)==n_side,
-            length(input$sel_ordEnc2e)==n_destination) > 0 & (
-        (length(input$sel_ordEnc2a)==n_ticket|input$chk_ordEnc2a==FALSE) &
-        (length(input$sel_ordEnc2b)==n_home_planet|input$chk_ordEnc2b==FALSE) &
-        (length(input$sel_ordEnc2c)==n_deck|input$chk_ordEnc2c==FALSE) &
-        (length(input$sel_ordEnc2d)==n_side|input$chk_ordEnc2d==FALSE) &
-        (length(input$sel_ordEnc2e)==n_destination|input$chk_ordEnc2e==FALSE)
-        )
-        )
-      )
       actionButton(inputId=ns("btn_ordEnc_complete"),
                    label="Confirm all ordinal encoding selections",
                    class="btn-success")
     })
+    
     
     
     ## Outputs--------------------
@@ -171,30 +119,51 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
     
     ## Export--------------------
     ### Create reactive data frame
-    df_train_nd_nvI_o <- eventReactive(input$btn_ordEnc_complete, {
-      df_train_nd_nvI() %>%
-        #choose all factors except num
-        mutate(across(.cols=all_of(fct_nonumVars), ~as.ordered(.x))) %>%
-          #if...else statements for whether to change factor level order based on if checkbox checked
-          {if(input$chk_ordEnc2a==TRUE)
-            mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a))
-            else .} %>%
-          {if(input$chk_ordEnc2b==TRUE)
-            mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b))
-            else .} %>%
-          {if(input$chk_ordEnc2c==TRUE)
-            mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c))
-            else .} %>%
-          {if(input$chk_ordEnc2d==TRUE)
-            mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d))
-            else .} %>%
-           {if(input$chk_ordEnc2e==TRUE)
-            mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e))
-            else .} %>%
-        #retain passenger_id and mutated cols
-        select(passenger_id,ends_with("_ord"))
+    df_train_nd_nvI_o <- eventReactive(input$btn_ordEnc_complete, ignoreInit=TRUE, {
+
+      n_ticket <- nlevels(df_train_nd_nvI()[["ticket"]])
+      n_home_planet <- nlevels(df_train_nd_nvI()[["home_planet"]])
+      n_deck <- nlevels(df_train_nd_nvI()[["deck"]])
+      n_side <- nlevels(df_train_nd_nvI()[["side"]])
+      n_destination <- nlevels(df_train_nd_nvI()[["destination"]])
+      
+      if(input$rad_ordEnc=="No") {
+        df_train_nd_nvI() %>%
+          select(passenger_id) -> tmp 
+        
+      } else if(input$rad_ordEnc=="Yes") {
+        df_train_nd_nvI() %>%
+          #choose all factors except num
+          mutate(across(.cols=all_of(fct_nonumVars), ~as.ordered(.x))) %>%
+            #if...else statements for whether to change factor level order based on if checkbox checked
+            {if(input$chk_ordEnc2a==TRUE & length(input$sel_ordEnc2a)==n_ticket)
+              mutate(.,ticket_ord=fct_relevel(ticket,input$sel_ordEnc2a))
+              else .} %>%
+            {if(input$chk_ordEnc2b==TRUE & length(input$sel_ordEnc2b)==n_home_planet)
+              mutate(.,home_planet_ord=fct_relevel(home_planet,input$sel_ordEnc2b))
+              else .} %>%
+            {if(input$chk_ordEnc2c==TRUE & length(input$sel_ordEnc2c)==n_deck)
+              mutate(.,deck_ord=fct_relevel(deck,input$sel_ordEnc2c))
+              else .} %>%
+            {if(input$chk_ordEnc2d==TRUE & length(input$sel_ordEnc2d)==n_side)
+              mutate(.,side_ord=fct_relevel(side,input$sel_ordEnc2d))
+              else .} %>%
+             {if(input$chk_ordEnc2e==TRUE & length(input$sel_ordEnc2e)==n_destination)
+              mutate(.,destination_ord=fct_relevel(destination,input$sel_ordEnc2e))
+              else .} %>%
+          #retain passenger_id and mutated cols
+          select(passenger_id, ends_with("_ord")) -> tmp
+      }
+      
+      return(tmp)
     })
     
+    
+    ### User feedback: display text of discretization completed
+    output$text_btn_ordEnc_complete <- renderText({
+      req(df_train_nd_nvI_o())
+      confirm_ord_encoding_msg(df_train_nd_nvI_o())
+    })
     
     ### Print temp table as a check
     output$temp_table<-renderTable({

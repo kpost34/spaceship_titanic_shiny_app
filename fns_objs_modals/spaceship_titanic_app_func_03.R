@@ -76,13 +76,13 @@ cowplotter<-function(dat, var, label_vec=c("raw", "log-transformed", "min-max sc
 #### Display text after confirmation hit
 confirm_scaling_msg <- function(action) {
   if(action=="raw"){
-    return("Scaling has not been applied to all numerical variables.")
+    return("Scaling was not applied to any numerical variable.")
   } else if(action=="log"){
-    return("log x + 1 scaling has been applied to all numerical variables.")
+    return("log x + 1 scaling applied to all numerical variables.")
   } else if(action=="mm_scale"){
-    return("Min-max scaling has been applied to all numerical variables.")
+    return("Min-max scaling applied to all numerical variables.")
   } else if(action=="standize"){
-    return("Standardization has been applied to all numerical variables.")
+    return("Standardization applied to all numerical variables.")
   }
 }
 
@@ -177,8 +177,10 @@ confirm_discretization_msg <- function(dat) {
   
   if(n_dis==0) {
     return("No variables discretized.")
+    
   } else if(n_dis==1) {
     return("Discretization applied to one variable.")
+    
   } else if(n_dis>1) {
     return("Discretization applied to more than one variable.")
   }
@@ -186,6 +188,24 @@ confirm_discretization_msg <- function(dat) {
 
 
 
+## Ordinal Encoding--------------------
+### Function to display text after confirmation hit
+confirm_ord_encoding_msg <- function(dat) {
+  var_ord <- dat %>%
+    names() %>%
+    str_subset("_ord$") %>%
+    str_remove("_ord$")
+  
+  if(length(var_ord)==0) {
+    return("Ordinal encoding was not applied to any variable.")
+    
+  } else if(length(var_ord)==1) {
+    return(paste0("Ordinal encoding applied to ", var_ord, "."))
+    
+  } else if(length(var_ord)>=2) {
+    return("Ordinal encoding applied to more than one variable.")
+  }
+}
 
 
 ## Rare Label Encoding--------------------
@@ -232,8 +252,10 @@ confirm_rare_encoding_msg <- function(dat) {
   
   if(length(var_rare)==0) {
     return("Rare label encoding was not applied to any variables.")
+    
   } else if(length(var_rare)==1) {
     return(paste0("Rare label encoding applied to ", var_rare, "."))
+    
   } else if(length(var_rare)==2) {
     return(paste0("Rare label encoding applied to ",
                  paste(var_rare, collapse=" and "),

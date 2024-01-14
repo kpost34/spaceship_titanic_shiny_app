@@ -86,13 +86,12 @@ spaceTitanicApp()
 ## DONE
 
 
-# LAST PUSHED COMMENT(S)
-#04_discretization:
-  #created fn confirm_discretization_msg() & applied it to discretization module
-#04_rareEnc:
-  #labels added to selectors for grouping levels
-  #added code (and created function) to display confirmation message after rare-label encoding applied
 
+# LAST PUSHED COMMENT(S)
+#04_ordEnc:
+  #consolidated code to generate multiple checkboxes and selectors dynamically
+  #created code to dynamically display text after completing discretization (including creating fn)
+  #improved logic of displaying completion button and creating new exported reactive DF
 
 
 ## IN PROGRESS
@@ -180,14 +179,6 @@ spaceTitanicApp()
   #reword initial text--correct typo/spacing, change question to something more general, and make
     #sure that user knows all four methods need to be confirmed first
 
-    
-  #04_ordinal encoding
-    #feedback following button pressing
-      #1) toast notification
-      #2) some type of text
-    #later.../
-      #use purrr::map() to bundle output/render fns
-  #if user does not want ordinal encoding, then confirmation button should appear
 
 
 
@@ -202,6 +193,7 @@ spaceTitanicApp()
   #need a title page where variables are defined--perhaps some type of accordion presentation
   #use ggiraph for EDA and all plots--make them interactive
   #hide all 'temp_tables' (eventually)
+  #specify which vars being transformed: may apply to subset of 04a
 
   #04_feature scaling: 
     #choose type of scaling for each variable
@@ -211,7 +203,9 @@ spaceTitanicApp()
       #for binning data
     #list out variables where discretization was applied to
 
-
+  #05_rareEnc:
+    #need reactiveVal for pool of vars so that error does not generate if try to select
+      #the same var with both selectors
 
 
 
