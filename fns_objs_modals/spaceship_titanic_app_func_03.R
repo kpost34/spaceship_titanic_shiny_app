@@ -262,7 +262,8 @@ confirm_rare_encoding_msg <- function(dat) {
                  "."))
   }
 }
-      
+
+
 
 # Feature Creation==================================================================================
 ## Function to mutate input variables to create luxury expense variable

@@ -66,7 +66,7 @@ spaceTitanicApp <- function() {
     df_train_nd_nI <- missNameServer("dat2", df_train_nd)
     df_train_nd_nvI <- missOtherServer("dat3", df_train_nd_nI)
 
-    # #feature engineering
+    #feature engineering
     df_train_nd_nvI_tF <- featTrans_mainServer("df1", df_train_nd_nvI) 
     df_train_nd_nvI_cF <- featCreatServer("df2", df_train_nd_nvI)
     featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
@@ -87,11 +87,11 @@ spaceTitanicApp()
 
 
 
+
 # LAST PUSHED COMMENT(S)
-#04_ordEnc:
-  #consolidated code to generate multiple checkboxes and selectors dynamically
-  #created code to dynamically display text after completing discretization (including creating fn)
-  #improved logic of displaying completion button and creating new exported reactive DF
+#04_main:
+  #reworded instructions, including fleshing out definitions, and coloring & italicizing transformation
+    #methods
 
 
 ## IN PROGRESS
@@ -116,7 +116,7 @@ spaceTitanicApp()
 
 
 #---------------------------------------------------------------------------------------------------
-
+#REMAINING OUTLINE (rough)
 ### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
 
 
@@ -145,6 +145,7 @@ spaceTitanicApp()
 
 
 #--------------------------------------------------------------------------------------------
+#REMAINING UPDATES...
 #general
   #UI labels are inconsistently coded as objects--figure out consistent way to handle them
   #update headers in fn and backbone codes--for accuracy
@@ -162,22 +163,6 @@ spaceTitanicApp()
       #then 'spa' and 'spa_dis" disappear
 #---------------------------------
 
-
-
-#04_feature engineering- transform
-  #whole module
-    #all transforms need to be completed to move on
-      #some sort of modal should appear that lists remaining items
-        #or some other feedback system
-  #in transformations tab, perhaps use the specific terms for the transforms (e.g., scaling, discretization)
-  #add some type of hyperlink or colored text where you hover over to get a more thorough definition
-
-    #for new 'submodules'
-      #turn lists of outputs to purrr::map with tagList
-      #there should be an option to 'skip' scaling/extraction (this will make debugging quicker too)
-
-  #reword initial text--correct typo/spacing, change question to something more general, and make
-    #sure that user knows all four methods need to be confirmed first
 
 
 
@@ -203,9 +188,15 @@ spaceTitanicApp()
       #for binning data
     #list out variables where discretization was applied to
 
-  #05_rareEnc:
+  #04_rareEnc:
     #need reactiveVal for pool of vars so that error does not generate if try to select
       #the same var with both selectors
+
+  #04_main:
+    #some sort of feedback system to let user know what's remaining (tried to have a dynamic
+      #text output and to make radioButton choices bold but couldn't get either to work)
+
+
 
 
 

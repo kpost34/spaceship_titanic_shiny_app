@@ -7,13 +7,17 @@ featTrans_mainUI <- function(id) {
   tabPanel(title="Transformations",
     titlePanel("Feature Scaling and Extraction"),
     
-    h4("In this section, you will have the opportuntiy to normalize/standardize numerical data, bin 
-       numerical (or character or factor variables) into (smaller) groups,perform ordinal encoding, 
-       and group rare categories together. What would you like to begin with?"),
+    HTML("<h4>In this section, you will have the opportuntiy to normalize/standardize numerical data,  
+       (<em style='color:blue;'>feature scaling</em>), bin numerical variables into groups 
+       (<em style='color:blue;'>discretization</em>), convert categorical variables into ordered 
+       factors (<em style='color:blue;'>ordinal encoding</em>), and combine infrequent groups of 
+       factor variables (<em style='color:blue;'>rare label encoding</em>). All four transformations 
+       must be completed before proceeding to feature creation. Please select an option.</h4>"),
     fluidRow(
       column(6,align="center",
-        radioButtons(inputId=ns("rad_trans"), label="", choices=ch_trans_featTrans,
-                     selected=character(0), inline=TRUE, width="100%")
+        radioButtons(inputId=ns("rad_trans"), label="", selected=character(0), 
+                     inline=TRUE, width="100%",
+                     choices=ch_trans_featTrans)
       ),
       column(6, align="center",
         #placeholder
@@ -43,23 +47,24 @@ featTrans_mainUI <- function(id) {
 
 # Server============================================================================================
 featTrans_mainServer <- function(id, df_train_nd_nvI) {
-# featTrans_mainServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_s, df_train_ndnvI_d, 
-#                                  df_train_nd_nvI_o, df_train_nd_nvI_r) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
   
 
     # Conditionally display tabs
+    ## Select transformation type
     observeEvent(input$rad_trans, {
       updateTabsetPanel(inputId="featTrans_tab",selected=input$rad_trans)
     })
     
+    
+    ## Conditionally display button that all transformations complete
     output$ui_btn_trans_complete <- renderUI({
       req(df_train_nd_nvI_s(), df_train_nd_nvI_d(), df_train_nd_nvI_o(), df_train_nd_nvI_r())
       
       actionButton(ns("btn_trans_complete"), 
-                   label=HTML("<b>All transformations complete</b>"), 
+                   label=HTML("<b>Confirm all transformations</b>"), 
                    style="width: 300px; height=150px",
                    class="btn-info")
     })
