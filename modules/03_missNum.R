@@ -69,11 +69,13 @@ missNumServer <- function(id) {
         paste0("transported by floor_num (", input$slid_num_bin, "-floor groups)"))
     )
     
+    
     #### Plot output
     output$plot_num_bin <- renderPlot({
       dat1() %>%
         barplotter2(var="floor_num", title=FALSE)
     })
+    
     
     
     ## Confirm selection-------------------
@@ -89,10 +91,16 @@ missNumServer <- function(id) {
       )} 
     })
     
+    
     ### Create new reactive DF to be exported
     df_train_nd <- eventReactive(input$btn_num_bin, {
       dat1()
     })
+    
+    
+    
+    ## Return DF--------------------
+    return(df_train_nd)
     
   })
 }

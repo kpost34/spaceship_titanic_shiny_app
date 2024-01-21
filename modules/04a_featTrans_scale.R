@@ -13,6 +13,7 @@ featTrans_scaleUI <- function(id) {
       uiOutput(ns("ui_btn_scale_complete")),
       strong(textOutput(ns("text_btn_scale_complete")))
     ),
+    
     mainPanel(width=9,
       plotOutput(ns("plot_sel_var_viz"), height="1000px") %>%
         withSpinner(),
@@ -29,7 +30,6 @@ featTrans_scaleServer <- function(id, df_train_nd_nvI) {
     
     ns <- session$ns
     
-   
     ## Inputs--------------------
     ### Input to select how to transform/scale selected variables
     output$ui_type_scale<-renderUI({
@@ -40,9 +40,11 @@ featTrans_scaleServer <- function(id, df_train_nd_nvI) {
                     choices=ch_trans_opt_featTrans)
     })
     
+    
     ### Button to confirm selection
     output$ui_btn_scale_complete <- renderUI({
       req(input$sel_var_viz, input$type_scale)
+      
       actionButton(inputId=ns("btn_scale_complete"), label="Confirm your selection", 
                    class="btn-success") 
     })
@@ -80,6 +82,7 @@ featTrans_scaleServer <- function(id, df_train_nd_nvI) {
       )
     })
     
+    
     ### User feedback: display text of transformation selected
     output$text_btn_scale_complete <- renderText({
       req(input$type_scale)
@@ -88,13 +91,14 @@ featTrans_scaleServer <- function(id, df_train_nd_nvI) {
     })
       
 
-                                      
-    
     ### Temporary table--proof that above code is working
     output$temp_table <- renderTable({
       head(df_train_nd_nvI_s())
     })
     
+    
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_s)
     
   })

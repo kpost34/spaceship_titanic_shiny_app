@@ -20,19 +20,23 @@ edaMultServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
     ## Text outputs--------------------
-    output$text_sel_var1abc <-renderUI({
+    #first var
+    output$text_sel_var1abc <- renderUI({
       h3(paste(input$sel_var1abc, collapse="-"))
     })
 
+    #second var
     output$text_sel_var2abc <- renderUI({
       h3(paste(input$sel_var2abc, collapse="-"))
     })
     
     
     ## Plot outputs--------------------
+    #first plot
     output$plot_sel_var1abc <- renderPlot({
       #must select three inputs first
       req(length(input$sel_var1abc)==3)
+      
       #if all categorical, then bar plot
       if(sum(input$sel_var1abc %in% catVars)==3) {
         df_train %>%
@@ -50,17 +54,18 @@ edaMultServer <- function(id) {
       }
     })
     
+    #second plot
     output$plot_sel_var2abc <- renderPlot({
       req(length(input$sel_var2abc)==3)
       if(sum(input$sel_var2abc %in% catVars)==3) {
         df_train %>%
           barplotter(input$sel_var2abc)
-      }
-      else if(sum(input$sel_var2abc %in% catVars)==2) {
+        
+      } else if(sum(input$sel_var2abc %in% catVars)==2) {
         df_train %>%
           boxplotter(input$sel_var2abc)
-      }
-      else if(sum(input$sel_var2abc %in% catVars) < 2) {
+        
+      } else if(sum(input$sel_var2abc %in% catVars) < 2) {
         df_train %>%
           scatterplotter(input$sel_var2abc)
       }

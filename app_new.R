@@ -89,9 +89,11 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#04_main:
-  #reworded instructions, including fleshing out definitions, and coloring & italicizing transformation
-    #methods
+#all module scripts
+  #used consistent line spacing & headers in ui & server code of modules, & all obj/fn scripts
+  #made all exported reactive DFs under a ## header with an explicit return() 
+#04a_main: added toast notification
+#04_featCreat: added toast notification
 
 
 ## IN PROGRESS
@@ -102,16 +104,45 @@ spaceTitanicApp()
 
 
 
-#---------------------------------------------------------------------------
 #put this on hold and went back to start.....
 # feature selection...
   #1. update barplotter so that it can take on ordered factors
   #2. use a color scheme for boxplotter?
-#1. add floor_num to choices in rare label encoing and ordinal encoding
 #2. feature selection code
-  #a) add a simple bivariate EDA with each non-chr var and transported
   #b) use fn developed via backbone to incorporate logic such that if a user selects a column then 
     #all directly related columns will drop out
+
+
+
+
+#--------------------------------------------------------------------------------------------
+#REMAINING UPDATES...
+#general
+  #UI labels are inconsistently coded as objects--figure out consistent way to handle them
+  #update headers in fn and backbone codes--for accuracy
+  #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
+
+
+#---------------------------------
+#feature engineering- selection
+  #UI: remove starting gray box (sidebarpanel)
+  #take the reactive DF from transformation and the reactive DF from creation & join them
+  #then use names() to populate choices in selectize
+  #when user picks a variable that is related to other vars in the joined DF, those vars 
+    #will drop out (i.e., the choices needs to be a reactiveValue)
+    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
+      #then 'spa' and 'spa_dis" disappear
+#---------------------------------
+
+
+#to do
+  #04a_main:
+    #toast notification after all transforms complete
+  #04_featCreat:
+    #toast notification after confirmation
+  #04_featSel:
+    #x/color axes incorrect for subset of vars: cryo_sleep, side, vip
+
 
 
 
@@ -144,37 +175,11 @@ spaceTitanicApp()
 
 
 
-#--------------------------------------------------------------------------------------------
-#REMAINING UPDATES...
-#general
-  #UI labels are inconsistently coded as objects--figure out consistent way to handle them
-  #update headers in fn and backbone codes--for accuracy
-  #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
-
-
-#---------------------------------
-#feature engineering- selection
-  #UI: remove starting gray box (sidebarpanel)
-  #take the reactive DF from transformation and the reactive DF from creation & join them
-  #then use names() to populate choices in selectize
-  #when user picks a variable that is related to other vars in the joined DF, those vars 
-    #will drop out (i.e., the choices needs to be a reactiveValue)
-    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
-      #then 'spa' and 'spa_dis" disappear
-#---------------------------------
-
-
-
-
-
-
-
-
 
 #---------------------------------------------------------------------------------------------------
 
 
-#### LAST UPDATES (if at all)
+#### OPTIONAL UPDATES (if at all)
   #need a title page where variables are defined--perhaps some type of accordion presentation
   #use ggiraph for EDA and all plots--make them interactive
   #hide all 'temp_tables' (eventually)
@@ -191,10 +196,33 @@ spaceTitanicApp()
   #04_rareEnc:
     #need reactiveVal for pool of vars so that error does not generate if try to select
       #the same var with both selectors
+    #add floor_num to choices
+
+  #04_ordEnc:
+    #add floor_num
 
   #04_main:
     #some sort of feedback system to let user know what's remaining (tried to have a dynamic
       #text output and to make radioButton choices bold but couldn't get either to work)
+    
+
+#are modals used? if not, should they?
+#consistent character spacing (and any remnant line spacing)
+
+
+#---------------------------------------------------------------------------------------------------
+#NOTES:
+
+#1. Spacing/formatting:
+  #a. Server: 
+    #use 1 full line space before/after ns  
+    #for ## use 15? -s afterward and 3 line spaces before except for above case
+    #for ### and greater, use 2 full line spaces beforehand unless it's a ### after a ## then
+      #goes on next line
+    #try to use a full line space below req()
+    #add line spaces within render/reactive/observeEvent/eventReactive/etc. for clarity
+    #if there is a 'psuedo' header (#psuedo-header) then only one line space b/t
+
 
 
 

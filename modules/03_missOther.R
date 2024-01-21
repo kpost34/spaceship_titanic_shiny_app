@@ -24,6 +24,7 @@ missOtherUI <- function(id) {
         selectInput01(ID=ns("sel_impute"), label="", choices=ch_impute_missOther),
         actionButton(ns("btn_impute"), label="Submit", class="btn-primary")
       ),
+      
       mainPanel(width=9,
         splitLayout(cellWidths=c("65%", "35%"),
           h4(textOutput(ns("text_sel_exp"))),
@@ -56,6 +57,7 @@ missOtherServer <- function(id, df_train_nd_nI) {
       )
     })
     
+    
     ### Plot output
     output$plot_sel_exp <- renderPlot({
       switch(input$sel_exp,
@@ -68,6 +70,7 @@ missOtherServer <- function(id, df_train_nd_nI) {
       )
     })
   
+    
     
     ## Statistical test--------------------
     ### Text output
@@ -91,6 +94,7 @@ missOtherServer <- function(id, df_train_nd_nI) {
           options=list(dom="t")
         )
     })
+    
     
     
     ## Imputation--------------------
@@ -126,12 +130,7 @@ missOtherServer <- function(id, df_train_nd_nI) {
       )
     })
     
-    ## Submit selection-------------------
-    # df_train_nd_nvI <- eventReactive(input$btn_impute, {
-    #   dat()
-    # })
-
-
+    
     #### Output reactive
     output$tab_temp <- renderTable(
       df_train_nd_nvI() %>%
@@ -139,6 +138,8 @@ missOtherServer <- function(id, df_train_nd_nI) {
     )
 
     
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI)
   })
 }

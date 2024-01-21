@@ -3,13 +3,13 @@
 
 # UI================================================================================================
 edaUniUI <- function(id) {
-    tabPanel(title="Univariate",
-      edaTabBuilder(id,
-                    name="Univariate",
-                    varID=c("var1","var2"),
-                    options=ncharVarClass,
-                    fn=selectInput01)
-    )
+  tabPanel(title="Univariate",
+    edaTabBuilder(id,
+                  name="Univariate",
+                  varID=c("var1","var2"),
+                  options=ncharVarClass,
+                  fn=selectInput01)
+  )
 }
 
 
@@ -20,7 +20,8 @@ edaUniServer <- function(id) {
     
     ## Tabular outputs----------------------
     ### reactives of output tables
-    dat1<-reactive({
+    #first reactive DF
+    dat1 <- reactive({
       if(input$sel_var1 %in% numVars){
         summaryize(df_train, input$sel_var1)
       }
@@ -30,7 +31,8 @@ edaUniServer <- function(id) {
       }
     })
   
-    dat2<-reactive({
+    #second reactive DF
+    dat2 <- reactive({
       if(input$sel_var2 %in% numVars){
         summaryize(df_train,input$sel_var2)
       }
@@ -40,8 +42,10 @@ edaUniServer <- function(id) {
       }
     }) 
     
+    
     ### Output tables
-    output$tab_sel_var1<-renderDT(
+    #first DT
+    output$tab_sel_var1 <- renderDT(
       dat1(),
       rownames=FALSE,
       options=list(dom="t",
@@ -54,7 +58,8 @@ edaUniServer <- function(id) {
         input$sel_var1)
     )
   
-    output$tab_sel_var2<-renderDT(
+    #second DT
+    output$tab_sel_var2 <- renderDT(
       dat2(),
       rownames=FALSE, 
       options=list(dom="t",
@@ -67,22 +72,25 @@ edaUniServer <- function(id) {
     )
   
   
+    
     ## Plot outputs----------------------
-    output$plot_sel_var1<-renderPlot({
+    #first plot
+    output$plot_sel_var1 <- renderPlot({
       if(input$sel_var1 %in% numVars){
         histogrammer(df_train,input$sel_var1)
-      }
-      else if(input$sel_var1 %in% catVars){
+        
+      } else if(input$sel_var1 %in% catVars){
         df_train %>%
           barplotter(input$sel_var1)
       }
     })
   
-    output$plot_sel_var2<-renderPlot({
+    #second plot
+    output$plot_sel_var2 <- renderPlot({
       if(input$sel_var2 %in% numVars){
         histogrammer(df_train,input$sel_var2)
-      }
-      else if(input$sel_var2 %in% catVars){
+        
+      } else if(input$sel_var2 %in% catVars){
         df_train %>%
           barplotter(input$sel_var2)
       }

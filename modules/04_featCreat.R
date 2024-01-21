@@ -8,6 +8,7 @@ featCreatUI <- function(id) {
     titlePanel(title="Feature Creation"),
     h4("Now you have the opportunity to create new features for your model using the existing variables. Let's look
        at some possible options"),
+    
     #inputs
     wellPanel(
       fluidRow(
@@ -30,6 +31,7 @@ featCreatUI <- function(id) {
         )
       )
     ),
+    
     #outputs
     fluidRow(
       column(4,
@@ -55,7 +57,7 @@ featCreatServer <- function(id, df_train_nd_nvI) {
     
     ns <- session$ns
     
-    ## Input
+    ## Input--------------------
     ### Create selector input
     output$ui_sel_var_group_size <- renderUI({
       opts <- if(sum(names(df_train_nd_nvI())=="l_name") > 0) {
@@ -68,6 +70,8 @@ featCreatServer <- function(id, df_train_nd_nvI) {
                 label="Create a group size variable that uses...",
                 choices=opts)
     })
+    
+    
     
     ## Outputs--------------------
     ### Group size variable
@@ -97,6 +101,7 @@ featCreatServer <- function(id, df_train_nd_nvI) {
         )
     })
     
+    
     #### Make bar plot using new df
     output$plot_var_group_size <- renderPlot({
       #require that user does not select "none" to get plots
@@ -116,18 +121,19 @@ featCreatServer <- function(id, df_train_nd_nvI) {
     
     
     #### Display plots once at least two variables selected
+    #heatmap
     output$plot_lux_expense_heatmap <- renderPlot({
       req(length(input$sel_var_lux_expense) >= 2)
       
       heatmapper(df_lux_expense(), input$sel_var_lux_expense) 
     })
       
+    #boxplot
     output$plot_lux_expense_boxplot <- renderPlot({
       req(length(input$sel_var_lux_expense) >= 2)
       
       boxplotter2(df_lux_expense()) 
     })
-    
     
     
     
@@ -139,6 +145,19 @@ featCreatServer <- function(id, df_train_nd_nvI) {
       actionButton(inputId=ns("btn_creFea_complete"), "Confirm feature creation selections",
                    class="btn-success")
     })
+    
+    
+    ### Trigger toast notification
+    observeEvent(input$btn_creFea_complete, {
+      show_toast(
+        title="Feature creation",
+        type="success",
+        text="Feature creation completed...please proceed to feature selection",
+        position="center",
+        timer=3000
+      )
+    })
+    
     
     ### Create features
     df_train_nd_nvI_cF <- eventReactive(input$btn_creFea_complete, {
@@ -152,13 +171,15 @@ featCreatServer <- function(id, df_train_nd_nvI) {
       
     })
     
+    
     ### Checking
     output$temp_table <- renderTable({
       head(df_train_nd_nvI_cF())
     })
     
     
-    ## Export--------------------
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_cF)
     
     

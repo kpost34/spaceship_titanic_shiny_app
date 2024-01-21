@@ -32,6 +32,7 @@ selectizeInput02<-function(ID, label, choices) {
 }
 
 
+
 # EDA Tab Structure Code=======================================================
 edaTabBuilder<-function(id, name, varID, options, fn){
   ns <- NS(id)

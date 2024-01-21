@@ -14,11 +14,11 @@ read_csv(here("data","train.csv")) %>%
 
 
 
-
 # Create vectors====================================================================================
 ## Col names (variables)--------------------
 ### All character cols
 df_train %>% select(where(is.character)) %>% names() -> chrVars
+
 
 ### All cols but character
 #### Colnames
@@ -29,39 +29,47 @@ nchrVars[nchrVars!="transported"] -> nchrPreds
 #with floor_num
 nchrPredswFn <- c(nchrPreds, "floor_num")
 
+
 #### Classes
 df_train %>% select(!where(is.character)) %>% map(class) %>% as.character() -> nchrClass
 ncharVarClass <- nchrVars %>%
   set_names(paste0(nchrVars, " (", nchrClass, ")"))
 
+
 ### All logical and factor cols
 df_train %>% select(where(is.logical)|where(is.factor)) %>% names() -> catVars
+
 
 ### All numeric cols
 df_train %>% select(where(is.numeric)) %>% names() -> numVars
 
+
 ### All factor cols 
 df_train %>% select(where(is.factor)) %>% names() -> fct_nonumVars
 
+
 ### Numeric vars
 df_train %>% select(where(is.numeric)) %>% names() -> disVars
+
 
 ## Missing exploration cols
 vars_miss_exp <- c("passenger_id", "passenger_group", "ticket", "cabin", "home_planet", 
                    "destination", "name")
 
+
 ### Cabin component cols
 cabinVars<-c("deck", "num", "side")
 
+
 ### Dependent variable
 depVar<-"transported"
+
 
 
 ## Choices vectors--------------------
 ch_quick_dataCheck <- c("dimensions"="dim",
                          "data sample"="dat_samp",
                          "missingness"="miss")
-
 
 ch_summ_dataCheck <- c("character"="chr",
                        "factor"="fct",
@@ -113,6 +121,7 @@ ch_lux_featCreat <- c("room_service",
                       "vr_deck")
 
 
+
 ## Long strings--------------------
 ### missNum module
 chr_1a_missNum <- "cabin is a character string composed of three variables: deck, num, and side. The former"
@@ -124,8 +133,6 @@ chr_1f_missNum <- "or ranges of 2, 3, or 4 floors."
 
 chr_1_missNum <- paste(chr_1a_missNum, chr_1b_missNum, chr_1c_missNum, chr_1d_missNum, 
                        chr_1e_missNum, chr_1f_missNum)
-
-
 
 
 ### missName module

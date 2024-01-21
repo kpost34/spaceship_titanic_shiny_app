@@ -17,6 +17,7 @@ featTrans_rareEncUI <- function(id) {
       uiOutput(ns("ui_btn_rareEnc_complete")),
       strong(textOutput(ns("text_btn_rareEnc_complete")))
     ),
+    
     mainPanel(width=10,
       fluidRow(
         column(6,
@@ -61,6 +62,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
                                  as.character()))
     })
     
+    
     #### Input to select other var to visualize as a barplot
     output$ui_sel_var_viz2 <- renderUI({
       req(input$sel_var_viz1)
@@ -70,6 +72,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
                     #dynamically ticket and deck 
                     choices=c("deck", "ticket") %>% .[.!=input$sel_var_viz1])
     })
+    
     
     #### Input to select levels to combine as a category and visualize in a new barplot
     output$ui_sel_var_cat2 <- renderUI({
@@ -84,6 +87,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
                                  as.character()))
     })
     
+    
     #### Button to confirm selections
     output$ui_btn_rareEnc_complete <- renderUI({
       req(input$sel_var_viz1)
@@ -93,6 +97,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
     })
   
   
+    
     ## Outputs--------------------
     #var1-raw
     output$plot_sel_var_viz1 <- renderPlot({
@@ -121,6 +126,7 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
       
       barplotter2(df_train_nd_nvI(), var=input$sel_var_viz2, cats=input$sel_var_cat2, col="mako")
     })
+    
     
     
     ## Export--------------------
@@ -153,6 +159,9 @@ featTrans_rareEncServer <- function(id, df_train_nd_nvI) {
       df_train_nd_nvI_r() %>% head()
     })
     
+    
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_r)
     
   })

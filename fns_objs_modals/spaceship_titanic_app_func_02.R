@@ -23,7 +23,6 @@ grab_reduce_floor <- function(dat) {
 }
 
 
-
 ### Function to bin num into floor groups
 group_floors <- function(dat, nbin) {
   dat %>%
@@ -41,7 +40,6 @@ group_floors <- function(dat, nbin) {
 }
 
 
-
 ### Function to display toast notification
 create_floor_num_msg <- function(number) {
   if(number==1){
@@ -54,8 +52,6 @@ create_floor_num_msg <- function(number) {
   
 
 
-
-
 ## Name missingness--------------------
 ### Function to provide summary table of missingness
 chr_miss_tabler<-function(dat){
@@ -64,8 +60,6 @@ chr_miss_tabler<-function(dat){
     group_by(name_type) %>%
     summarize(across(name, list(present=~sum(!is.na(.x)), missing=~sum(is.na(.x)), total=length)))
 }
-
-
 
 
 ### Relationship between name missingness and passenger_group or room (cabin) occupancy & imputation
@@ -141,7 +135,7 @@ name_imputer<-function(tab, col, range, dat, var) {
 }
 
 
-### Function to display toast notification
+#### Function to display toast notification
 impute_name_msg <- function(action) {
   if(action=="drop_cols") {
     return("Name columns have been dropped")

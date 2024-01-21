@@ -21,42 +21,47 @@ edaBiServer <- function(id) {
   
     ## Table outputs----------------------
     ### Create reactives of output tables
-    dat1<-reactive({
+    #first var
+    dat1 <- reactive({
       req(length(input$sel_var1ab)==2)
+      
       #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
       if(sum(input$sel_var1ab %in% catVars)==2) {
         df_train %>%
           tabylize(input$sel_var1ab)
-      }
-      else if(sum(input$sel_var1ab %in% catVars)==1) {
+        
+      } else if(sum(input$sel_var1ab %in% catVars)==1) {
         df_train %>%
           summaryize(input$sel_var1ab,input$sel_var1ab[input$sel_var1ab %in% catVars])
-      }
-      else if(sum(input$sel_var1ab %in% numVars)==2) {
+        
+      } else if(sum(input$sel_var1ab %in% numVars)==2) {
         corrtester(df_train,input$sel_var1ab)
       }
     })
   
   
-    dat2<-reactive({
+    #second var
+    dat2 <- reactive({
       req(length(input$sel_var2ab)==2)
+      
       #reactive (table) depends on type of input (i.e., cat-num, cat-cat, or num-num)
       if(sum(input$sel_var2ab %in% catVars)==2) {
         df_train %>%
           tabylize(input$sel_var2ab)
-      }
-      else if(sum(input$sel_var2ab %in% catVars)==1) {
+        
+      } else if(sum(input$sel_var2ab %in% catVars)==1) {
         df_train %>%
           summaryize(input$sel_var2ab,input$sel_var2ab[input$sel_var2ab %in% catVars])
-      }
-      else if(sum(input$sel_var2ab %in% numVars)==2) {
+        
+      } else if(sum(input$sel_var2ab %in% numVars)==2) {
         corrtester(df_train,input$sel_var2ab)
       }
     })
     
     
     ### Output tables
-    output$tab_sel_var1ab<-renderDT(
+    #first DT
+    output$tab_sel_var1ab <- renderDT(
       dat1(),
       rownames=FALSE,
       options=list(dom="t",
@@ -68,7 +73,8 @@ edaBiServer <- function(id) {
         paste(input$sel_var1ab[1], input$sel_var1ab[2], sep="-"))
     )
     
-    output$tab_sel_var2ab<-renderDT(
+    #second DT
+    output$tab_sel_var2ab <- renderDT(
       dat2(),
       rownames=FALSE,
       options=list(dom="t",
@@ -81,10 +87,13 @@ edaBiServer <- function(id) {
     )
   
     
+    
     ## Plot outputs----------------------
-    output$plot_sel_var1ab<-renderPlot({
+    #first plot
+    output$plot_sel_var1ab <- renderPlot({
       #must select two inputs first
       req(length(input$sel_var1ab)==2)
+      
       #if both categorical, then bar plot
       if(sum(input$sel_var1ab %in% catVars)==2) {
         df_train %>%
@@ -101,17 +110,19 @@ edaBiServer <- function(id) {
       }
     })
     
+    #second plot
     output$plot_sel_var2ab<-renderPlot({
       req(length(input$sel_var2ab)==2)
+      
       if(sum(input$sel_var2ab %in% catVars)==2) {
         df_train %>%
           barplotter(input$sel_var2ab)
-      }
-      else if(sum(input$sel_var2ab %in% catVars)==1) {
+        
+      } else if(sum(input$sel_var2ab %in% catVars)==1) {
         df_train %>%
           boxplotter(input$sel_var2ab)
-      }
-      else if(sum(input$sel_var2ab %in% catVars)==0) {
+        
+      } else if(sum(input$sel_var2ab %in% catVars)==0) {
         scatterplotter(df_train,input$sel_var2ab)
       }
     })

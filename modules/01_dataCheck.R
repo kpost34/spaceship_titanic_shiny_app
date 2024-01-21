@@ -11,6 +11,7 @@ dataCheckUI <- function(id) {
       linebreaks(2),
       selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=ch_summ_dataCheck),
     ),
+    
     ## Tabular outputs
     mainPanel(width=10,
       DTOutput(ns("tab_quick")),
@@ -26,7 +27,8 @@ dataCheckUI <- function(id) {
 # Server============================================================================================
 dataCheckServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-    ## Display data checks dependent upon user selection
+    
+    ## Display data checks dependent upon user selection--------------------
     ### Create reactive obj df_check()
     df_check <- reactive({
       switch(input$sel_quick,
@@ -35,6 +37,7 @@ dataCheckServer <- function(id) {
              miss=n_miss_tbl(df_train)
       )
     })
+    
     
     ### Generate DT
     output$tab_quick <- renderDT(
@@ -53,7 +56,9 @@ dataCheckServer <- function(id) {
         extract_nm(ch_quick_dataCheck, input$sel_quick))
     )
 
-    ## Display data summary by col type
+    
+    
+    ## Display data summary by col type--------------------
     ### Create reactive df_summ
     df_summ <- reactive({
       switch(input$sel_summ,
@@ -63,6 +68,7 @@ dataCheckServer <- function(id) {
         num=skim_tbl(df_train, type="numeric"))
     })
   
+    
     ### Generate DT
     output$tab_summ <- renderDT(
       df_summ(), 
@@ -74,7 +80,7 @@ dataCheckServer <- function(id) {
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
         paste(extract_nm(ch_summ_dataCheck, input$sel_summ), "Variables"))
     )
-    
+
   })
 }
 

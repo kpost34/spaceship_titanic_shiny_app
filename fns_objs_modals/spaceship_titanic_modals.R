@@ -1,5 +1,5 @@
-#### Name Imputation Options Modals================================================================================================
-modal_colDeletion_misNam03<-modalDialog(
+#### Name Imputation Options Modals=================================================================
+modal_colDeletion_misNam03 <- modalDialog(
   "Deleting name columns prevents use of this variable in feature engineering. Would you still like to continue?",
   title="Deleting columns",
   footer=tagList(
@@ -8,7 +8,7 @@ modal_colDeletion_misNam03<-modalDialog(
   )
 )
 
-modal_rowDeletion_misNam03<-modalDialog(
+modal_rowDeletion_misNam03 <- modalDialog(
   "Deleting rows containing missing names may disproportionately affect distribution of values of other columns and thus impact
   variable imputation and model accuracy. Would you still like to continue?",
   title="Deleting rows",

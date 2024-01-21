@@ -6,6 +6,7 @@
 #Load packages
 pacman::p_load(tidyverse,cowplot)
 
+
 # Data transformation and feature extraction========================================================
 ## Feature Scaling--------------------
 ### Function to build cowplot of density and qqplots for various transforms
@@ -27,12 +28,13 @@ qq_plotter<-function(dat,var){
     theme_bw(base_size=16)
 }
 
-# Mathematical functions
-min_max_scaler<-function(x){
+
+#### Mathematical functions
+min_max_scaler <- function(x){
   (x-min(x, na.rm=TRUE))/(max(x, na.rm=TRUE)-min(x, na.rm=TRUE))
 }
 
-standardizer<-function(x){
+standardizer <- function(x){
   (x-mean(x, na.rm=TRUE))/sd(x, na.rm=TRUE)
 }
 
@@ -112,6 +114,7 @@ histogrammer2<-function(dat, col, n.bins=30, x.log.scale=TRUE){
   return(p)
 }
 
+
 ### Functions to bin numerical var & retain transported
 #### Create user-defined bins
 user_cutter <- function(dat, col, break.vals=NA){
@@ -136,7 +139,6 @@ equal_cutter <- function(dat, col, n.breaks=NA){
     #retain id, new col, and y
     select(passenger_id, !!paste0(col,"_dis"), transported) #updated to retain RV
 }
-
 
 
 ### Function to make bar plot after creating bins
@@ -167,8 +169,7 @@ bin_plotter <- function(dat, col, type, y.log.scale=TRUE) {
 }
 
 
-
-#### Function to display text after confirmation hit
+### Function to display text after confirmation hit
 confirm_discretization_msg <- function(dat) {
   n_dis <- dat %>%
     names() %>%
@@ -206,6 +207,7 @@ confirm_ord_encoding_msg <- function(dat) {
     return("Ordinal encoding applied to more than one variable.")
   }
 }
+
 
 
 ## Rare Label Encoding--------------------
@@ -287,6 +289,7 @@ lux_builder <- function(dat, vars){
   
 }
 
+
 ## Function to make heat map
 heatmapper<-function(dat,vars){
   
@@ -321,6 +324,7 @@ boxplotter2<-function(dat){
     theme(plot.title=element_text(size=16, face="bold"))
 }
   
+
 
 # Feature Selection=================================================================================
 ## Function to extract predictors into vec with classes as names,

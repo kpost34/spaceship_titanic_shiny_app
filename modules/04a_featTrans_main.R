@@ -13,6 +13,7 @@ featTrans_mainUI <- function(id) {
        factors (<em style='color:blue;'>ordinal encoding</em>), and combine infrequent groups of 
        factor variables (<em style='color:blue;'>rare label encoding</em>). All four transformations 
        must be completed before proceeding to feature creation. Please select an option.</h4>"),
+    
     fluidRow(
       column(6,align="center",
         radioButtons(inputId=ns("rad_trans"), label="", selected=character(0), 
@@ -51,9 +52,8 @@ featTrans_mainServer <- function(id, df_train_nd_nvI) {
     
     ns <- session$ns
   
-
-    # Conditionally display tabs
-    ## Select transformation type
+    ## Conditionally display tabs--------------------
+    ### Select transformation type
     observeEvent(input$rad_trans, {
       updateTabsetPanel(inputId="featTrans_tab",selected=input$rad_trans)
     })
@@ -69,13 +69,30 @@ featTrans_mainServer <- function(id, df_train_nd_nvI) {
                    class="btn-info")
     })
     
-    # Source/run server submodules
+    
+    
+    ## Source/run server submodules--------------------
     df_train_nd_nvI_s <- featTrans_scaleServer("df1", df_train_nd_nvI)
     df_train_nd_nvI_d <- featTrans_disServer("df2", df_train_nd_nvI)
     df_train_nd_nvI_o <- featTrans_ordEncServer("df3", df_train_nd_nvI)
     df_train_nd_nvI_r <- featTrans_rareEncServer("df4", df_train_nd_nvI)
     
-    # Join DFs
+    
+    
+    ## Confirmation button selected--------------------
+    ### Trigger toast notification
+    observeEvent(input$btn_trans_complete, {
+      show_toast(
+        title="Feature transformations",
+        type="success",
+        text="All transformations completed...please proceed to feature creation",
+        position="center",
+        timer=3000
+      )
+    })
+    
+    
+    ### Join DFs
     df_train_nd_nvI_tF <- eventReactive(input$btn_trans_complete, {
       
       df_train_nd_nvI_s() %>%
@@ -85,7 +102,9 @@ featTrans_mainServer <- function(id, df_train_nd_nvI) {
       
     })
     
-    # Return DF
+    
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_tF)
     
   })

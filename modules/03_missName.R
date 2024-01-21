@@ -68,6 +68,7 @@ missNameServer <- function(id, df_train_nd) {
     ## Exploring missing names--------------------
     ### Text outputs
     output$text_sel_exp <- renderText({
+      
       #here switch() can be used with all four choices to display the appropriate name
       switch(input$sel_exp,
         miss_samp=paste("Sample of Passengers with Missing Names"),
@@ -76,8 +77,10 @@ missNameServer <- function(id, df_train_nd) {
       )
     })
     
+    
     ### Create reactive object (for tabular output)
     dat1 <- reactive({
+      
       #reactive is used to build reactive table objects
       switch(input$sel_exp,
         miss_samp=df_train_nd() %>% 
@@ -106,6 +109,7 @@ missNameServer <- function(id, df_train_nd) {
     )
     
     
+    
     ## Understanding name missingness conditioned on other variables--------------------
     ### Text outputs
     output$text_rad_grpVar <- renderText({
@@ -115,6 +119,7 @@ missNameServer <- function(id, df_train_nd) {
         cabin=paste("Summary of Missing Names by Cabin Occupancy")
       )
     })
+    
     
     ### Create reactive object (for tabular and plot outputs)
     dat2 <- reactive({
@@ -135,8 +140,8 @@ missNameServer <- function(id, df_train_nd) {
     ### Dynamic UI 
     #### Display sliders
     output$ui_slid_impOpt <- renderUI({
-      
       req(input$sel_impOpt %in% c("imp_pass_group","imp_cabin"))
+      
       switch(input$sel_impOpt,
         imp_pass_group=sliderInput(ns("slid1_impOpt"),
                         "Select a range of named passengers per passenger_group to use for name imputation",
@@ -158,6 +163,7 @@ missNameServer <- function(id, df_train_nd) {
     })
     
     
+    
     ## Handling missing names--------------------
     ### Selection is made
     #### Trigger toast notifications
@@ -177,6 +183,7 @@ missNameServer <- function(id, df_train_nd) {
     df_train_nd_nI <- eventReactive(input$btn_impOpt, {
       #requires selection from drop-down menu
       req(input$sel_impOpt)
+      
       #dplyr code if drop_cols selected
       if(input$sel_impOpt=="drop_cols"){
         df_train_nd() %>% select(-contains("name"))
@@ -186,10 +193,12 @@ missNameServer <- function(id, df_train_nd) {
       else if(input$sel_impOpt=="remove_rows"){
         df_train_nd() %>% filter(!is.na("name"))
       }
+      
       #if imp_pass_groups chosen and slider input values chosen then name_imputer() runs
       else if(input$sel_impOpt=="imp_pass_group" & length(input$slid1_impOpt) > 0){
         name_imputer(dat3(), num_name, input$slid1_impOpt, df_train_nd(), passenger_group)
       }
+      
       else if(input$sel_impOpt=="imp_cabin" & length(input$slid2_impOpt) > 0){
         name_imputer(dat3(), num_name, input$slid2_impOpt, df_train_nd(), cabin)
       }
@@ -211,6 +220,10 @@ missNameServer <- function(id, df_train_nd) {
     #   head(df_train_nvI_tmp(), n=20)
     # })
     
+    
+    
+    ## Return DF--------------------
+    return(df_train_nd_nI)
     
   })
 }

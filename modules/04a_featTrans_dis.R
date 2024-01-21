@@ -104,17 +104,18 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       
       tags_num
     })
-    
   
   
     ### Dynamically displays action buttons (and associated text) to discretize/not discretize variable 
-    #display text for action buttons
+    #### Display not-discretize txt
     output$text_not_dis <- renderText({
       req(input$sel_var_hist %in% disVars)
 
       paste0("Do not discretize ", input$sel_var_hist,".")
     })
     
+    
+    #### Display discretize txt
     output$text_dis <- renderText({
       #either "Equal Intervals" is selected or "User specifications" is selected and the number and 
         #every break point input is populated
@@ -126,7 +127,9 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       paste("Discretize",input$sel_var_hist, "using these settings.")
     })
     
-    #display buttons
+    
+    #### Display buttons
+    #not discretize
     output$ui_btn_not_dis<-renderUI({
       req(input$sel_var_hist %in% disVars)
       
@@ -137,6 +140,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
                    class="btn-primary")
     })
     
+    #discretize
     output$ui_btn_dis<-renderUI({
       req(input$sel_var_hist %in% disVars,
           (!is.na(input$rad_log_bar) & input$rad_bdry_bar=="cut_int")|
@@ -146,6 +150,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       actionButton(ns(paste("btn_dis" ,input$sel_var_hist, sep="_")), label="Confirm",
                    class="btn-primary")
     })
+    
     
     
     ## Outputs--------------------
@@ -226,6 +231,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       rv_dis_type[[var()]] <- df_dis_type()
     })
     
+    
     #### If no discretization selected
     observeEvent(input[[paste("btn_not_dis", var(), sep="_")]], {
       rv_dis_type[[var()]] <- NULL
@@ -249,6 +255,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
         "Summary of discretization by variable")
     )
+    
     
     
     ## Export-------------------- 
@@ -294,6 +301,7 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
         reactiveValuesToList()
     })
     
+    
     #### Check creation of reactiveValues & joining within elements
     output$temp_table_hist <- renderTable({
       
@@ -302,7 +310,9 @@ featTrans_disServer <- function(id, df_train_nd_nvI) {
       
       })
     
-    ### Return obj
+    
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_d)
   })
 }

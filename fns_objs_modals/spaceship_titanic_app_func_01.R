@@ -60,7 +60,6 @@ skim_tbl<-function(dat, type="character"){
       "3rd quartile", "max", "histogram")
   }
   
-  
   dat %>%
     skim(where(!!col_type)) %>%
     as_tibble(.name_repair="minimal") %>%
@@ -68,6 +67,7 @@ skim_tbl<-function(dat, type="character"){
     mutate(across(where(is.numeric),~signif(.x,3))) %>%
     set_names(nm)
 }
+
 
 
 # EDA===============================================================================================
@@ -154,6 +154,7 @@ summaryize <- function(dat, vec, group=NA){
     {if(n==1) bind_cols(variable=vec[1], .) else .}
 }
 
+
 ### Figures
 #### Function to create histogram of numeric variable
 #for use with col name in quotes
@@ -171,6 +172,7 @@ histogrammer<-function(dat, col){
       else scale_y_continuous(expand=expansion(mult=c(0, .03)))} +
     theme_bw(base_size=19) 
 }
+
 
 #### Function to create bar plot of numeric variable
 #for use with col name(s) in quotes stored as an object
@@ -237,16 +239,19 @@ barplotter <- function(dat, vec, na.rm=FALSE){
 }
   
 
+
 ## Bivariate--------------------
 ### Tabular
 #### Cat-cat
 #see tabylize() above
 
-## Cat-num
+
+#### Cat-num
 #see summaryize() above
 
-## Num-num
-# Function to run spearman correlation test and signif results using character vector
+
+#### Num-num
+##### Function to run spearman correlation test and signif results using character vector
 corrtester<-function(dat,vec) {
   dat %>%
     cor_test(all_of(vec),method="spearman") %>%
@@ -265,7 +270,7 @@ corrtester<-function(dat,vec) {
 
 
 #### Cat-num
-# Function to create boxplots for 2-3 variables (only one numeric)
+##### Function to create boxplots for 2-3 variables (only one numeric)
 boxplotter<-function(dat, vec, na.rm=FALSE) {
   
   n<-length(vec)
@@ -402,6 +407,7 @@ scatterplotter<-function(dat,vec,na.rm=FALSE){
       theme(legend.key.width=unit(3, "cm")) 
   }
 }
+
 
 
 ## Multivariate (figures only)--------------------

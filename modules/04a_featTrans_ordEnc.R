@@ -20,6 +20,7 @@ featTrans_ordEncUI <- function(id) {
       uiOutput(ns("ui_btn_ordEnc_complete")),
       strong(textOutput(ns("text_btn_ordEnc_complete")))
     ),
+    
     mainPanel(
       plotOutput(ns("plot_sel_var_viz")),
       linebreaks(2),
@@ -58,7 +59,6 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
     })
     
   
-      
     ### Dynamically create selectors for ordinal encoding
     purrr::map2(.x=fct_nonumVars, .y=letters[1:5], function(x, y) {
       
@@ -117,6 +117,7 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
     })
     
     
+    
     ## Export--------------------
     ### Create reactive data frame
     df_train_nd_nvI_o <- eventReactive(input$btn_ordEnc_complete, ignoreInit=TRUE, {
@@ -171,10 +172,9 @@ featTrans_ordEncServer <- function(id, df_train_nd_nvI) {
     })
     
     
-    ### Return obj
+    
+    ## Return DF--------------------
     return(df_train_nd_nvI_o)
-
-
     
   })
 }
