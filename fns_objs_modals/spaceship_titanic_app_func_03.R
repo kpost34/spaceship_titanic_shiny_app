@@ -369,24 +369,64 @@ comp_var_class <- function(var_sel, vars_vec, kind) {
 ## Function to reduce variable pool
 deplete_var_pool <- function(var_sel, var_pool) {
   #create obj suffixes for regex
-  suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
+  suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%
     paste(., collapse="|")
   
-  #create obj var_drop which represents variables that will be removed
-  var_drop <- if(str_detect(var_sel, "_lux")) {
+  #if at least one variable selected
+  if( {nchar(var_sel) %>% sum} > 0 ) {
+    #create obj var_drop which represents variables that will be removed
     var_sel %>%
-      str_remove("_lux") %>%
-      str_replace_all("__", "|")
-  } else if(!str_detect(var_sel, "_lux")) {
-    var_sel %>%
-      str_remove(suffixes)
+      purrr::map_chr(function(var) {
+        #for each variable...
+        var %>%
+          { #if it's a luxury item then
+            if(str_detect(var, "_lux$")) 
+              var %>%
+                str_remove("_lux$") %>% #remove suffix
+                str_replace_all("__", "|") #turn into regex
+            else var %>% #if not...
+              str_remove(suffixes) #remove suffix to retain root
+          }
+      }) %>% # b/c > 1 vars can be selected...paste together with '|'
+      paste(., collapse="|") -> var_drop
+  #otherwise, populate var_drop with NA
+  } else {var_drop <- NA}
+  
+  #if var_drop is NA...
+  var_remain <- if(is.na(var_drop)) {
+    var_pool #then var_remain is set to var_pool
+  #otherwise, extract 'novel 'variables remaining
+  } else {
+    var_pool[!str_detect(var_pool, var_drop)]
   }
-
-  #extract 'novel'variables remaining
-  var_remain <- var_pool[!str_detect(var_pool, var_drop)]
+  
+  
 
   return(var_remain)
 }
+
+
+
+# deplete_var_pool <- function(var_sel, var_pool) {
+#   #create obj suffixes for regex
+#   suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%
+#     paste(., collapse="|")
+#   
+#   #create obj var_drop which represents variables that will be removed
+#   var_drop <- if(str_detect(var_sel, "_lux$")) {
+#     var_sel %>%
+#       str_remove("_lux") %>%
+#       str_replace_all("__", "|")
+#   } else if(!str_detect(var_sel, "_lux$")) {
+#     var_sel %>%
+#       str_remove(suffixes)
+#   }
+# 
+#   #extract 'novel'variables remaining
+#   var_remain <- var_pool[!str_detect(var_pool, var_drop)]
+# 
+#   return(var_remain)
+# }
 
 
 

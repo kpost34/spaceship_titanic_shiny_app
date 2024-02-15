@@ -187,7 +187,7 @@ barplotter <- function(dat, vec, na.rm=FALSE){
   }
   
   #end if numerical vars
-  if(sum(map_chr(dat[vec], class) %in% c("logical", "factor")==0)) {
+  if(sum(map_chr(dat[vec], ~class(.x)[1]) %in% c("logical", "factor", "ordered")==0)) {
     return("Use categorical or logical variables only")
   }
     
