@@ -84,7 +84,12 @@ spaceTitanicApp()
 
 #----------------------
 ## DONE
-
+#04-featSel: 
+  #fixed issue where x-axis and color scale were flipped for logical vars and 2-level factors
+  #removed empty gray box at start-up
+  #barplotter updated so that it can plot ordered factors (thus updated func_01 code)
+  #developed code to display selector for model, including dynamically updating choices
+  #added code to display button for confirming variables for model
 
 
 
@@ -102,12 +107,9 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
 
-
+#button in 04a_main: skip all transforms
 
 #put this on hold and went back to start.....
-# feature selection...
-  #1. update barplotter so that it can take on ordered factors
-  #2. use a color scheme for boxplotter?
 #2. feature selection code
   #b) use fn developed via backbone to incorporate logic such that if a user selects a column then 
     #all directly related columns will drop out
@@ -125,8 +127,6 @@ spaceTitanicApp()
 
 #---------------------------------
 #feature engineering- selection
-  #UI: remove starting gray box (sidebarpanel)
-  #take the reactive DF from transformation and the reactive DF from creation & join them
   #then use names() to populate choices in selectize
   #when user picks a variable that is related to other vars in the joined DF, those vars 
     #will drop out (i.e., the choices needs to be a reactiveValue)
@@ -134,15 +134,7 @@ spaceTitanicApp()
       #then 'spa' and 'spa_dis" disappear
 #---------------------------------
 
-
-#to do
-  #04a_main:
-    #toast notification after all transforms complete
-  #04_featCreat:
-    #toast notification after confirmation
-  #04_featSel:
-    #x/color axes incorrect for subset of vars: cryo_sleep, side, vip
-
+#data imputation--does something to variable names and causes downstream problems???
 
 
 
@@ -208,6 +200,7 @@ spaceTitanicApp()
 
 #are modals used? if not, should they?
 #consistent character spacing (and any remnant line spacing)
+#shorten script names (and subfolder names?) and use [01-10][a-z][1-9]_ prefix?
 
 
 #---------------------------------------------------------------------------------------------------

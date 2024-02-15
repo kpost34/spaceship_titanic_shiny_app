@@ -406,41 +406,42 @@ nm_fea <- names(df_train_nd_nvI_tcF) %>%
 
 
 ## Create pattern of suffixes
-suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
+# suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
+suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%  
   paste(., collapse="|")
 
 ## Isolate orig pred selected (even if modified) & remove from feature vector
-root_var <- nm_fea[19] %>%
-  str_remove(suffixes)
+root_var <- nm_fea[19] %>% #selected 'spa_scale'
+  str_remove(suffixes) #removes '_scale' suffix, leaving 'spa'
 
-nm_fea[!str_detect(nm_fea, root_var)]
+nm_fea[!str_detect(nm_fea, root_var)] #remove all variables containing 'spa' in feature vector
 
 
-## Handling lux variable
+## Handling lux variable (special case)
 ### Split into chr vec to use as search
 lux_var <- "room_service__spa__vr_deck_lux"
 
 lux_vars <- lux_var %>%
-  str_remove("_lux") %>%
-  str_replace_all("__", "|")
+  str_remove("_lux$") %>% #remove '_lux' suffix
+  str_replace_all("__", "|") #replace '__' separator with '|' to aid in regex
   
 
 ### Put together in if...else
 #### Selected variable
 # var_sel <- "spa_scale"
-var_sel <- "room_service__spa__vr_deck_lux"
+var_sel <- "room_service__spa__vr_deck_lux" #ex2: selected lux variable
 
 #### Generate search string
-var_drop <- if(str_detect(var_sel, "_lux")) {
+var_drop <- if(str_detect(var_sel, "_lux$")) { #if chr ends with '_lux'
   var_sel %>%
-    str_remove("_lux") %>%
-    str_replace_all("__", "|")
-} else if(!str_detect(var_sel, "_lux")) {
+    str_remove("_lux$") %>% #remove suffix
+    str_replace_all("__", "|") #replace '__' with '|'
+} else if(!str_detect(var_sel, "_lux$")) { #if it doesn't...
   var_sel %>%
-    str_remove(suffixes)
+    str_remove(suffixes) #remove one of the four other suffixes
 }
 
-tmp <- nm_fea[!str_detect(nm_fea, var_drop)]
+tmp <- nm_fea[!str_detect(nm_fea, var_drop)] #remove all vars that contain the root(s) in var_sel
 
 
 #nm_fea will be a reactive object that shrinks as vars are selected and is used as choices available
@@ -452,19 +453,23 @@ tmp2 <- deplete_var_pool(var_sel="room_service__spa__vr_deck_lux", var_pool=nm_f
 setequal(tmp, tmp2) #TRUE
 
 
+## Try with multiple variables selected
+deplete_var_pool(var_sel=c("spa__room_service__food_court_lux", "room_service_scale", "age"), var_pool=nm_fea)
+
+
 ## Select actual variables to continue with backbone code
-df_train_nd_nvI_sF <- df_train_nd_nvI_tcF %>%
+df_train_select <- df_train_nd_nvI_tcF %>%
   #identifier & DV -- mandatory
   select(passenger_id, transported, 
           #original vars
          home_planet, side, destination,
          #transformed/created vars
-         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) 
+         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux)
 
 
 # Data Hygiene======================================================================================
 ## Remove extraneous objs
-rm(list=setdiff(ls(), "df_train_nd_nvI_sF"))
+rm(list=setdiff(ls(), "df_train_select"))
 
 
 
