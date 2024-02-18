@@ -366,44 +366,63 @@ comp_var_class <- function(var_sel, vars_vec, kind) {
 }
 
 
-## Function to reduce variable pool
-deplete_var_pool <- function(var_sel, var_pool) {
-  #create obj suffixes for regex
-  suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%
-    paste(., collapse="|")
+## Function to identify removed variables
+id_dropped_vars <- function(dat, sel_vec) {
+  nm <- names(dat) 
   
-  #if at least one variable selected
-  if( {nchar(var_sel) %>% sum} > 0 ) {
-    #create obj var_drop which represents variables that will be removed
-    var_sel %>%
-      purrr::map_chr(function(var) {
-        #for each variable...
-        var %>%
-          { #if it's a luxury item then
-            if(str_detect(var, "_lux$")) 
-              var %>%
-                str_remove("_lux$") %>% #remove suffix
-                str_replace_all("__", "|") #turn into regex
-            else var %>% #if not...
-              str_remove(suffixes) #remove suffix to retain root
-          }
-      }) %>% # b/c > 1 vars can be selected...paste together with '|'
-      paste(., collapse="|") -> var_drop
-  #otherwise, populate var_drop with NA
-  } else {var_drop <- NA}
-  
-  #if var_drop is NA...
-  var_remain <- if(is.na(var_drop)) {
-    var_pool #then var_remain is set to var_pool
-  #otherwise, extract 'novel 'variables remaining
-  } else {
-    var_pool[!str_detect(var_pool, var_drop)]
+  if(is.null(sel_vec)|length(sel_vec)==0) {
+    return(NULL)
+    
+  } else if(!is.null(sel_vec)) {
+    sel_roots <- str_remove_all(sel_vec, "_scale$|_dis$|_ord$|_rare$")
+    sel_roots_patt <- paste(sel_roots, collapse="|")
+    
+    matching_vars <- nm[str_detect(nm, sel_roots_patt)]
+    dropped_vars <- matching_vars[!matching_vars %in% sel_vec]
+    
+    return(dropped_vars)
   }
-  
-  
-
-  return(var_remain)
 }
+
+
+## Function to reduce variable pool
+# deplete_var_pool <- function(var_sel, var_pool) {
+#   #create obj suffixes for regex
+#   suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%
+#     paste(., collapse="|")
+# 
+#   #if at least one variable selected
+#   if( {nchar(var_sel) %>% sum} > 0 ) {
+#     #create obj var_drop which represents variables that will be removed
+#     var_sel %>%
+#       purrr::map_chr(function(var) {
+#         #for each variable...
+#         var %>%
+#           { #if it's a luxury item then
+#             if(str_detect(var, "_lux$"))
+#               var %>%
+#                 str_remove("_lux$") %>% #remove suffix
+#                 str_replace_all("__", "|") #turn into regex
+#             else var %>% #if not...
+#               str_remove(suffixes) #remove suffix to retain root
+#           }
+#       }) %>% # b/c > 1 vars can be selected...paste together with '|'
+#       paste(., collapse="|") -> var_drop
+#   #otherwise, populate var_drop with NA
+#   } else {var_drop <- NA}
+# 
+#   #if var_drop is NA...
+#   var_remain <- if(is.na(var_drop)) {
+#     var_pool #then var_remain is set to var_pool
+#   #otherwise, extract 'novel 'variables remaining
+#   } else {
+#     var_pool[!str_detect(var_pool, var_drop)]
+#   }
+# 
+# 
+# 
+#   return(var_remain)
+# }
 
 
 

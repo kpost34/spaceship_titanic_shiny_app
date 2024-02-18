@@ -406,14 +406,25 @@ nm_fea <- names(df_train_nd_nvI_tcF) %>%
 
 
 ## Create pattern of suffixes
-# suffixes <- c("_scale", "_dis", "_ord", "_rare") %>%
 suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%  
   paste(., collapse="|")
 
-## Isolate orig pred selected (even if modified) & remove from feature vector
-root_var <- nm_fea[19] %>% #selected 'spa_scale'
-  str_remove(suffixes) #removes '_scale' suffix, leaving 'spa'
 
+## Isolate orig preds selected (even if modified) & remove from corresponding vars from feature vector
+### Isolate the roots of selected variables
+sel_vars <- nm_fea[c(19, 22, 23)]
+root_vars <- sel_vars %>% #selected 'spa_scale', 'ticket_ord', and 'ticket_rare'
+  str_remove(suffixes) %>% #removes '_scale', '_ord', and '_rare' suffixes, leaving 'spa' and 'ticket' (2x)
+  unique() #remove duplicates
+
+
+### Put the roots into a search pattern and identify corresponding variables, 
+root_vars_patt <- paste(root_vars, collapse="|") #combines roots into a string pattern
+matching_vars <- nm_fea[str_detect(nm_fea, root_vars_patt)] #finds & stores all vars containing roots
+dropped_vars <- matching_vars[!matching_vars %in% sel_vars] #identifies corresponding vars
+
+
+#STOPPING POINT
 nm_fea[!str_detect(nm_fea, root_var)] #remove all variables containing 'spa' in feature vector
 
 
@@ -428,8 +439,8 @@ lux_vars <- lux_var %>%
 
 ### Put together in if...else
 #### Selected variable
-# var_sel <- "spa_scale"
-var_sel <- "room_service__spa__vr_deck_lux" #ex2: selected lux variable
+var_sel <- "spa_scale"
+# var_sel <- "room_service__spa__vr_deck_lux" #ex2: selected lux variable
 
 #### Generate search string
 var_drop <- if(str_detect(var_sel, "_lux$")) { #if chr ends with '_lux'
@@ -449,7 +460,8 @@ tmp <- nm_fea[!str_detect(nm_fea, var_drop)] #remove all vars that contain the r
 
 
 ## Create vec of remaining variables via function
-tmp2 <- deplete_var_pool(var_sel="room_service__spa__vr_deck_lux", var_pool=nm_fea)
+tmp2 <- deplete_var_pool(var_sel="spa_scale", var_pool=nm_fea)
+# tmp2 <- deplete_var_pool(var_sel="room_service__spa__vr_deck_lux", var_pool=nm_fea)
 setequal(tmp, tmp2) #TRUE
 
 
