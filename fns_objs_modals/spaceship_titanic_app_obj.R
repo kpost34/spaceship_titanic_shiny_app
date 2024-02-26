@@ -13,6 +13,11 @@ read_csv(here("data","train.csv")) %>%
   mutate(across(c(ticket, home_planet, deck, side, destination), ~as.factor(.x))) -> df_train
 
 
+#temporarily create a full DF
+df_train %>% 
+  mutate(across(where(is.double), ~log(.x + 1), .names="{.col}_scale")) -> df_train_full
+
+
 
 # Create vectors====================================================================================
 ## Col names (variables)--------------------
