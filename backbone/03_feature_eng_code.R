@@ -387,22 +387,18 @@ df_train_nd_nvI_tcF <- df_train_nd_nvI %>% #entering DF
 
 # Feature Selection=================================================================================
 #enter: df_train_nd_nvI_tcF
-#exit: df_train_nd_nvI_sF (selected features)
+#exit: df_train_select (selected features)
 
 ## Create vectors of names--original predictors and orig pred + engineered features via hard-coding
-
-#note: this should already be an obj in app code
+### Original predictors
 nm_var <- names(df_train_nd_nvI) %>%
   .[-c(1, 2, 6, 8, 18:21)]
 
-#by index
-# nm_fea <- names(df_train_nd_nvI_tcF) %>%
-#   .[-c(1, 2, 6, 8, 18:21)]
 
-#by logic
+### Original predictors + engineered features
 nm_fea <- names(df_train_nd_nvI_tcF) %>%
-  #all vars from nm_var + _size suffix
-  .[str_detect(., paste(c(nm_var, "_size$"), collapse="|"))]
+  #all vars from nm_var + _size suffix + floor
+  .[str_detect(., paste(c(nm_var, "_size$|floor"), collapse="|"))]
 
 
 ## Create pattern of suffixes
@@ -410,7 +406,7 @@ suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%
   paste(., collapse="|")
 
 
-## Isolate orig preds selected (even if modified) & remove from corresponding vars from feature vector
+## Isolate orig preds selected (even if modified) & remove corresponding vars from feature vector
 ### Isolate the roots of selected variables
 sel_vars <- nm_fea[c(19, 22, 23)]
 root_vars <- sel_vars %>% #selected 'spa_scale', 'ticket_ord', and 'ticket_rare'
@@ -418,55 +414,50 @@ root_vars <- sel_vars %>% #selected 'spa_scale', 'ticket_ord', and 'ticket_rare'
   unique() #remove duplicates
 
 
-### Put the roots into a search pattern and identify corresponding variables, 
+### Put the roots into a search pattern and identify corresponding variables
 root_vars_patt <- paste(root_vars, collapse="|") #combines roots into a string pattern
 matching_vars <- nm_fea[str_detect(nm_fea, root_vars_patt)] #finds & stores all vars containing roots
 dropped_vars <- matching_vars[!matching_vars %in% sel_vars] #identifies corresponding vars
 
 
-#STOPPING POINT
-nm_fea[!str_detect(nm_fea, root_var)] #remove all variables containing 'spa' in feature vector
+## Special case of selecting lux variable (and others)
+### Isolate the roots that compose the luxury variable and other variables
+sel_vars <- nm_fea[c(2, 20, 24, 25)] #home_planet, vr_deck_scale, travel_party_size, and lux var
+
+root_vars <- sel_vars %>% 
+  purrr::map(function(x) {
+    if(str_detect(x, "_lux$")) {
+      x %>%
+        str_remove("_lux") %>%
+        str_split_1("__") 
+    } else if(!str_detect(x, "_lux$")) {
+      x %>%
+        str_remove(suffixes)
+    }
+  }) %>%
+  unlist() %>% 
+  unique()
 
 
-## Handling lux variable (special case)
-### Split into chr vec to use as search
-lux_var <- "room_service__spa__vr_deck_lux"
-
-lux_vars <- lux_var %>%
-  str_remove("_lux$") %>% #remove '_lux' suffix
-  str_replace_all("__", "|") #replace '__' separator with '|' to aid in regex
-  
-
-### Put together in if...else
-#### Selected variable
-var_sel <- "spa_scale"
-# var_sel <- "room_service__spa__vr_deck_lux" #ex2: selected lux variable
-
-#### Generate search string
-var_drop <- if(str_detect(var_sel, "_lux$")) { #if chr ends with '_lux'
-  var_sel %>%
-    str_remove("_lux$") %>% #remove suffix
-    str_replace_all("__", "|") #replace '__' with '|'
-} else if(!str_detect(var_sel, "_lux$")) { #if it doesn't...
-  var_sel %>%
-    str_remove(suffixes) #remove one of the four other suffixes
-}
-
-tmp <- nm_fea[!str_detect(nm_fea, var_drop)] #remove all vars that contain the root(s) in var_sel
+## Put the roots into a search pattern and identify corresponding variables
+root_vars_patt <- paste(root_vars, collapse="|")
+matching_vars <- nm_fea[str_detect(nm_fea, root_vars_patt)]
+dropped_vars <- matching_vars[!matching_vars %in% sel_vars]
 
 
-#nm_fea will be a reactive object that shrinks as vars are selected and is used as choices available
-  #for that selector
+
+#NEXT = functionalize it!#
+#see ...func_03.R 
 
 
-## Create vec of remaining variables via function
-tmp2 <- deplete_var_pool(var_sel="spa_scale", var_pool=nm_fea)
-# tmp2 <- deplete_var_pool(var_sel="room_service__spa__vr_deck_lux", var_pool=nm_fea)
-setequal(tmp, tmp2) #TRUE
+## Test with second example
+dropped_vars #room_service, spa, vr_deck, room-service_scale, spa_scale, spa_dis
+
+id_dropped_vars(sel_vars=sel_vars,
+                var_pool=nm_fea)
+#same as above
 
 
-## Try with multiple variables selected
-deplete_var_pool(var_sel=c("spa__room_service__food_court_lux", "room_service_scale", "age"), var_pool=nm_fea)
 
 
 ## Select actual variables to continue with backbone code
