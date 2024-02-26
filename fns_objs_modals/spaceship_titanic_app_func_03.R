@@ -327,7 +327,7 @@ boxplotter2<-function(dat){
 
 
 # Feature Selection=================================================================================
-## Function to extract predictors into vec with classes as names,
+## Function to extract predictors into vec with classes as names
 extract_pred_class <- function(dat){
   dat %>% 
     #remove chr vars and dep var
@@ -367,21 +367,35 @@ comp_var_class <- function(var_sel, vars_vec, kind) {
 
 
 ## Function to identify removed variables
-id_dropped_vars <- function(dat, sel_vec) {
-  nm <- names(dat) 
+id_dropped_vars <- function(sel_vars, var_pool) {
+  #put suffixes of engineered features into chr
+  suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%  
+    paste(., collapse="|")
   
-  if(is.null(sel_vec)|length(sel_vec)==0) {
-    return(NULL)
-    
-  } else if(!is.null(sel_vec)) {
-    sel_roots <- str_remove_all(sel_vec, "_scale$|_dis$|_ord$|_rare$")
-    sel_roots_patt <- paste(sel_roots, collapse="|")
-    
-    matching_vars <- nm[str_detect(nm, sel_roots_patt)]
-    dropped_vars <- matching_vars[!matching_vars %in% sel_vec]
-    
-    return(dropped_vars)
-  }
+  #identify roots of selected variables & put into chr
+  root_vars_patt <- sel_vars %>% 
+    purrr::map(function(x) {
+      if(str_detect(x, "_lux$")) {
+        x %>%
+          str_remove("_lux") %>%
+          str_split_1("__") 
+      } else if(!str_detect(x, "_lux$")) {
+        x %>%
+          str_remove(suffixes)
+      }
+    }) %>%
+    unlist() %>% 
+    unique() %>%
+    paste(collapse="|")
+  
+  #identify all variables that contain at least 1 root variable in their names
+  matching_vars <- var_pool[str_detect(var_pool, root_vars_patt)]
+  
+  #identify the variables that correspond with the selected variables (to be droppped)
+  dropped_vars <- matching_vars[!matching_vars %in% sel_vars]
+  
+  return(dropped_vars)
+  
 }
 
 
