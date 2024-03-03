@@ -11,27 +11,23 @@ featSelUI <- function(id) {
              "Look at the variables once more before making your final decision.")),
     sidebarLayout(
       sidebarPanel(
+        linebreaks(2),
         #select variable for visualization
         selectizeInput(ns("sel_var_viz"), label="Select a variable to visualize", 
                      multiple=FALSE, 
                      choices=c("Please choose one"="")),
-        br(),
-        #select variables for training DF
-        uiOutput(ns("ui_rad_vars_model"))
-        #select variable for training DF
-        # selectizeInput(ns("sel_var_model"), label="Choose variables for model",
-        #                multiple=TRUE,
-        #                choices=c("Please select at least one"="")),
-        #confirmation button dynamically appears
-        # uiOutput(ns("ui_btn_model"))
+        linebreaks(2)
       ),
       #plot is the only output
       mainPanel(
         plotOutput(ns("plot_sel_var_viz"))
-        # br(),
-        # textOutput(ns("vars_info"))
       )
-    )
+    ),
+    h4(strong("Please choose at least three features to train model.")),
+      #select variables for training DF
+      uiOutput(ns("ui_rad_vars_model")),
+      #confirmation button dynamically appears (after one var is selected)
+      uiOutput(ns("ui_btn_model"))
   )
 }
 
@@ -94,6 +90,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     ## Inputs for Feature Selection--------------------
     ### Create set of UIs based on current variables
     output$ui_rad_vars_model <- renderUI({
+      #creates the set of radioButtons
       names(df_train_full)[!names(df_train_full) %in% c(chrVars, "transported")] %>%
         purrr::map(function(x) {
           radioButtons(inputId=ns(paste("rad", x, "model", sep="_")),
@@ -101,7 +98,27 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
                        choices=c("no", "yes"),
                        selected="no",
                        inline=TRUE)
-      })
+      }) -> rad_inputs
+      
+      #creates the logic behind splitting the inputs into columns
+      n <- length(rad_inputs)
+      set <- round(n/6)
+      col_first <- 1:set
+      col_second <- (set+1):(2*set)
+      col_third <- (2*set+1):(3*set)
+      col_fourth <- (3*set+1):(4*set)
+      col_fifth <- (4*set+1):(5*set)
+      col_sixth <- (5*set+1):n
+
+      #returns the inputs into three columns
+      tagList(
+        column(width=2, rad_inputs[col_first]),
+        column(width=2, rad_inputs[col_second]),
+        column(width=2, rad_inputs[col_third]),
+        column(width=2, rad_inputs[col_fourth]),
+        column(width=2, rad_inputs[col_fifth]),
+        column(width=2, rad_inputs[col_sixth])
+      )
     })
     
     
@@ -135,7 +152,6 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     
     ## Update vars_dropped using custom fn
     observeEvent(sel_vars(), {
-      req(sel_vars()) #without it then error is produced b/c of str_detect on empty string in id_dropped_vars()
       
       vars_dropped(
         id_dropped_vars(sel_vars=sel_vars(),
@@ -152,12 +168,23 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     
     
     ## Update radioButton choices to "no" only for variables that correspond to the selected ones
-    observeEvent(vars_dropped(), {
+    observeEvent(list(sel_vars(), vars_dropped()), {
+      #force corresponding variable to be "no"
       vars_dropped() %>%
         purrr::map(function(x) {
           updateRadioButtons(inputId=paste("rad", x, "model", sep="_"),
                              label=x,
                              choices=c("no"),
+                             selected="no",
+                             inline=TRUE)
+        })
+      
+      #bring back "yes" option of corresponding variable if user selects "yes" then "no"
+      ch_preds_full()[!ch_preds_full() %in% c(vars_dropped(), sel_vars())] %>%
+        purrr::map(function(x) {
+          updateRadioButtons(inputId=paste("rad", x, "model", sep="_"),
+                             label=x,
+                             choices=c("no", "yes"),
                              selected="no",
                              inline=TRUE)
         })

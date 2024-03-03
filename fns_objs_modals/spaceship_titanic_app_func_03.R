@@ -368,33 +368,37 @@ comp_var_class <- function(var_sel, vars_vec, kind) {
 
 ## Function to identify removed variables
 id_dropped_vars <- function(sel_vars, var_pool) {
-  #put suffixes of engineered features into chr
-  suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%  
-    paste(., collapse="|")
-  
-  #identify roots of selected variables & put into chr
-  root_vars_patt <- sel_vars %>% 
-    purrr::map(function(x) {
-      if(str_detect(x, "_lux$")) {
-        x %>%
-          str_remove("_lux") %>%
-          str_split_1("__") 
-      } else if(!str_detect(x, "_lux$")) {
-        x %>%
-          str_remove(suffixes)
-      }
-    }) %>%
-    unlist() %>% 
-    unique() %>%
-    paste(collapse="|")
-  
-  #identify all variables that contain at least 1 root variable in their names
-  matching_vars <- var_pool[str_detect(var_pool, root_vars_patt)]
-  
-  #identify the variables that correspond with the selected variables (to be droppped)
-  dropped_vars <- matching_vars[!matching_vars %in% sel_vars]
-  
-  return(dropped_vars)
+  if(sum(nchar(sel_vars))==0) {
+    dropped_vars <- NA
+  } else{
+    #put suffixes of engineered features into chr
+    suffixes <- c("_scale$", "_dis$", "_ord$", "_rare$") %>%  
+      paste(., collapse="|")
+    
+    #identify roots of selected variables & put into chr
+    root_vars_patt <- sel_vars %>% 
+      purrr::map(function(x) {
+        if(str_detect(x, "_lux$")) {
+          x %>%
+            str_remove("_lux") %>%
+            str_split_1("__") 
+        } else if(!str_detect(x, "_lux$")) {
+          x %>%
+            str_remove(suffixes)
+        }
+      }) %>%
+      unlist() %>% 
+      unique() %>%
+      paste(collapse="|")
+    
+    #identify all variables that contain at least 1 root variable in their names
+    matching_vars <- var_pool[str_detect(var_pool, root_vars_patt)]
+    
+    #identify the variables that correspond with the selected variables (to be droppped)
+    dropped_vars <- matching_vars[!matching_vars %in% sel_vars]
+  }
+    
+    return(dropped_vars)
   
 }
 
