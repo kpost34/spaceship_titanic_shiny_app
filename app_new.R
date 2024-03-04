@@ -84,21 +84,14 @@ spaceTitanicApp()
 
 #----------------------
 ## DONE
-#04-featSel: 
-  #fixed issue where x-axis and color scale were flipped for logical vars and 2-level factors
-  #removed empty gray box at start-up
-  #barplotter updated so that it can plot ordered factors (thus updated func_01 code)
-  #developed code to display selector for model, including dynamically updating choices
-  #added code to display button for confirming variables for model
+
 
 
 
 # LAST PUSHED COMMENT(S)
-#all module scripts
-  #used consistent line spacing & headers in ui & server code of modules, & all obj/fn scripts
-  #made all exported reactive DFs under a ## header with an explicit return() 
-#04a_main: added toast notification
-#04_featCreat: added toast notification
+#created button that displays once user selects at least 3 features
+#updated code that creates df_train_select() which contains pass id, transported, and selected
+  #features
 
 
 ## IN PROGRESS
@@ -109,10 +102,6 @@ spaceTitanicApp()
 
 #button in 04a_main: skip all transforms
 
-#put this on hold and went back to start.....
-#2. feature selection code
-  #b) use fn developed via backbone to incorporate logic such that if a user selects a column then 
-    #all directly related columns will drop out
 
 
 
@@ -125,13 +114,6 @@ spaceTitanicApp()
   #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
 
 
-#---------------------------------
-#feature engineering- selection
-  #then use names() to populate choices in selectize
-  #when user picks a variable that is related to other vars in the joined DF, those vars 
-    #will drop out (i.e., the choices needs to be a reactiveValue)
-    #e.g., if user selects 'spa_dis', then 'spa' disappears; if user selects 'spa_food_court'
-      #then 'spa' and 'spa_dis" disappear
 #---------------------------------
 
 #data imputation--does something to variable names and causes downstream problems???

@@ -23,11 +23,12 @@ featSelUI <- function(id) {
         plotOutput(ns("plot_sel_var_viz"))
       )
     ),
+    #confirmation button dynamically appears (after one var is selected)
+    uiOutput(ns("ui_btn_model")),
+    linebreaks(2),
     h4(strong("Please choose at least three features to train model.")),
       #select variables for training DF
-      uiOutput(ns("ui_rad_vars_model")),
-      #confirmation button dynamically appears (after one var is selected)
-      uiOutput(ns("ui_btn_model"))
+      uiOutput(ns("ui_rad_vars_model"))
   )
 }
 
@@ -88,7 +89,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     
     
     ## Inputs for Feature Selection--------------------
-    ### Create set of UIs based on current variables
+    ### Create set of radio buttons based on current variables
     output$ui_rad_vars_model <- renderUI({
       #creates the set of radioButtons
       names(df_train_full)[!names(df_train_full) %in% c(chrVars, "transported")] %>%
@@ -122,7 +123,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     })
     
     
-    ## Initialize reactiveVal sel_vars (for selected variables) & vars_dropped (vars corresponding to sel_vars)
+    ### Initialize reactiveVal sel_vars (for selected variables) & vars_dropped (vars corresponding to sel_vars)
     sel_vars <- reactiveVal(NULL)
     
     vars_dropped <- reactiveVal(NULL)
@@ -136,7 +137,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     })
     
     
-    ## Determine selected vars (when relevant inputs are equal to "yes")
+    ### Determine selected vars (when relevant inputs are equal to "yes")
     observe(
       sel_vars(
         var_inputs() %>%
@@ -150,7 +151,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     )
     
     
-    ## Update vars_dropped using custom fn
+    ### Update vars_dropped using custom fn
     observeEvent(sel_vars(), {
       
       vars_dropped(
@@ -160,14 +161,14 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     })
     
     
-    ## Print evidence that radioButtons are updating 
-    observeEvent(sel_vars(), {
-      print(paste0("sel_vars:", paste(sel_vars(), collapse=", ")))
-      print(paste0("vars_dropped:", paste(vars_dropped(), collapse=", ")))
-    })
+    #### Print evidence that radioButtons are updating [CAN DELETE LATER]
+    # observeEvent(sel_vars(), {
+    #   print(paste0("sel_vars:", paste(sel_vars(), collapse=", ")))
+    #   print(paste0("vars_dropped:", paste(vars_dropped(), collapse=", ")))
+    # })
     
     
-    ## Update radioButton choices to "no" only for variables that correspond to the selected ones
+    ### Update radioButton choices to "no" only for variables that correspond to the selected ones
     observeEvent(list(sel_vars(), vars_dropped()), {
       #force corresponding variable to be "no"
       vars_dropped() %>%
@@ -192,6 +193,29 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     
     
     
+    ## Feature selection confirmation button--------------------
+    ### Dynamically display button
+    output$ui_btn_model <- renderUI({
+      
+      #requires that sel_vars is not null (to avoid initial error)
+      req(sel_vars())
+      
+      #logic to display button--at least three "yes" responses
+      req(
+        ch_preds_full() %>%
+          purrr::map_int(function(x) {
+            input[[paste("rad", x, "model", sep="_")]]=="yes"
+          }) %>% {sum(.) >= 3}
+      )
+      
+      #generate button
+      actionButton(inputId=ns("btn_model"),
+                   label="Confirm feature selections",
+                   class="btn-success")
+    })
+    
+    
+    
     ## Export--------------------
     ### Apply selected variables to full training df
     df_train_select <- eventReactive(input$btn_model, {
@@ -201,30 +225,14 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     })
     
     
-    
-    ## Return DF--------------------
-    return(df_train_select)
-    
-    
     #check code
-    observeEvent(sel_vars(), {
-      print(df_train_select())
+    observeEvent(input$btn_model, {
+      print(paste("selected features:", paste(names(df_train_select()), collapse=", ")))
     })
     
-    
-    
-    #NOTES TO SELF:
-    #1) remove extraneous code
-    #2) organize code--this shouldn't all go under UI
-    #3) need to create analogous functions to app4_radbtn.R
-    
-    
-    #Updates to functionality
-    #1) remove predictor/variable num (no string variables or transported)
-    #2) selecting code is not working--not updating choices of analogous radioButton
-    #3) similar to 2 but with the composite variable
   
-  
+    ## Return DF--------------------
+    return(df_train_select)
   })
 }
 
