@@ -4,7 +4,7 @@
 ## Load packages
 pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat, finalfit, skimr,
                GGally, rstatix, naniar, mice, cowplot, GGally, ggiraph, shinyWidgets, Hmisc, 
-               simputation, shinydashboardPlus, shinycssloaders)
+               simputation, shinydashboardPlus, shinycssloaders, rsample)
 
 #address potential conflicts
 filter <- dplyr::filter
@@ -32,10 +32,10 @@ spaceTitanicApp <- function() {
   ui <- navbarPage(title="Spaceship Titanic Shiny App", id="mainTab", #posiiton="static-top",
     useShinyjs(),
     tabPanel(title="Data Check",
-      dataCheckUI("df"),
+      dataCheckUI("df")
     ),
     navbarMenu(title="EDA", menuName="EDA02",
-      edaUniUI("data1"),
+      edaUniUI("data1"), 
       edaBiUI("data2"),
       edaMultUI("data3")
     ),
@@ -43,11 +43,14 @@ spaceTitanicApp <- function() {
       missNumUI("dat1"),
       missNameUI("dat2"),
       missOtherUI("dat3")
-      ),
+    ),
     navbarMenu(title="Feature Engineering", menuName="Fea04",
       featTrans_mainUI("df1"),
       featCreatUI("df2"),
       featSelUI("df3")
+    ),
+    tabPanel(title="Data Partitioning",
+      dataPartUI("data")
     )
   )
   
@@ -69,7 +72,9 @@ spaceTitanicApp <- function() {
     #feature engineering
     df_train_nd_nvI_tF <- featTrans_mainServer("df1", df_train_nd_nvI) 
     df_train_nd_nvI_cF <- featCreatServer("df2", df_train_nd_nvI)
-    featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
+    df_train_select <- featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
+    
+    #data partitioning
     
 
   }
@@ -100,7 +105,9 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
 
-#button in 04a_main: skip all transforms
+### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
+  #develop app code and new module to build out navbar for data partitioning
+  #develop module server code to create partitions for validation
 
 
 
@@ -113,6 +120,7 @@ spaceTitanicApp()
   #update headers in fn and backbone codes--for accuracy
   #conditionally display tabs as user progresses through app (missingness, feature engineering, etc.)
 
+#button in 04a_main: skip all transforms
 
 #---------------------------------
 
@@ -122,8 +130,6 @@ spaceTitanicApp()
 
 #---------------------------------------------------------------------------------------------------
 #REMAINING OUTLINE (rough)
-### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
-
 
 ### 6. Modeling
 ## Create recipe (identify col as id var, predictor, or outcome)
