@@ -4,19 +4,22 @@
 dataCheckUI <- function(id) {
   ns <- NS(id)
   
-  sidebarLayout(
-    ## Input selectors for two tables
-    sidebarPanel(width=2,
-      selectInput01(ID=ns("sel_quick"), label="Quick data check", choices=ch_quick_dataCheck),
-      linebreaks(2),
-      selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=ch_summ_dataCheck),
-    ),
-    
-    ## Tabular outputs
-    mainPanel(width=10,
-      DTOutput(ns("tab_quick")),
-      linebreaks(2),
-      DTOutput(ns("tab_summ"))
+  tabPanel(title="Data Check",
+    titlePanel("Data Checking"),
+    sidebarLayout(
+      ## Input selectors for two tables
+      sidebarPanel(width=2,
+        selectInput01(ID=ns("sel_quick"), label="Quick data check", choices=ch_quick_dataCheck),
+        linebreaks(2),
+        selectInput01(ID=ns("sel_summ"), label="Data summaries", choices=ch_summ_dataCheck),
+      ),
+      
+      ## Tabular outputs
+      mainPanel(width=10,
+        DTOutput(ns("tab_quick")),
+        linebreaks(2),
+        DTOutput(ns("tab_summ"))
+      )
     )
   )
 }

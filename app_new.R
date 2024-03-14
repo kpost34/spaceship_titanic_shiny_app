@@ -31,9 +31,7 @@ spaceTitanicApp <- function() {
   ## UI
   ui <- navbarPage(title="Spaceship Titanic Shiny App", id="mainTab", #posiiton="static-top",
     useShinyjs(),
-    tabPanel(title="Data Check",
-      dataCheckUI("df")
-    ),
+    dataCheckUI("df"),
     navbarMenu(title="EDA", menuName="EDA02",
       edaUniUI("data1"), 
       edaBiUI("data2"),
@@ -49,9 +47,7 @@ spaceTitanicApp <- function() {
       featCreatUI("df2"),
       featSelUI("df3")
     ),
-    tabPanel(title="Data Partitioning",
-      dataPartUI("data")
-    )
+    dataPartUI("data")
   )
   
   ## Server
@@ -75,7 +71,7 @@ spaceTitanicApp <- function() {
     df_train_select <- featSelServer("df3", df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_nvI_cF)
     
     #data partitioning
-    
+    df_vfold <- dataPartServer("data", df_train_select)
 
   }
   
@@ -94,9 +90,20 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#created button that displays once user selects at least 3 features
-#updated code that creates df_train_select() which contains pass id, transported, and selected
-  #features
+#backbone 04: reduced number of repeats
+#app_new:
+  #Updated data partitioning code in server
+  #Re-structured UI code for data checking and data partitioning sections
+#01_dataCheck:
+  #added tabPanel and titlePanel to module
+#05_dataPart
+  #added tabPanel and titlePanel to module
+  #added server code logic to generate confirmation button, analysis and assessment tables of
+    #split sample, and exportable, reactive DF
+
+
+
+
 
 
 ## IN PROGRESS

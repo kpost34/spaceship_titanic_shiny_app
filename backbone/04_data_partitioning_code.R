@@ -15,7 +15,7 @@ source(here("backbone", "03_feature_eng_code.R"))
 #enter: df_train_select
 #exit: df_vfold
 
-#plan to use the following ranges:5 <= v <= 10; 1 <= repeats <= 10
+#plan to use the following ranges:5 <= v <= 10; 1 <= repeats <= 5
 
 ## Assess times of various vfold settings
 # v = 5, repeats = 1
