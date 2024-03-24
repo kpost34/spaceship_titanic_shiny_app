@@ -4,13 +4,70 @@
 # Part 5 of x:  modelling
 
 #load packages
-pacman::p_load(here, tidyverse, janitor, recipes, parsnip, workflows, yardstick)
+pacman::p_load(here, tidymodels) 
 
 
 # Read in Data from Data Partitioning===============================================================
 source(here("backbone", "04_data_partitioning_code.R"))
-#generates df_train_vfold
+#generates df_vfold
 
+
+
+# Modelling Code====================================================================================
+## Logistic regression--------------------
+### Define model
+ship_mod_log <- logistic_reg() %>%
+  set_engine("glm") %>%
+  set_mode("classification") %>%
+  translate()
+
+
+### Construct workflow
+ship_log_wf <- workflow() %>%
+  add_model(ship_mod_log) %>%
+  add_formula(transported ~ home_planet + side + destination + floor + travel_party_size +
+              age_scale + ticket_rare + room_service__spa__vr_deck_lux)
+
+
+### Fit multiple models via resampling
+set.seed(24)
+ship_log_fit_rs <- ship_log_wf %>%
+  fit_resamples(df_vfold)
+
+
+### View performance statistics
+collect_metrics(ship_log_fit_rs)
+
+
+
+## Decision trees via CART--------------------
+### Define model
+ship_mod_dt <- decision_tree() %>%
+  set_engine("rpart") %>%
+  set_mode("classification") %>%
+  translate()
+
+
+### Construct workflow
+ship_dt_wf <- workflow() %>%
+  add_model(ship_mod_dt) %>%
+  add_formula(transported ~ home_planet + side + destination + floor + travel_party_size +
+              age_scale + ticket_rare + room_service__spa__vr_deck_lux)
+
+
+### Fit multiple models via resampling
+set.seed(24)
+ship_dt_fit_rs <- ship_dt_wf %>%
+  fit_resamples(df_vfold)
+
+
+### View performance statistics
+collect_metrics(ship_dt_fit_rs)
+
+
+
+  
+  
 
 # Modelling Code====================================================================================
 ## Create recipe
