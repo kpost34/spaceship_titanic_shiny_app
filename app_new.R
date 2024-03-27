@@ -9,6 +9,7 @@ pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat,
 #address potential conflicts
 filter <- dplyr::filter
 chisq.test <- stats::chisq.test
+observe <- shiny::observe
 
 
 ## Source files
@@ -31,27 +32,48 @@ spaceTitanicApp <- function() {
   ## UI
   ui <- navbarPage(title="Spaceship Titanic Shiny App", id="mainTab", #posiiton="static-top",
     useShinyjs(),
+    
+    #data checking
     dataCheckUI("df"),
+    
+    #eda
     navbarMenu(title="EDA", menuName="EDA02",
       edaUniUI("data1"), 
       edaBiUI("data2"),
       edaMultUI("data3")
     ),
+    
+    #missingness
     navbarMenu(title="Missingness", menuName="Mis03",
       missNumUI("dat1"),
       missNameUI("dat2"),
       missOtherUI("dat3")
     ),
+    
+    #feature engineering
     navbarMenu(title="Feature Engineering", menuName="Fea04",
       featTrans_mainUI("df1"),
       featCreatUI("df2"),
       featSelUI("df3")
     ),
-    dataPartUI("data")
+    
+    #data partitioning
+    dataPartUI("data"),
+    
+    #modelling
+    navbarMenu(title="Modelling", menuName="Mod05",
+      modSelUI("dat1"),
+      modTuneUI("dat2")
+    )
+    
+    #testing
+    
+    
   )
   
   ## Server
   server <- function(input, output, session) {
+    
     #data checking
     dataCheckServer("df")
     
@@ -72,6 +94,12 @@ spaceTitanicApp <- function() {
     
     #data partitioning
     df_vfold <- dataPartServer("data", df_train_select)
+    
+    #modelling
+    model_type <- modSelServer("dat1", df_vfold)
+    model_final <- modTuneSever("dat2", model_type)
+    
+    #testing
 
   }
   
@@ -86,20 +114,18 @@ spaceTitanicApp()
 #----------------------
 ## DONE
 
+  
 
 
 
 # LAST PUSHED COMMENT(S)
-#backbone 04: reduced number of repeats
-#app_new:
-  #Updated data partitioning code in server
-  #Re-structured UI code for data checking and data partitioning sections
-#01_dataCheck:
-  #added tabPanel and titlePanel to module
-#05_dataPart
-  #added tabPanel and titlePanel to module
-  #added server code logic to generate confirmation button, analysis and assessment tables of
-    #split sample, and exportable, reactive DF
+#built out UI and server of app before developing new modules
+#backbone:
+  #03: removed travel_party_size as a feature
+  #04: retained df_vfold through backbone scripts by adding it as neglected obj in rm()
+  #05: updated code for cross-validation using logistic reg and decision trees by removing
+    #travel_party_size from formula & updated naming in decision tree chunk
+  #06: began creating tuning code for logistic reg and decision tree models
 
 
 
@@ -112,12 +138,11 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
 
-### 5. Data Partitioning: Divide training data into four subsamples for v-fold cross-validation
-  #develop app code and new module to build out navbar for data partitioning
-  #develop module server code to create partitions for validation
-
-
-
+### 7. Validation and tuning
+## Fit models to cross-validation folds
+## Tune models
+## Select best model and finalize workflow
+## Assess model characteristics
 
 
 #--------------------------------------------------------------------------------------------
@@ -138,19 +163,6 @@ spaceTitanicApp()
 #---------------------------------------------------------------------------------------------------
 #REMAINING OUTLINE (rough)
 
-### 6. Modeling
-## Create recipe (identify col as id var, predictor, or outcome)
-## Specify models
-## Construct workflow
-## Fit models 
-## Assess model accuracy
-
-
-### 7. Validation and tuning
-## Fit models to cross-validation folds
-## Tune models
-## Select best model and finalize workflow
-## Assess model characteristics
 
 
 ### 8. Testing

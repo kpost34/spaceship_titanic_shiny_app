@@ -467,7 +467,7 @@ df_train_select <- df_train_nd_nvI_tcF %>%
           #original vars
          home_planet, side, destination,
          #transformed/created vars
-         floor, travel_party_size, age_scale, ticket_rare, room_service__spa__vr_deck_lux) %>%
+         floor, age_scale, ticket_rare, room_service__spa__vr_deck_lux) %>%
   #convert transported to fct for modelling
   mutate(transported = as.factor(transported))
 

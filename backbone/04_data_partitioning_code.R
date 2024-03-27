@@ -86,7 +86,7 @@ df_vfold <- df_train_select %>%
 
 # Data Hygiene======================================================================================
 ## Remove extraneous obj
-rm(list=setdiff(ls(), "df_vfold"))
+rm(list=setdiff(ls(), c("df_vfold", "df_train_select")))
 
 
 
