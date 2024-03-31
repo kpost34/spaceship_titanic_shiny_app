@@ -119,15 +119,12 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#built out UI and server of app before developing new modules
-#backbone:
-  #03: removed travel_party_size as a feature
-  #04: retained df_vfold through backbone scripts by adding it as neglected obj in rm()
-  #05: updated code for cross-validation using logistic reg and decision trees by removing
-    #travel_party_size from formula & updated naming in decision tree chunk
-  #06: began creating tuning code for logistic reg and decision tree models
-
-
+#create choices (of model types) in obj script
+#added knn to modelling code (backbone)
+#created functions to grab formula from training DF and to create and fit models based on model
+  #type selection
+#began creating model selection module--UI for choosing model types, server-reactives for
+  #generating fit_resamples objs, and tabular outputs
 
 
 
@@ -137,6 +134,8 @@ spaceTitanicApp()
 
 #---------------------------------------------------------------------------------------------------
 ## TO DO 
+#need to create functions to easily fit models selected
+#add spinners (to help with processing time)
 
 ### 7. Validation and tuning
 ## Fit models to cross-validation folds

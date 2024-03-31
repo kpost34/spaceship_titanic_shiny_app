@@ -125,6 +125,9 @@ ch_lux_featCreat <- c("room_service",
                       "spa",
                       "vr_deck")
 
+ch_mod_type <- c("Logistic Regression"="log_reg",
+                 "Decision Trees"="dec_tree",
+                 "K-Nearest Neighbors"="knn")
 
 
 ## Long strings--------------------
@@ -167,6 +170,9 @@ varViz_feat<-"Please select a variable to visualize"
 varSel_feat<-"Please select which variables for ordinal encoding"
 varSelOrd_feat<-c("Rank all from least to most important"="")
 scaleOpt_feat<-"Please select the type of scaling for the list of numerical variables"
+
+
+
 
 
 

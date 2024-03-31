@@ -66,6 +66,32 @@ collect_metrics(ship_tree_fit_rs)
 
 
 
+## K-nearest neighbors via kknn--------------------
+### Define model
+ship_mod_knn <- nearest_neighbor() %>%
+  set_engine("kknn") %>%
+  set_mode("classification") %>%
+  translate()
+
+
+### Construct workflow
+ship_knn_wf <- workflow() %>%
+  add_model(ship_mod_knn) %>%
+  add_formula(transported ~ home_planet + side + destination + floor + age_scale + ticket_rare + 
+                room_service__spa__vr_deck_lux)
+
+
+### Fit multiple models via resampling
+set.seed(24)
+ship_knn_fit_rs <- ship_knn_wf %>%
+  fit_resamples(df_vfold)
+
+
+### View performance statistics
+collect_metrics(ship_knn_fit_rs)
+
+
+
   
   
 
