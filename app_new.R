@@ -4,12 +4,13 @@
 ## Load packages
 pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat, finalfit, skimr,
                GGally, rstatix, naniar, mice, cowplot, GGally, ggiraph, shinyWidgets, Hmisc, 
-               simputation, shinydashboardPlus, shinycssloaders, rsample)
+               simputation, shinydashboardPlus, shinycssloaders, rsample, tidymodels)
 
 #address potential conflicts
 filter <- dplyr::filter
 chisq.test <- stats::chisq.test
 observe <- shiny::observe
+translate <- parsnip::translate
 
 
 ## Source files
@@ -62,8 +63,8 @@ spaceTitanicApp <- function() {
     
     #modelling
     navbarMenu(title="Modelling", menuName="Mod05",
-      modSelUI("dat1"),
-      modTuneUI("dat2")
+      modSelUI("dat1")
+      # modTuneUI("dat2")
     )
     
     #testing
@@ -96,8 +97,8 @@ spaceTitanicApp <- function() {
     df_vfold <- dataPartServer("data", df_train_select)
     
     #modelling
-    model_type <- modSelServer("dat1", df_vfold)
-    model_final <- modTuneSever("dat2", model_type)
+    model_type <- modSelServer("dat1", df_train_select, df_vfold)
+    # model_final <- modTuneSever("dat2", model_type)
     
     #testing
 
@@ -119,12 +120,7 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#create choices (of model types) in obj script
-#added knn to modelling code (backbone)
-#created functions to grab formula from training DF and to create and fit models based on model
-  #type selection
-#began creating model selection module--UI for choosing model types, server-reactives for
-  #generating fit_resamples objs, and tabular outputs
+
 
 
 

@@ -16,7 +16,7 @@ source(here("backbone", "04_data_partitioning_code.R"))
 # Modelling Code====================================================================================
 ## Logistic regression--------------------
 ### Define model
-ship_mod_log <- logistic_reg() %>%
+ship_mod_log <- logistic_reg(penalty=0) %>%
   set_engine("glmnet") %>%
   set_mode("classification") %>%
   translate()
