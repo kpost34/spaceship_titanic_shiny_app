@@ -103,14 +103,14 @@ dataPartServer <- function(id, df_train_select) {
     
     ## Export--------------------
     df_vfold <- eventReactive(input$btn_confirm, {
-      df_vfold_tmp
+      df_vfold_tmp()
     })
     
     
     #check code
     observeEvent(input$btn_confirm, {
 
-      print(str(df_vfold()))
+      print(df_vfold())
     })
     
    

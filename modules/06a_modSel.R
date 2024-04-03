@@ -7,15 +7,15 @@ modSelUI <- function(id) {
   tabPanel(title="Model Selection",
     titlePanel("Model Selection"),
     sidebarLayout(
-      sidebarPanel(width=3,
+      sidebarPanel(width=2,
         checkboxGroupInput(ns("chk_mod"), label="Please select one or more model types for assessment",
                            choices=ch_mod_type),
         linebreaks(2),
         h4("Select a model type for tuning"),
         splitLayout(
-          actionButton(ns("btn_log")),
-          actionButton(ns("btn_tree")),
-          actionButton(ns("btn_knn"))
+          actionButton(ns("btn_log"), "Logistic Regression"),
+          actionButton(ns("btn_tree"), "Decision Trees"),
+          actionButton(ns("btn_knn"), "K-Nearest Neighbors")
         ),
         linebreaks(2),
         h4("Choose which hyperparameters to tune"), #included in label
@@ -26,7 +26,7 @@ modSelUI <- function(id) {
       ),
       
       ## Tabular outputs
-      mainPanel(width=9,
+      mainPanel(width=10,
         splitLayout(
           DTOutput(ns("tab_mod1")),
           DTOutput(ns("tab_mod2")),
@@ -41,7 +41,7 @@ modSelUI <- function(id) {
 
 
 # Server============================================================================================
-modSelServer <- function(id, df_vfold) {
+modSelServer <- function(id, df_train_select, df_vfold) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -49,40 +49,64 @@ modSelServer <- function(id, df_vfold) {
     ## Create reactives--------------------
     ### Extract formula
     form <- reactive({
-      grab_formula(df_train_select)
+      grab_formula(df_train_select())
     })
     
     
-    ### Model fitting and assessment
+    ### Model fitting and 
+    #### By model type
     #first model selected
-    fit_rs1 <- reactive({
+    fit_rs_log <- reactive({
       
-      req(input$chk_mod[1])
-      
-      create_fit_model(type=input$chk_mod[1],
+      create_fit_model(type="log_reg",
                        formula=form(),
                        folds=df_vfold())
     })
     
     #second model selected
-    fit_rs2 <- reactive({
+    fit_rs_tree <- reactive({
       
-      req(input$chk_mod[2])
-      
-      create_fit_model(type=input$chk_mod[2],
+      create_fit_model(type="dec_tree",
                        formula=form(),
                        folds=df_vfold())
     })
     
     
     #third model selected
-    fit_rs2 <- reactive({
+    fit_rs_knn <- reactive({
       
-      req(input$chk_mod[3])
-      
-      create_fit_model(type=input$chk_mod[3],
+      create_fit_model(type="knn",
                        formula=form(),
                        folds=df_vfold())
+    })
+    
+    
+    ### By model position
+    fit_rs1 <- reactive({
+      req(input$chk_mod[1])
+      
+      store_model(sel=input$chk_mod[1],
+                  mod_log=fit_rs_log(),
+                  mod_tree=fit_rs_tree(),
+                  mod_knn=fit_rs_knn())
+    })
+    
+    fit_rs2 <- reactive({
+      req(input$chk_mod[2])
+      
+      store_model(sel=input$chk_mod[2],
+                  mod_log=fit_rs_log(),
+                  mod_tree=fit_rs_tree(),
+                  mod_knn=fit_rs_knn())
+    })
+    
+    fit_rs3 <- reactive({
+      req(input$chk_mod[3])
+      
+      store_model(sel=input$chk_mod[3],
+                  mod_log=fit_rs_log(),
+                  mod_tree=fit_rs_tree(),
+                  mod_knn=fit_rs_knn())
     })
     
     
@@ -90,11 +114,10 @@ modSelServer <- function(id, df_vfold) {
     ### Model selection
     #first table
     output$tab_mod1 <- renderDT(
-      collect_metrics(fit_rs1()),
+      assess_model(fit_rs1()),
       rownames=FALSE, 
-      options=list(dom="tip",
+      options=list(dom="t",
                    autoWidth=TRUE,
-                   pageLength=5,
                    #center-justifies column header and text
                    columnDefs=list(list(className='dt-center', targets="_all"))),
       #creates a caption above table in large, black text
@@ -106,11 +129,10 @@ modSelServer <- function(id, df_vfold) {
     
     #second table
     output$tab_mod2 <- renderDT(
-      collect_metrics(fit_rs2()),
+      assess_model(fit_rs2()),
       rownames=FALSE, 
-      options=list(dom="tip",
+      options=list(dom="t",
                    autoWidth=TRUE,
-                   pageLength=5,
                    #center-justifies column header and text
                    columnDefs=list(list(className='dt-center', targets="_all"))),
       #creates a caption above table in large, black text
@@ -122,11 +144,10 @@ modSelServer <- function(id, df_vfold) {
     
     #third table
     output$tab_mod3 <- renderDT(
-      collect_metrics(fit_rs3()),
+      assess_model(fit_rs3()),
       rownames=FALSE, 
-      options=list(dom="tip",
+      options=list(dom="t",
                    autoWidth=TRUE,
-                   pageLength=5,
                    #center-justifies column header and text
                    columnDefs=list(list(className='dt-center', targets="_all"))),
       #creates a caption above table in large, black text

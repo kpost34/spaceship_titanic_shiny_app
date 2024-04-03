@@ -194,7 +194,7 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     
     
     ## Feature selection confirmation button--------------------
-    ### Dynamically display button
+    ### Dynamically display button 
     output$ui_btn_model <- renderUI({
       
       #requires that sel_vars is not null (to avoid initial error)
@@ -221,7 +221,9 @@ featSelServer <- function(id, df_train_nd_nvI, df_train_nd_nvI_tF, df_train_nd_n
     df_train_select <- eventReactive(input$btn_model, {
       df_train_full %>%
         #id field, selected variables, dependent variable
-        select(passenger_id, all_of(sel_vars()), transported)
+        select(passenger_id, all_of(sel_vars()), transported) %>%
+        #convert transported to fct for modelling
+        mutate(transported = as.factor(transported))
     })
     
     
