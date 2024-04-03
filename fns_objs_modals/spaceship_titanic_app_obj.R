@@ -15,7 +15,9 @@ read_csv(here("data","train.csv")) %>%
 
 #temporarily create a full DF
 df_train %>% 
-  mutate(across(where(is.double), ~log(.x + 1), .names="{.col}_scale")) -> df_train_full
+  mutate(across(where(is.double), ~log(.x + 1), .names="{.col}_scale")) %>%
+  #remove NAs by dropping rows
+  filter(if_all(everything(), ~!is.na(.x))) -> df_train_full
 
 
 

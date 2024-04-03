@@ -33,11 +33,13 @@ create_fit_model <- function(type, formula, folds) {
       set_engine("glmnet") %>%
       set_mode("classification") %>%
       translate()
+    
   } else if(type=="dec_tree") {
     decision_tree() %>%
       set_engine("rpart") %>%
       set_mode("classification") %>%
       translate()
+    
   } else if(type=="knn") {
     nearest_neighbor() %>%
       set_engine("kknn") %>%
@@ -52,12 +54,39 @@ create_fit_model <- function(type, formula, folds) {
   
   #fit models via resampling
   fit_rs <- wf %>%
-    fit_resamples(folds)
+    fit_resamples(resamples=folds)
   
   #return fit obj
   return(fit_rs)
 }
+
+
+## Store model by selection order
+store_model <- function(sel, mod_log, mod_tree, mod_knn) {
+
+  mod_obj <- if(sel=="log_reg") {
+    mod_log
+  
+  } else if(sel=="dec_tree") {
+   mod_tree
+  
+  } else if(sel=="knn") {
+    mod_knn
+  }
+}
+
+
+## Assess model
+assess_model <- function(fit_obj, simple=TRUE) {
+  fit_obj %>%
+    collect_metrics() %>%
+    select(-.estimator) %>%
+    rename(metric=".metric") %>%
+    {if(simple) 
+      select(., -.config) %>%
+        mutate(across(where(is.double), ~signif(.x, 3))) else .}
     
+}
 
 
 # Model Tuning======================================================================================
