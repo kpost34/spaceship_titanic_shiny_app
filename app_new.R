@@ -8,6 +8,7 @@ pacman::p_load(shiny, conflicted, here, tidyverse, janitor, shinyjs, DT, visdat,
 
 #address potential conflicts
 filter <- dplyr::filter
+select <- dplyr::select
 chisq.test <- stats::chisq.test
 observe <- shiny::observe
 translate <- parsnip::translate
@@ -115,17 +116,27 @@ spaceTitanicApp()
 #----------------------
 ## DONE
 
-  
-
 
 
 # LAST PUSHED COMMENT(S)
-
+#_obj:
+  #updated ch_mod_type to include "forest" instead of "knn"
+#func_04:
+  #updated create_fit_model() & store_model() following above update
+#module06a:
+  #added spaces between tables
+  #made model selection buttons vertical
+  #got table captions/titles to display vector names
 
 
 
 
 ## IN PROGRESS
+#add css_loader for random forests table
+
+
+#consider renaming fn and obj scripts--shorten to "ship_app_..."
+#consider renaming module 06a to simply 06 and changing app_new UI so that it's not a dropdown
 
 
 #---------------------------------------------------------------------------------------------------

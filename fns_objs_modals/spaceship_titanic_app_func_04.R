@@ -40,12 +40,13 @@ create_fit_model <- function(type, formula, folds) {
       set_mode("classification") %>%
       translate()
     
-  } else if(type=="knn") {
-    nearest_neighbor() %>%
-      set_engine("kknn") %>%
+  } else if(type=="forest") {
+    rand_forest() %>%
+      set_engine("ranger") %>%
       set_mode("classification") %>%
       translate()
   }
+    
   
   #construct workflow
   wf <- workflow() %>%
@@ -62,7 +63,7 @@ create_fit_model <- function(type, formula, folds) {
 
 
 ## Store model by selection order
-store_model <- function(sel, mod_log, mod_tree, mod_knn) {
+store_model <- function(sel, mod_log, mod_tree, mod_forest) {
 
   mod_obj <- if(sel=="log_reg") {
     mod_log
@@ -70,8 +71,8 @@ store_model <- function(sel, mod_log, mod_tree, mod_knn) {
   } else if(sel=="dec_tree") {
    mod_tree
   
-  } else if(sel=="knn") {
-    mod_knn
+  } else if(sel=="forest") {
+    mod_forest
   }
 }
 

@@ -12,11 +12,11 @@ modSelUI <- function(id) {
                            choices=ch_mod_type),
         linebreaks(2),
         h4("Select a model type for tuning"),
-        splitLayout(
+        # splitLayout(
           actionButton(ns("btn_log"), "Logistic Regression"),
           actionButton(ns("btn_tree"), "Decision Trees"),
-          actionButton(ns("btn_knn"), "K-Nearest Neighbors")
-        ),
+          actionButton(ns("btn_forest"), "Random Forest"),
+        # ),
         linebreaks(2),
         h4("Choose which hyperparameters to tune"), #included in label
         uiOutput(ns("ui_chk_hyper")),
@@ -27,10 +27,19 @@ modSelUI <- function(id) {
       
       ## Tabular outputs
       mainPanel(width=10,
-        splitLayout(
-          DTOutput(ns("tab_mod1")),
-          DTOutput(ns("tab_mod2")),
-          DTOutput(ns("tab_mod3"))
+        fluidRow(
+          column(3,
+        # splitLayout(
+            DTOutput(ns("tab_mod1"))
+          ),
+          column(1),
+          column(3,
+            DTOutput(ns("tab_mod2"))
+          ),
+          column(1),
+          column(3,
+            DTOutput(ns("tab_mod3"))
+          )
         ),
         br(),
         DTOutput(ns("tab_tune"))
@@ -73,9 +82,9 @@ modSelServer <- function(id, df_train_select, df_vfold) {
     
     
     #third model selected
-    fit_rs_knn <- reactive({
+    fit_rs_forest <- reactive({
       
-      create_fit_model(type="knn",
+      create_fit_model(type="forest",
                        formula=form(),
                        folds=df_vfold())
     })
@@ -88,7 +97,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       store_model(sel=input$chk_mod[1],
                   mod_log=fit_rs_log(),
                   mod_tree=fit_rs_tree(),
-                  mod_knn=fit_rs_knn())
+                  mod_forest=fit_rs_forest())
     })
     
     fit_rs2 <- reactive({
@@ -97,7 +106,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       store_model(sel=input$chk_mod[2],
                   mod_log=fit_rs_log(),
                   mod_tree=fit_rs_tree(),
-                  mod_knn=fit_rs_knn())
+                  mod_forest=fit_rs_forest())
     })
     
     fit_rs3 <- reactive({
@@ -106,7 +115,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       store_model(sel=input$chk_mod[3],
                   mod_log=fit_rs_log(),
                   mod_tree=fit_rs_tree(),
-                  mod_knn=fit_rs_knn())
+                  mod_forest=fit_rs_forest())
     })
     
     
@@ -123,7 +132,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       #creates a caption above table in large, black text
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        input$chk_mod[1])
+        ch_mod_type[ch_mod_type==input$chk_mod[1]] %>% names())
     )
     
     
@@ -138,7 +147,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       #creates a caption above table in large, black text
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        input$chk_mod[2])
+        ch_mod_type[ch_mod_type==input$chk_mod[2]] %>% names())
     )
     
     
@@ -153,7 +162,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
       #creates a caption above table in large, black text
       caption = htmltools::tags$caption(
         style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        input$chk_mod[3])
+        ch_mod_type[ch_mod_type==input$chk_mod[3]] %>% names())
     )
     
     

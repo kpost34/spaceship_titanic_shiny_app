@@ -129,7 +129,7 @@ ch_lux_featCreat <- c("room_service",
 
 ch_mod_type <- c("Logistic Regression"="log_reg",
                  "Decision Trees"="dec_tree",
-                 "K-Nearest Neighbors"="knn")
+                 "Random Forests"="forest")
 
 
 ## Long strings--------------------
