@@ -8,25 +8,28 @@ modSelUI <- function(id) {
     titlePanel("Model Selection"),
     sidebarLayout(
       sidebarPanel(width=2,
-        checkboxGroupInput(ns("chk_mod"), label="Please select one or more model types for assessment",
+        #assess model performance
+        checkboxGroupInput(ns("chk_mod"), 
+                           label="Please select one or more model types for assessment",
                            choices=ch_mod_type),
         linebreaks(2),
-        h4("Select a model type for tuning"),
-        # splitLayout(
-          actionButton(ns("btn_log"), "Logistic Regression"),
-          actionButton(ns("btn_tree"), "Decision Trees"),
-          actionButton(ns("btn_forest"), "Random Forest"),
-        # ),
+        #choose which model to tune
+        radioButtons(ns("rad_mod"), 
+                     "Select a model type for tuning",
+                     choices=ch_mod_type,
+                     selected=character(0)),
         linebreaks(2),
-        h4("Choose which hyperparameters to tune"), #included in label
-        uiOutput(ns("ui_chk_hyper")),
-        h4("Select hyperparameter values"), #included in label
-        
+        #hyperparams: select which ones
+        checkboxGroupInput(ns("chk_hyper"), label="", choices=NULL),
+        #hyperparams: choose number of levels
+        uiOutput(ns("ui_slid_hyper")),
+        #confirmation button
         uiOutput(ns("ui_btn_confirm")),
       ),
       
       ## Tabular outputs
       mainPanel(width=10,
+        #tables of summary stats of model types
         fluidRow(
           column(3,
         # splitLayout(
@@ -42,7 +45,15 @@ modSelUI <- function(id) {
           )
         ),
         br(),
-        DTOutput(ns("tab_tune"))
+        fluidRow(
+          column(3,
+            DTOutput(ns("tab_hyper_levels")),
+          ),
+          column(1),
+          column(8,
+            DTOutput(ns("tab_mod_tune"))
+          )
+        )
       )
     )
   )
@@ -55,7 +66,7 @@ modSelServer <- function(id, df_train_select, df_vfold) {
     
     ns <- session$ns
     
-    ## Create reactives--------------------
+    ## Create reactives of resample fits--------------------
     ### Extract formula
     form <- reactive({
       grab_formula(df_train_select())
@@ -167,7 +178,151 @@ modSelServer <- function(id, df_train_select, df_vfold) {
     
     
     
-
+    ## Hyperparameter UI--------------------
+    ### Conditionally display model-specific checkboxes
+    observeEvent(input$rad_mod, {
+      updateCheckboxGroupInput(inputId="chk_hyper",
+                               label="Choose which hyperparameters to tune",
+                               #conditionally populate choices arg
+                               choices=if(input$rad_mod=="log_reg") {
+                                 c("penalty", "mixture")
+                               } else if(input$rad_mod=="dec_tree") {
+                                 c("tree_depth", "min_n", "cost_complexity")
+                               } else if(input$rad_mod=="forest") {
+                                 c("mtry", "trees", "min_n")
+                               })
+    })
+                    
+    
+    ### Conditionally display slider
+    output$ui_slid_hyper <- renderUI({
+      req(input$chk_hyper) 
+      # req(length(input$chk_hyper) > 0)
+      
+      sliderInput(ns("slid_hyper"), 
+                  label="Choose number of levels for each hyperparameter",
+                  value=3, min=2, max=4)
+    })
+    
+    
+    ### Confirmation button for tuning
+    output$ui_btn_confirm <- renderUI({
+      req(input$chk_hyper)
+      # req(length(input$chk_hyper) > 0)
+      
+      actionButton(ns("btn_confirm"), 
+                   label="Confirm tuning selection",
+                   class="btn-primary")
+    })
+    
+    
+    ## Reactives associated with selected model type
+    ### Create model specification
+    tune_spec_log <- reactive({
+      #at least one hyperparameter box checked
+      req(input$chk_hyper)
+      # req(length(input$chk_hyper) > 0)
+    
+      log_reg_mod <- if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
+        logistic_reg(
+          penalty=tune(), 
+          mixture=tune()
+        )
+      } else if(str_detect(input$chk_hyper, "penalty")) {
+        logistic_reg(
+          penalty=tune()
+        )
+      } else if(str_detect(input$chk_hyper, "mixture")) {
+        logistic_reg(
+          mixture=tune()
+        )
+      }
+      
+      log_reg_mod %>%
+        set_engine("glmnet") %>%
+        set_mode("classification") %>%
+        translate()
+    })
+    
+    
+    ### Create grid of hyperparameters
+    param <- reactive({
+      req(input$chk_hyper)
+      req(input$slid_hyper)
+      
+      if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
+        parameters(penalty(), mixture())
+      } else if(str_detect(input$chk_hyper, "penalty")) {
+        parameters(penalty())
+      } else if(str_detect(input$chk_hyper, "mixture")) {
+        parameters(mixture())
+      }
+    })
+    
+    
+    log_hyper_levels <- reactive({
+      req(param())
+      req(input$slid_hyper)
+      
+      grid_regular(param(), levels=input$slid_hyper)
+    })
+    
+    
+    ### Construct workflow
+    log_wf <- reactive({
+      req(log_hyper_levels())
+      
+      workflow() %>%
+        add_model(tune_spec_log()) %>% #new model specification
+        add_formula(form()) 
+    })
+    
+    
+    ### Model tuning with a grid
+    log_tune <- reactive({
+      req(log_wf()) 
+      
+      log_wf() %>%
+        tune_grid(
+          resamples=df_vfold(),
+          grid=log_hyper_levels()
+        ) 
+    })
+    
+    
+    
+    ## Hyperparameter Output--------------------
+    ### Display tables
+    #### Grid of hyperparameters
+    output$tab_hyper_levels <- renderDT(
+      log_hyper_levels() %>%
+        mutate(across(everything(), ~signif(.x, 3))),
+      rownames=FALSE,
+      options=list(pageLength=9, dom="tip"),
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
+        "Model Tuning Grid")
+    )
+    
+    
+    #### Tuned model metrics
+    output$tab_mod_tune <- renderDT(
+      assess_model(log_tune(), simple=FALSE),
+      rownames=FALSE, 
+      options=list(pageLength=9, dom="tip",
+                   autoWidth=TRUE,
+                   #center-justifies column header and text
+                   columnDefs=list(list(className='dt-center', targets="_all"))),
+      #creates a caption above table in large, black text
+      caption = htmltools::tags$caption(
+        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
+        "Model Tuning Metrics")
+        # ch_mod_type[ch_mod_type==input$chk_mod[1]] %>% names())
+    )
+    
+    
+    
+    ### Display figures
     
     
     # ## Export--------------------

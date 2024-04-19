@@ -118,21 +118,33 @@ spaceTitanicApp()
 
 
 
+
 # LAST PUSHED COMMENT(S)
-#_obj:
-  #updated ch_mod_type to include "forest" instead of "knn"
-#func_04:
-  #updated create_fit_model() & store_model() following above update
-#module06a:
-  #added spaces between tables
-  #made model selection buttons vertical
-  #got table captions/titles to display vector names
+#app_new: updated annotations
+#06_model_tuning: specified translate() is from parsnip
+#...updated assess_model() such that if simple is TRUE then only .config drops
+#module 06a:
+  #UI:
+    #replaced actionButtons with radioButtons
+    #added checkbox group input and slider input (as ui output) for tuning
+    #organized tuning outputs into a row
+  #Server:
+    #conditionally display model-specific checkboxes, hyperparameter slider, & confirmation button
+    #created a set of reactives for the workflow that generates a tuned log reg model
+    #created code to display tables of hyperparameters and tuned model metrics
 
 
 
 
 ## IN PROGRESS
-#add css_loader for random forests table
+
+
+
+#creating reactives for workflow of selected model--will need function--then afterward need to
+  #display grid of grid selection followed by figures
+#dynamically display options for user to select combination of hyperparameters
+
+#add css_loader for multiple inputs on this page
 
 
 #consider renaming fn and obj scripts--shorten to "ship_app_..."

@@ -12,7 +12,7 @@ pacman::p_load(here, tidymodels, rpart.plot, vip)
 source(here("backbone", "05_modelling_code.R"))
 #generates df_vfold and the various model specification, workflow, and fit_resamples objects
 
-
+translate <- parsnip::translate
 
 # Tuning Hyperparameters============================================================================
 ## Logistic regression--------------------

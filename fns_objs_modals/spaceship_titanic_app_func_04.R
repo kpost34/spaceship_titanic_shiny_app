@@ -25,6 +25,7 @@ grab_formula <- function(df) {
 
 
 ## Create and fit model
+### No tuning
 create_fit_model <- function(type, formula, folds) {
   
   #define model
@@ -83,9 +84,8 @@ assess_model <- function(fit_obj, simple=TRUE) {
     collect_metrics() %>%
     select(-.estimator) %>%
     rename(metric=".metric") %>%
-    {if(simple) 
-      select(., -.config) %>%
-        mutate(across(where(is.double), ~signif(.x, 3))) else .}
+    {if(simple) select(., -.config) else .} %>%
+    mutate(across(where(is.double), ~signif(.x, 3)))
     
 }
 
