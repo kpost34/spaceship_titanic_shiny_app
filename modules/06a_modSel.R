@@ -32,7 +32,6 @@ modSelUI <- function(id) {
         #tables of summary stats of model types
         fluidRow(
           column(3,
-        # splitLayout(
             DTOutput(ns("tab_mod1"))
           ),
           column(1),
@@ -45,15 +44,15 @@ modSelUI <- function(id) {
           )
         ),
         br(),
-        fluidRow(
-          column(3,
-            DTOutput(ns("tab_hyper_levels")),
-          ),
-          column(1),
-          column(8,
+        # fluidRow(
+        #   column(3,
+        #     DTOutput(ns("tab_hyper_levels")),
+        #   ),
+        #   column(1),
+        #   column(8,
             DTOutput(ns("tab_mod_tune"))
-          )
-        )
+        #   )
+        # )
       )
     )
   )
@@ -216,98 +215,275 @@ modSelServer <- function(id, df_train_select, df_vfold) {
     })
     
     
-    ## Reactives associated with selected model type
+    ## Reactives associated with selected model type--------------------
     ### Create model specification
-    tune_spec_log <- reactive({
+    tune_spec_mod <- reactive({
       #at least one hyperparameter box checked
       req(input$chk_hyper)
-      # req(length(input$chk_hyper) > 0)
+      
+      log_param <- c("penalty", "mixture")
+      tree_param <- c("tree_depth", "min_n", "cost_complexity")
+      forest_param <- c("mtry", "trees", "min_n")
     
-      log_reg_mod <- if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
-        logistic_reg(
-          penalty=tune(), 
-          mixture=tune()
-        )
-      } else if(str_detect(input$chk_hyper, "penalty")) {
-        logistic_reg(
-          penalty=tune()
-        )
-      } else if(str_detect(input$chk_hyper, "mixture")) {
-        logistic_reg(
-          mixture=tune()
-        )
+      
+      if(input$rad_mod=="log_reg"){
+        log_reg_mod <- if(all(str_detect(input$chk_hyper, log_param))) {
+          logistic_reg(
+            penalty=tune(), 
+            mixture=tune()
+          )
+        } else if(input$chk_hyper=="penalty") {
+          logistic_reg(
+            penalty=tune()
+          )
+        } else if(input$chk_hyper=="mixture") {
+          logistic_reg(
+            penalty=tune(),
+            mixture=tune()
+          )
+        }
+        
+        log_reg_mod %>%
+          set_engine("glmnet") %>%
+          set_mode("classification") %>%
+          translate()
       }
       
-      log_reg_mod %>%
-        set_engine("glmnet") %>%
-        set_mode("classification") %>%
-        translate()
+      else if(input$rad_mod=="dec_tree"){
+        dec_tree_mod <- if(all(str_detect(input$chk_hyper, tree_param))) {
+          decision_tree(
+            tree_depth=tune(), 
+            min_n=tune(),
+            cost_complexity=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, tree_param[-3]))) {
+          decision_tree(
+            tree_depth=tune(), 
+            min_n=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, tree_param[-2]))) {
+          decision_tree(
+            tree_depth=tune(),
+            cost_complexity=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, tree_param[-1]))) {
+          decision_tree(
+            min_n=tune(),
+            cost_complexity=tune()
+          )
+        } else if(input$chk_hyper=="tree_depth") {
+          tree_depth=tune()
+        } else if(input$chk_hyper=="min_n") {
+          min_n=tune()
+        } else if(input$chk_hyper=="cost_complexity") {
+          cost_complexity=tune()
+        }
+        
+        dec_tree_mod %>%
+          set_engine("rpart") %>%
+          set_mode("classification") %>%
+          translate()
+      }
+        
+      else if(input$rad_mod=="forest") {
+        rand_forest_mod <- if(all(str_detect(input$chk_hyper, forest_param))) {
+          rand_forest(
+            mtry=tune(), 
+            trees=tune(),
+            min_n=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, forest_param[-3]))) {
+          rand_forest(
+            mtry=tune(), 
+            trees=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, forest_param[-2]))) {
+          rand_forest(
+            mtry=tune(),
+            min_n=tune()
+          )
+        } else if(all(str_detect(input$chk_hyper, forest_param[-1]))) {
+          rand_forest(
+            trees=tune(),
+            min_n=tune()
+          )
+        } else if(input$chk_hyper=="mtry") {
+          mtry=tune()
+        } else if(input$chk_hyper=="trees") {
+          trees=tune()
+        } else if(input$chk_hyper=="min_n") {
+          min_n=tune()
+        }
+        
+        rand_forest_mod %>%
+          set_engine("ranger") %>%
+          set_mode("classification") %>%
+          translate()
+      }
     })
+        
     
     
     ### Create grid of hyperparameters
-    param <- reactive({
+    hyper_levels <- reactive({
       req(input$chk_hyper)
       req(input$slid_hyper)
       
-      if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
-        parameters(penalty(), mixture())
-      } else if(str_detect(input$chk_hyper, "penalty")) {
-        parameters(penalty())
-      } else if(str_detect(input$chk_hyper, "mixture")) {
-        parameters(mixture())
-      }
-    })
-    
-    
-    log_hyper_levels <- reactive({
-      req(param())
-      req(input$slid_hyper)
+      log_param <- c("penalty", "mixture")
+      tree_param <- c("tree_depth", "min_n", "cost_complexity")
+      forest_param <- c("mtry", "trees", "min_n")
       
-      grid_regular(param(), levels=input$slid_hyper)
+      
+      param <- if(input$rad_mod=="log_reg") {
+        #if both selected or just mixture, then use both parameters
+        if(all(str_detect(input$chk_hyper, log_param))|input$chk_hyper=="mixture") {
+          parameters(penalty(), mixture())
+          #otherwise if just penalty, then use only penalty
+        } else if(input$chk_hyper=="penalty") {
+          parameters(penalty())
+        }
+        
+      } else if(input$rad_mod=="dec_tree") {
+          if(all(str_detect(input$chk_hyper, tree_param))) {
+          parameters(tree_depth(), min_n(), cost_complexity())
+        } else if(all(str_detect(input$chk_hyper, tree_param[-3]))) {
+          parameters(tree_depth(), min_n())
+        } else if(all(str_detect(input$chk_hyper, tree_param[-2]))) {
+          parameters(tree_depth(), cost_complexity())
+        } else if(all(str_detect(input$chk_hyper, tree_param[-1]))) {
+          parameters(min_n(), cost_complexity())
+        } else if(input$chk_hyper=="tree_depth") {
+          parameters(tree_depth())
+        } else if(input$chk_hyper=="min_n") {
+          parameters(min_n())
+        } else if(input$chk_hyper=="cost_complexity") {
+          parameters(cost_complexity())
+        }
+          
+        } else if(input$rad_mod=="forest") {
+          if(all(str_detect(input$chk_hyper, forest_param))) {
+          parameters(mtry(), trees(), min_n())
+        } else if(all(str_detect(input$chk_hyper, forest_param[-3]))) {
+          parameters(mtry(), trees())
+        } else if(all(str_detect(input$chk_hyper, forest_param[-2]))) {
+          parameters(mtry(), min_n())
+        } else if(all(str_detect(input$chk_hyper, forest_param[-1]))) {
+          parameters(trees(), min_n())
+        } else if(input$chk_hyper=="mtry") {
+          parameters(mtry())
+        } else if(input$chk_hyper=="trees") {
+          parameters(trees())
+        } else if(input$chk_hyper=="min_n") {
+          parameters(min_n())
+        }
+      }
+      
+      #conditionally create grid
+      if(input$chk_hyper=="mixture") {
+        grid_regular(param,
+                     filter = penalty < 0.01,
+                     levels = c(penalty=1, mixture=input$slid_hyper))
+      } else{grid_regular(param, levels=input$slid_hyper)}
     })
     
     
     ### Construct workflow
-    log_wf <- reactive({
-      req(log_hyper_levels())
+    tune_wf <- reactive({
+      req(hyper_levels())
       
       workflow() %>%
-        add_model(tune_spec_log()) %>% #new model specification
+        add_model(tune_spec_mod()) %>% #new model specification
         add_formula(form()) 
     })
     
-    
-    ### Model tuning with a grid
-    log_tune <- reactive({
-      req(log_wf()) 
       
-      log_wf() %>%
+    ### Model tuning with a grid
+    tune_grid_mod <- reactive({
+      req(tune_wf()) 
+      
+      tune_wf() %>%
         tune_grid(
           resamples=df_vfold(),
-          grid=log_hyper_levels()
+          grid=hyper_levels()
         ) 
     })
     
     
+    #NOTE: LOGISTIC REGRESSION ONLY#
+    ## Reactives associated with selected model type
+    ### Create model specification
+    # tune_spec_log <- reactive({
+    #   #at least one hyperparameter box checked
+    #   req(input$chk_hyper)
+    # 
+    #   log_reg_mod <- if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
+    #     logistic_reg(
+    #       penalty=tune(), 
+    #       mixture=tune()
+    #     )
+    #   } else if(str_detect(input$chk_hyper, "penalty")) {
+    #     logistic_reg(
+    #       penalty=tune()
+    #     )
+    #   } else if(str_detect(input$chk_hyper, "mixture")) {
+    #     logistic_reg(
+    #       mixture=tune()
+    #     )
+    #   }
+    #   
+    #   log_reg_mod %>%
+    #     set_engine("glmnet") %>%
+    #     set_mode("classification") %>%
+    #     translate()
+    # })
+    # 
+    # 
+    # ### Create grid of hyperparameters
+    # log_hyper_levels <- reactive({
+    #   req(input$chk_hyper)
+    #   req(input$slid_hyper)
+    #   
+    #   param <- if(all(str_detect(input$chk_hyper, c("penalty", "mixture")))) {
+    #     parameters(penalty(), mixture())
+    #   } else if(str_detect(input$chk_hyper, "penalty")) {
+    #     parameters(penalty())
+    #   } else if(str_detect(input$chk_hyper, "mixture")) {
+    #     parameters(mixture())
+    #   }
+    #   
+    #   grid_regular(param, levels=input$slid_hyper)
+    #   
+    # })
+    # 
+    # 
+    # ### Construct workflow
+    # log_wf <- reactive({
+    #   req(log_hyper_levels())
+    #   
+    #   workflow() %>%
+    #     add_model(tune_spec_log()) %>% #new model specification
+    #     add_formula(form()) 
+    # })
+    # 
+    # 
+    # ### Model tuning with a grid
+    # log_tune <- reactive({
+    #   req(log_wf()) 
+    #   
+    #   log_wf() %>%
+    #     tune_grid(
+    #       resamples=df_vfold(),
+    #       grid=log_hyper_levels()
+    #     ) 
+    # })
+    
+    
     
     ## Hyperparameter Output--------------------
-    ### Display tables
-    #### Grid of hyperparameters
-    output$tab_hyper_levels <- renderDT(
-      log_hyper_levels() %>%
-        mutate(across(everything(), ~signif(.x, 3))),
-      rownames=FALSE,
-      options=list(pageLength=9, dom="tip"),
-      caption = htmltools::tags$caption(
-        style = "caption-side: top; text-align: left; color:black;  font-size:150% ;",
-        "Model Tuning Grid")
-    )
-    
-    
+    ### Display visualizations
     #### Tuned model metrics
     output$tab_mod_tune <- renderDT(
-      assess_model(log_tune(), simple=FALSE),
+      assess_model(tune_grid_mod(), simple=FALSE),
       rownames=FALSE, 
       options=list(pageLength=9, dom="tip",
                    autoWidth=TRUE,

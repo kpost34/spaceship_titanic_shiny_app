@@ -120,29 +120,26 @@ spaceTitanicApp()
 
 
 # LAST PUSHED COMMENT(S)
-#app_new: updated annotations
-#06_model_tuning: specified translate() is from parsnip
-#...updated assess_model() such that if simple is TRUE then only .config drops
-#module 06a:
-  #UI:
-    #replaced actionButtons with radioButtons
-    #added checkbox group input and slider input (as ui output) for tuning
-    #organized tuning outputs into a row
-  #Server:
-    #conditionally display model-specific checkboxes, hyperparameter slider, & confirmation button
-    #created a set of reactives for the workflow that generates a tuned log reg model
-    #created code to display tables of hyperparameters and tuned model metrics
+#backbone 06: specified parsnip::translate and used filter arg in grid_regular()
+#func_04: set penalty to low, but non-zero value
+#module 06a: built out model type specific code for tuning models
 
 
 
 
 ## IN PROGRESS
+#1) log-reg penalty needs to be present in all models and simply set to 0 if not used in tuning
+#glmnet might be best engine b/c 1) it has hyperparams and 2) no need to convert fct to int
+#2) may need to switch back to str_detect() instead of '==' for cases where one hyperparam is
+  #selected to avoid error (or alternate cause/solution)
+#3) change action button name from "confirm tuning selection' to 'display results'
+#3) don't display model tuning metrics until 'display results' button is selected
+#4) add another button (in green) that says "confirm tuning selection' which confirms choices
+  #and creates new reactive
+#5) functionalize code in this module
+#6) update model tuning metrics table title so that it includes model type
 
 
-
-#creating reactives for workflow of selected model--will need function--then afterward need to
-  #display grid of grid selection followed by figures
-#dynamically display options for user to select combination of hyperparameters
 
 #add css_loader for multiple inputs on this page
 

@@ -5,19 +5,21 @@
 
 
 #load packages
-pacman::p_load(here, tidymodels, rpart.plot, vip)
+pacman::p_load(here, tidyverse, tidymodels, rpart.plot, vip)
+translate <- parsnip::translate
 
 
 # Read in Data from Data Partitioning===============================================================
 source(here("backbone", "05_modelling_code.R"))
 #generates df_vfold and the various model specification, workflow, and fit_resamples objects
 
-translate <- parsnip::translate
+
 
 # Tuning Hyperparameters============================================================================
 ## Logistic regression--------------------
 ### Create model specification
 tune_spec_log <- logistic_reg(
+    # penalty=0,
     penalty=tune(),
     mixture=tune()
 ) %>%
@@ -28,9 +30,10 @@ tune_spec_log <- logistic_reg(
 tune_spec_log
 
 ### Create grid of hyperparameters
-log_grid <- grid_regular(penalty(), 
-                          mixture(),
-                          levels=3) #app will have slider with 2-5
+log_grid <- grid_regular(mixture(),
+                         penalty(),
+                         filter = penalty < .01,
+                         levels=c(penalty = 1, mixture=3)) #app will have slider with 2-5
 
 log_grid
 
@@ -50,6 +53,7 @@ log_res <- log_wf %>%
     resamples=df_vfold,
     grid=log_grid
   )
+  
 
 log_res
 

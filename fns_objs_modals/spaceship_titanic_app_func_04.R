@@ -30,7 +30,7 @@ create_fit_model <- function(type, formula, folds) {
   
   #define model
   mod <- if(type=="log_reg") {
-    logistic_reg(penalty=0) %>%
+    logistic_reg(penalty=0.0000000001) %>%
       set_engine("glmnet") %>%
       set_mode("classification") %>%
       translate()
