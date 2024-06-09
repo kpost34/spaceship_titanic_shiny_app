@@ -267,16 +267,18 @@ df_train_nd %>%
 ### Populate some name values using passenger group (e.g. num_name of 1,  2,  or 3)
 #### Pull out vector of pass_groups (NOTE: turn this into function)
 passGroupNAnameSizes_tab %>%
-  filter(between(num_name, 1, 3)) %>%
+  filter(between(num_name, 1, 7)) %>% #trying 1-7
   pull(pass_groups) %>% 
   unlist() %>%
-  as.integer()-> passGroupNAnames1_3
+  as.integer() -> passGroupNAnames1_7
+  # as.integer() -> passGroupNAnames1_3
 
 
 #### Filter by passenger groups then fill by named passengers in pass groups (also a function)
 df_train_nd %>%
   #filter by passenger_group
-  filter(passenger_group %in% passGroupNAnames1_3) %>%
+  filter(passenger_group %in% passGroupNAnames1_7) %>%
+  # filter(passenger_group %in% passGroupNAnames1_3) %>%
   #populate l_name by passenger_group
   group_by(passenger_group) %>%
   fill(l_name) %>%
